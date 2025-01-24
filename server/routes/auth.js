@@ -55,6 +55,8 @@ router.post('/login', async (req, res) => {
     }
 
     console.log('User found:', user);
+    console.log("Plain password:", password.trim());
+    console.log("Hashed password from DB:", user.password);
 
     const isMatch = await bcrypt.compare(password, user.password);
     console.log('Password match:', isMatch);
