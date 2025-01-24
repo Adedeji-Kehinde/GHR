@@ -19,7 +19,7 @@ const authenticateToken = (req, res, next) => {
 
 // Register Route
 router.post('/register', async (req, res) => {
-  const { username, password, name, lastName, roomNumber, gender, phone } = req.body;
+  const { username, password, name, lastName, roomNumber, gender } = req.body;
 
   try {
     const existingUser = await User.findOne({ username });
@@ -33,7 +33,6 @@ router.post('/register', async (req, res) => {
       lastName,
       roomNumber,
       gender,
-      phone
     });
     await newUser.save();
 
@@ -49,30 +48,17 @@ router.post('/login', async (req, res) => {
 
   try {
     const user = await User.findOne({ username });
-    if (!user) {
-      console.log('User not found');
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-
-    console.log('User found:', user);
-    console.log("Plain password:", password.trim());
-    console.log("Hashed password from DB:", user.password);
+    if (!user) return res.status(400).json({ message: 'Invalid credentials' });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log('Password match:', isMatch);
-
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
+    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.json({ message: 'Login successful', token });
   } catch (error) {
-    console.error('Error during login:', error);
     res.status(500).json({ message: 'Server error', error });
   }
 });
-
 
 // Get User Details Route
 router.get('/user', authenticateToken, async (req, res) => {

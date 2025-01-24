@@ -8,7 +8,6 @@ const UserSchema = new mongoose.Schema({
   lastName: { type: String, required: true },
   roomNumber: { type: String, required: true },
   gender: { type: String, required: true, enum: ['Male', 'Female', 'Other'] },
-  phone: { type: String, required: true },
 });
 
 // Hash password before saving to the database
