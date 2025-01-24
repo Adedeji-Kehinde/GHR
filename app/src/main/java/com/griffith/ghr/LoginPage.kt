@@ -24,7 +24,7 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 
 // Data classes for login request and response
-data class LoginRequest(val username: String, val password: String)
+data class LoginRequest(val email: String, val password: String)
 data class LoginResponse(val message: String, val token: String?)
 
 // Retrofit API interface
@@ -35,7 +35,7 @@ interface AuthApi {
 
 @Composable
 fun LoginPage(navController: NavController) {
-    val username = remember { mutableStateOf("") }
+    val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val isLoading = remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
@@ -44,7 +44,7 @@ fun LoginPage(navController: NavController) {
     // Initialize Retrofit for your backend
     val retrofit = remember {
         Retrofit.Builder()
-            .baseUrl("https://ghr-49sy.onrender.com/") // Corrected base URL
+            .baseUrl("https://ghr-1.onrender.com") // Corrected base URL
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
@@ -73,11 +73,11 @@ fun LoginPage(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Username Input
+            // email Input
             OutlinedTextField(
-                value = username.value,
-                onValueChange = { username.value = it },
-                label = { Text("Username") },
+                value = email.value,
+                onValueChange = { email.value = it },
+                label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
@@ -101,7 +101,7 @@ fun LoginPage(navController: NavController) {
                         isLoading.value = true
                         try {
                             val response = authApi.login(
-                                LoginRequest(username.value, password.value)
+                                LoginRequest(email.value, password.value)
                             )
                             if (response.token != null) {
                                 // Store the token

@@ -31,7 +31,7 @@ import retrofit2.http.Header
 data class UserDetails(
     val name: String,
     val lastName: String,
-    val username: String
+    val email: String
 )
 
 // Retrofit API interface
@@ -53,7 +53,7 @@ fun MenuDrawerContent(navController: NavController) {
     // Initialize Retrofit
     val retrofit = remember {
         Retrofit.Builder()
-            .baseUrl("https://ghr-49sy.onrender.com/") // Replace with your backend URL
+            .baseUrl("https://ghr-1.onrender.com") // Replace with your backend URL
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
@@ -70,7 +70,7 @@ fun MenuDrawerContent(navController: NavController) {
                 try {
                     val userDetails = userApi.getUserDetails("Bearer $token")
                     userName = "${userDetails.name} ${userDetails.lastName}"
-                    userEmail = userDetails.username
+                    userEmail = userDetails.email
                 } catch (e: Exception) {
                     Log.e("MenuDrawerContent", "Error fetching user details", e)
                     Toast.makeText(

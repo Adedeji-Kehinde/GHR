@@ -34,7 +34,7 @@ data class UserProfile(
     val name: String,
     val lastName: String,
     val gender: String,
-    val username: String,
+    val email: String,
     val phone: String? = null
 )
 
@@ -63,7 +63,7 @@ fun UserProfilePage(navController: NavController) {
     // Initialize Retrofit
     val retrofit = remember {
         Retrofit.Builder()
-            .baseUrl("https://ghr-49sy.onrender.com/")
+            .baseUrl("https://ghr-1.onrender.com")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
@@ -81,7 +81,7 @@ fun UserProfilePage(navController: NavController) {
                     val userProfile = userProfileApi.getUserProfile("Bearer $token")
                     userName = "${userProfile.name} ${userProfile.lastName}"
                     userGender = userProfile.gender
-                    userEmail = userProfile.username
+                    userEmail = userProfile.email
                     userPhone = userProfile.phone ?: "Not Provided"
                 } catch (e: Exception) {
                     Log.e("UserProfilePage", "Error fetching user profile", e)
