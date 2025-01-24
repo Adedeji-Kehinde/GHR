@@ -2,74 +2,106 @@ const express = require('express');
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const authenticateToken = require('../middleware/authMiddleware.js'); // Import middleware
 const router = express.Router();
-
-// Middleware to authenticate the JWT token
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer <token>
-  if (!token) return res.status(401).json({ message: 'Access denied. No token provided.' });
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ message: 'Invalid token.' });
-    req.user = user; // Attach decoded user data to the request
-    next();
-  });
-};
 
 // Register Route
 router.post('/register', async (req, res) => {
-  const { username, password, name, lastName, roomNumber, gender } = req.body;
-
-  try {
-    const existingUser = await User.findOne({ username });
-    if (existingUser) return res.status(400).json({ message: 'User already exists' });
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({
-      username,
-      password: hashedPassword,
-      name,
-      lastName,
-      roomNumber,
-      gender,
-    });
-    await newUser.save();
-
-    res.status(201).json({ message: 'User registered successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
-  }
-});
-
-// Login Route
+    const { username, password, name, lastName, roomNumber, gender, phone, email } = req.body;
+    try {
+      // Check if the user already exists by username or email
+      const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+      if (existingUser) {
+        return res.status(400).json({ message: 'User already exists' });
+      }
+  
+      if (!password || password.length < 6) {
+        return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+      }
+  
+      // Create and save the new user
+      const newUser = new User({
+        username,
+        password, // In this implementation, the password is not hashed (per your earlier request)
+        name,
+        lastName,
+        roomNumber,
+        gender,
+        phone,
+        email,
+        createdAt: new Date()
+      });
+  
+      await newUser.save();
+  
+      // Respond with the stored user information
+      res.status(201).json({message: 'User registered successfully'});
+    } catch (error) {
+      console.error('Registration error:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  });
+  
+// Logi// Login Route
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+    const { username, password } = req.body;
+  
+    try {
+      const user = await User.findOne({ 
+        $or: [{ username }, { email: username }] 
+      });
+      
+      if (!user) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+  
+      // Use the schema's method to compare passwords
+      const isPasswordValid = await user.comparePassword(password);
+      if (!isPasswordValid) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+  
+      // Generate JWT token
+      const token = jwt.sign(
+        { id: user._id, username: user.username },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+  
+      res.status(200).json({message: 'Login successful',token});
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  });
+  
 
-  try {
-    const user = await User.findOne({ username });
-    if (!user) return res.status(400).json({ message: 'Invalid credentials' });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.json({ message: 'Login successful', token });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
-  }
-});
-
-// Get User Details Route
+// Protected Route to Get User Details
 router.get('/user', authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password'); // Exclude password field
+    const user = await User.findById(req.user.id).select('-password');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    res.json(user); // Send user data as response
+    res.json(user);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+
+// Protected Route to Get User Details
+router.get('/user', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+module.exports = router;
+
 
 module.exports = router;

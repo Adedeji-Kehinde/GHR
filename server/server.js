@@ -1,11 +1,16 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+const express = require("express");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+const cors = require("cors");
 
-dotenv.config(); // Load environment variables
+// Load environment variables from .env file
+dotenv.config();
 
 const app = express();
-app.use(express.json()); // Middleware to parse JSON
+
+// Middleware
+app.use(express.json()); // Parse JSON bodies
+app.use(cors()); // Enable CORS for cross-origin requests
 
 // MongoDB Connection
 mongoose
@@ -13,18 +18,29 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => console.log('MongoDB connected'))
+  .then(() => console.log("MongoDB connected successfully"))
   .catch((err) => {
-    console.error('MongoDB connection error:', err);
-    process.exit(1); // Exit process with failure
+    console.error("MongoDB connection error:", err);
+    process.exit(1); // Exit the process with failure
   });
 
 // Routes
-const authRoutes = require('./routes/auth');
-app.use('/api/auth', authRoutes);
+const authRoutes = require("./routes/auth"); // Import auth routes
+app.use("/api/auth", authRoutes); // Mount auth routes under "/api/auth"
 
-// Start the server
-const PORT = process.env.PORT || 5050;
+// Base Route
+app.get("/", (req, res) => {
+  res.send("Server is running!");
+});
+
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: "Internal Server Error" });
+});
+
+// Start the Server
+const PORT = process.env.PORT || 8000; // Use the port from .env or fallback to 8000
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
