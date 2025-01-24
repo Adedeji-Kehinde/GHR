@@ -1,60 +1,107 @@
 package com.griffith.ghr
 
+import android.content.Context
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberDrawerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.GET
+import retrofit2.http.Header
+
+// Data class for user details
+data class UserProfile(
+    val name: String,
+    val lastName: String,
+    val gender: String,
+    val username: String,
+    val phone: String? = null
+)
+
+// Retrofit API interface
+interface UserProfileApi {
+    @GET("api/auth/user")
+    suspend fun getUserProfile(@Header("Authorization") token: String): UserProfile
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserProfilePage(navController: NavController) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     // State for menu drawer
     val menuDrawerState = rememberDrawerState(DrawerValue.Closed)
-
-    // State for notification drawer
     val isNotificationDrawerOpen = remember { mutableStateOf(false) }
+
+    // State for user profile details
+    var userName by remember { mutableStateOf("Loading...") }
+    var userGender by remember { mutableStateOf("Loading...") }
+    var userEmail by remember { mutableStateOf("Loading...") }
+    var userPhone by remember { mutableStateOf("Loading...") }
+
+    // Initialize Retrofit
+    val retrofit = remember {
+        Retrofit.Builder()
+            .baseUrl("https://ghr-49sy.onrender.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    val userProfileApi = retrofit.create(UserProfileApi::class.java)
+
+    // Fetch user profile on first composition
+    LaunchedEffect(Unit) {
+        val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        val token = sharedPreferences.getString("authToken", null)
+
+        if (token != null) {
+            scope.launch {
+                try {
+                    val userProfile = userProfileApi.getUserProfile("Bearer $token")
+                    userName = "${userProfile.name} ${userProfile.lastName}"
+                    userGender = userProfile.gender
+                    userEmail = userProfile.username
+                    userPhone = userProfile.phone ?: "Not Provided"
+                } catch (e: Exception) {
+                    Log.e("UserProfilePage", "Error fetching user profile", e)
+                    Toast.makeText(
+                        context,
+                        "Failed to fetch profile. Please try again.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        } else {
+            Toast.makeText(
+                context,
+                "No authentication token found. Please log in again.",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
-        // Main Content with Menu Drawer
         ModalNavigationDrawer(
             drawerState = menuDrawerState,
             drawerContent = {
@@ -68,16 +115,13 @@ fun UserProfilePage(navController: NavController) {
                 topBar = {
                     AppHeader(
                         onMenuClick = {
-                            scope.launch {
-                                menuDrawerState.open() // Open the menu drawer
-                            }
+                            scope.launch { menuDrawerState.open() }
                         },
                         onNotificationClick = {
-                            // Open the notification drawer
                             isNotificationDrawerOpen.value = true
                         },
                         navController = navController,
-                        showBackButton = true // Show back button to navigate back
+                        showBackButton = true
                     )
                 },
                 content = { innerPadding ->
@@ -97,11 +141,11 @@ fun UserProfilePage(navController: NavController) {
                             contentAlignment = Alignment.Center
                         ) {
                             Image(
-                                painter = painterResource(id = R.drawable.app_logo), // Replace with actual profile image
+                                painter = painterResource(id = R.drawable.app_logo),
                                 contentDescription = "Profile Image",
                                 modifier = Modifier
-                                    .size(120.dp) // Ensure the image matches the circle size
-                                    .clip(CircleShape) // Clip the image into a circle
+                                    .size(120.dp)
+                                    .clip(CircleShape)
                             )
                         }
 
@@ -109,7 +153,7 @@ fun UserProfilePage(navController: NavController) {
 
                         // User Name
                         Text(
-                            text = "John Doe", // Replace with actual user name
+                            text = userName,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
@@ -117,84 +161,46 @@ fun UserProfilePage(navController: NavController) {
 
                         Spacer(modifier = Modifier.height(32.dp))
 
-                        // User Details Box with Rounded Corners and Black Outline
+                        // User Details Box
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(
                                     color = MaterialTheme.colorScheme.surface,
-                                    shape = MaterialTheme.shapes.medium
+                                    shape = RoundedCornerShape(16.dp)
                                 )
-                                .border(
-                                    1.dp,
-                                    Color.Black,
-                                    shape = MaterialTheme.shapes.medium
-                                ) // Black outline
+                                .border(1.dp, Color.Black, RoundedCornerShape(16.dp))
                                 .padding(16.dp)
                         ) {
                             Column {
-                                UserDetailRow(label = "Gender", detail = "Male")
+                                UserDetailRow(label = "Gender", detail = userGender)
                                 HorizontalDivider(color = Color.Gray, thickness = 0.5.dp)
-                                UserDetailRow(label = "Email", detail = "john.doe@example.com")
+                                UserDetailRow(label = "Email", detail = userEmail)
                                 HorizontalDivider(color = Color.Gray, thickness = 0.5.dp)
-                                UserDetailRow(label = "Phone", detail = "+1 234 567 8901")
+                                UserDetailRow(label = "Phone", detail = userPhone)
                             }
                         }
                     }
                 }
             )
         }
-        // Notification Drawer Overlay
+
         if (isNotificationDrawerOpen.value) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f)) // Dim background
-                    .clickable {
-                        isNotificationDrawerOpen.value =
-                            false // Close drawer when background is clicked
-                    }
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .clickable { isNotificationDrawerOpen.value = false }
             )
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width((2 * LocalConfiguration.current.screenWidthDp / 3).dp) // 2/3 width
+                    .width((2 * LocalConfiguration.current.screenWidthDp / 3).dp)
                     .align(Alignment.TopEnd)
-                    .background(
-                        Color.White,
-                        shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)
-                    ) // Apply rounded corners only on the left side
+                    .background(Color.White, shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
             ) {
                 NotificationDrawerBox()
             }
         }
-    }
-}
-
-@Composable
-fun UserDetailRow(label: String, detail: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Label on the left
-        Text(
-            text = label,
-            fontSize = 16.sp,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.weight(1f)
-        )
-
-        // Detail on the right
-        Text(
-            text = detail,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.weight(1f),
-            textAlign = androidx.compose.ui.text.style.TextAlign.End
-        )
     }
 }

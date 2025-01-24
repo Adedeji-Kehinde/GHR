@@ -310,3 +310,31 @@ fun ImageBox(uri: Uri, size: Dp, onRemove: () -> Unit, onExpand: () -> Unit) {
         }
     }
 }
+
+@Composable
+fun UserDetailRow(label: String, detail: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Label on the left
+        Text(
+            text = label,
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.weight(1f)
+        )
+
+        // Detail on the right
+        Text(
+            text = detail,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.weight(1f),
+            textAlign = androidx.compose.ui.text.style.TextAlign.End
+        )
+    }
+}
