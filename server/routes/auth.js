@@ -7,10 +7,10 @@ const router = express.Router();
 
 // Register Route
 router.post('/register', async (req, res) => {
-    const {  password, name, lastName, roomNumber, gender, phone, email } = req.body;
+    const {password, name, lastName, roomNumber, gender, phone, email } = req.body;
     try {
       // Check if the user already exists by username or email
-      const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+      const existingUser = await User.findOne({email});
       if (existingUser) {
         return res.status(400).json({ message: 'User already exists' });
       }
