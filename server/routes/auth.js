@@ -19,15 +19,15 @@ const authenticateToken = (req, res, next) => {
 
 // Register Route
 router.post('/register', async (req, res) => {
-  const { email, password, name, lastName, roomNumber, gender, phone } = req.body;
+  const { username, password, name, lastName, roomNumber, gender, phone } = req.body;
 
   try {
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ username });
     if (existingUser) return res.status(400).json({ message: 'User already exists' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
-      email,
+      username,
       password: hashedPassword,
       name,
       lastName,
@@ -45,10 +45,10 @@ router.post('/register', async (req, res) => {
 
 // Login Route
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { username, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ username });
     if (!user) return res.status(400).json({ message: 'Invalid credentials' });
 
     const isMatch = await bcrypt.compare(password, user.password);
