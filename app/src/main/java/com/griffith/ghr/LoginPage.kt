@@ -1,5 +1,7 @@
 package com.griffith.ghr
 
+import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -42,7 +44,7 @@ fun LoginPage(navController: NavController) {
     // Initialize Retrofit for your backend
     val retrofit = remember {
         Retrofit.Builder()
-            .baseUrl("http://localhost:5050/") // Replace with your backend URL; "10.0.2.2" is localhost for emulator
+            .baseUrl("https://ghr-49sy.onrender.com/") // Corrected base URL
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
@@ -102,13 +104,18 @@ fun LoginPage(navController: NavController) {
                                 LoginRequest(username.value, password.value)
                             )
                             if (response.token != null) {
+                                // Store the token
+                                val sharedPreferences =
+                                    context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                                sharedPreferences.edit()
+                                    .putString("authToken", response.token).apply()
+
                                 Toast.makeText(
                                     context,
-                                    "Login Successful: ${response.message}",
+                                    "Login Successful",
                                     Toast.LENGTH_LONG
                                 ).show()
-                                navController.navigate("HomePage")
-                                // Navigate to another activity or save the token
+                                navController.navigate("HomePage") // Navigate to HomePage
                             } else {
                                 Toast.makeText(
                                     context,
@@ -117,6 +124,7 @@ fun LoginPage(navController: NavController) {
                                 ).show()
                             }
                         } catch (e: Exception) {
+                            Log.e("LoginError", "Error during login", e)
                             Toast.makeText(
                                 context,
                                 "Error: ${e.message}",
