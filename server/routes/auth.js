@@ -1,6 +1,6 @@
 const express = require('express');
 const User = require('../models/User');
-const Delivery = require('../models/Delivery'); // Import the Delivery model
+const Delivery = require('../models/deliveries'); // Import the Delivery model
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const authenticateToken = require('../middleware/authMiddleware.js'); // Import middleware
