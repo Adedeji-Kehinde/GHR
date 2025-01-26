@@ -3,6 +3,7 @@ package com.griffith.ghr
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -336,5 +337,69 @@ fun UserDetailRow(label: String, detail: String) {
             modifier = Modifier.weight(1f),
             textAlign = androidx.compose.ui.text.style.TextAlign.End
         )
+    }
+}
+
+@Composable
+fun DeliveryCard(navController: NavController, delivery: Delivery) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(end = 8.dp) // Right padding
+            .clickable { // Navigate to DeliveryDetailsPage with parcel details
+                navController.navigate("DeliveryDetailsPage/${delivery.parcelNumber.joinToString("")}")
+            },
+        shape = RoundedCornerShape(8.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Left Column: Delivery Details
+            Column(
+                modifier = Modifier.weight(1f) // Take up available space
+            ) {
+                // Main text
+                Text(
+                    text = "Arrived at: ${delivery.arrivedAt}",
+                    fontSize = 14.sp, // Adjusted font size
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.Black
+                )
+                // Secondary text
+                Text(
+                    text = delivery.description,
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp)) // Add space between columns
+
+            // Right Column: Parcel Number
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                delivery.parcelNumber.forEach { digit ->
+                    Box(
+                        modifier = Modifier
+                            .width(24.dp) // Smaller width for rectangular shape
+                            .height(36.dp) // Rectangular shape
+                            .background(Color.White, shape = RoundedCornerShape(4.dp))
+                            .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = digit.toString(),
+                            fontSize = 14.sp, // Adjusted font size to fit neatly
+                            color = Color.Black
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(4.dp)) // Space between digit boxes
+                }
+            }
+        }
     }
 }

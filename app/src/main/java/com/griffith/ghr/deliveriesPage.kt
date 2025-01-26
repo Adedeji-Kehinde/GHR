@@ -1,8 +1,10 @@
 package com.griffith.ghr
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -10,7 +12,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
@@ -110,25 +115,45 @@ fun DeliveriesPageContent(
     innerPadding: PaddingValues,
     selectedTab: Int
 ) {
+    val deliveries = remember { mutableStateListOf<Delivery>() } // Replace with actual data fetching
+    val context = LocalContext.current
+
+    // Dummy data for testing purposes
+    LaunchedEffect(Unit) {
+        deliveries.addAll(
+            listOf(
+                Delivery("2025-01-01", "Letter", "Parcel from Amazon", listOf(0, 0, 1)),
+                Delivery("2025-01-03", "Package", "Gadget delivery", listOf(2, 3, 4)),
+                Delivery("2025-01-05", "Letter", "Bank statement", listOf(5, 6, 7))
+            )
+        )
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Red) // Background color set to Red
-            .padding(innerPadding) // Apply inner padding
+            .background(Color.White)
+            .padding(innerPadding)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(16.dp)
         ) {
-            // Display content based on the selected tab
-            when (selectedTab) {
-                0 -> Text(text = "To Collect Deliveries", color = Color.White)
-                1 -> Text(text = "Collected Deliveries", color = Color.White)
-                2 -> Text(text = "Cancelled Deliveries", color = Color.White)
+            deliveries.forEach { delivery ->
+                DeliveryCard(navController = navController, delivery = delivery)
+                Spacer(modifier = Modifier.height(8.dp)) // Add spacing between cards
             }
         }
     }
 }
+
+
+
+// Updated Delivery Data Class
+data class Delivery(
+    val arrivedAt: String,
+    val parcelType: String,
+    val description: String,
+    val parcelNumber: List<Int> // Changed to List<Int> for individual digit boxes
+)

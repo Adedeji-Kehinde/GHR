@@ -1,9 +1,11 @@
 package com.griffith.ghr
 
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 
 @Composable
 fun NavGraph() {
@@ -24,6 +26,17 @@ fun NavGraph() {
 
         // Navigate to Deliveries page
         composable("DeliveriesPage") { DeliveriesPage(navController) }
+
+        // Navigate to Delivery Details page
+        composable(
+            "DeliveryDetailsPage/{parcelNumber}",
+            arguments = listOf(navArgument("parcelNumber") { type = NavType.StringType })
+        ) { backStackEntry ->
+            DeliveryDetailsPage(
+                navController = navController,
+                parcelNumber = backStackEntry.arguments?.getString("parcelNumber") ?: ""
+            )
+        }
 
         // Navigate to Maintenance page
         composable("MaintenancePage") { MaintenancePage(navController) }
