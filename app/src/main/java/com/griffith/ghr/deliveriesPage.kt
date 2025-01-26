@@ -1,5 +1,7 @@
 package com.griffith.ghr
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,6 +20,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.GET
+import retrofit2.http.Header
+import androidx.compose.runtime.LaunchedEffect
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Composable
 fun DeliveriesPage(navController: NavController) {
@@ -109,24 +118,46 @@ fun DeliveriesPage(navController: NavController) {
     }
 }
 
+
+
+// Retrofit API interface
+interface DeliveryApi {
+    @GET("api/auth/deliveries") // Replace with your backend endpoint
+    suspend fun getDeliveries(@Header("Authorization") token: String): List<Delivery>
+}
+
 @Composable
 fun DeliveriesPageContent(
     navController: NavController,
     innerPadding: PaddingValues,
     selectedTab: Int
 ) {
-    val deliveries = remember { mutableStateListOf<Delivery>() } // Replace with actual data fetching
+    val deliveries = remember { mutableStateListOf<Delivery>() }
     val context = LocalContext.current
 
-    // Dummy data for testing purposes
+    // Retrofit setup
+    val retrofit = remember {
+        Retrofit.Builder()
+            .baseUrl("https://ghr-1.onrender.com") // Replace with your backend URL
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+    val deliveryApi = retrofit.create(DeliveryApi::class.java)
+
+    // Fetch all deliveries
     LaunchedEffect(Unit) {
-        deliveries.addAll(
-            listOf(
-                Delivery("2025-01-01", "Letter", "Parcel from Amazon", listOf(0, 0, 1)),
-                Delivery("2025-01-03", "Package", "Gadget delivery", listOf(2, 3, 4)),
-                Delivery("2025-01-05", "Letter", "Bank statement", listOf(5, 6, 7))
-            )
-        )
+        val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        val token = sharedPreferences.getString("authToken", null)
+
+        if (token != null) {
+            try {
+                val allDeliveries = deliveryApi.getDeliveries("Bearer $token")
+                deliveries.clear()
+                deliveries.addAll(allDeliveries) // Add all deliveries to the list
+            } catch (e: Exception) {
+                Log.e("DeliveriesPageContent", "Error fetching deliveries: ${e.message}")
+            }
+        }
     }
 
     Box(
@@ -148,12 +179,91 @@ fun DeliveriesPageContent(
     }
 }
 
+@Composable
+fun DeliveryCard(navController: NavController, delivery: Delivery) {
+    // Format the date and time
+    val formattedDateTime = remember(delivery.arrivedAt) {
+        try {
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()) // Assuming ISO format
+            val outputFormat = SimpleDateFormat("EEE, dd MMM yyyy, HH:mm", Locale.getDefault()) // Date with time
+            val date = inputFormat.parse(delivery.arrivedAt)
+            outputFormat.format(date ?: delivery.arrivedAt)
+        } catch (e: Exception) {
+            delivery.arrivedAt // Fallback to original if parsing fails
+        }
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp) // Add top and bottom padding
+            .clickable { // Navigate to DeliveryDetailsPage with parcel details
+                navController.navigate("DeliveryDetailsPage/${delivery.parcelNumber}")
+            },
+        shape = RoundedCornerShape(8.dp), // Rounded rectangle shape
+        elevation = CardDefaults.cardElevation(4.dp), // Add elevation for shadow
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Left Column: Delivery Details
+            Column(
+                modifier = Modifier.weight(1f) // Take up available space
+            ) {
+                // Display formatted date and time
+                Text(
+                    text = formattedDateTime, // Use the formatted date and time
+                    fontSize = 14.sp, // Adjusted font size
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.Black
+                )
+                // Parcel type below
+                Text(
+                    text = delivery.parcelType, // Parcel type (e.g., Letter, Package)
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp)) // Add space between columns
+
+            // Right Column: Parcel Number
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                delivery.parcelNumber.chunked(1).forEach { digit ->
+                    Box(
+                        modifier = Modifier
+                            .width(28.dp)
+                            .height(40.dp)
+                            .background(Color.White, shape = RoundedCornerShape(4.dp))
+                            .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = digit,
+                            fontSize = 14.sp,
+                            color = Color.Black
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(4.dp)) // Space between digit boxes
+                }
+            }
+        }
+    }
+}
 
 
-// Updated Delivery Data Class
+
+
 data class Delivery(
-    val arrivedAt: String,
-    val parcelType: String,
-    val description: String,
-    val parcelNumber: List<Int> // Changed to List<Int> for individual digit boxes
+    val arrivedAt: String, // Date as a string or formatted datetime
+    val parcelType: String, // Type of parcel: Letter or Package
+    val parcelNumber: String // Parcel number as a string
 )
+
+

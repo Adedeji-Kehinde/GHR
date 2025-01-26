@@ -1,5 +1,7 @@
 package com.griffith.ghr
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,11 +12,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.Path
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,6 +34,43 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
 
     // State for notification drawer
     val isNotificationDrawerOpen = remember { mutableStateOf(false) }
+
+    // States for delivery details
+    var arrivedAt by remember { mutableStateOf<String?>(null) }
+    var sender by remember { mutableStateOf<String?>(null) }
+    var parcelType by remember { mutableStateOf<String?>(null) }
+    var description by remember { mutableStateOf<String?>(null) }
+    var collectedAt by remember { mutableStateOf<String?>(null) }
+
+    val context = LocalContext.current
+
+    // Retrofit setup
+    val retrofit = remember {
+        Retrofit.Builder()
+            .baseUrl("https://ghr-1.onrender.com") // Replace with your backend URL
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+    val deliveryApi = retrofit.create(DeliveryApi::class.java)
+
+    // Fetch delivery details on page load
+    LaunchedEffect(parcelNumber) {
+        val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        val token = sharedPreferences.getString("authToken", null)
+
+        if (token != null) {
+            try {
+                val delivery = deliveryApi.getDeliveryDetails("Bearer $token", parcelNumber)
+                arrivedAt = delivery.arrivedAt
+                sender = delivery.sender
+                parcelType = delivery.parcelType
+                description = delivery.description
+                collectedAt = delivery.collectedAt
+            } catch (e: Exception) {
+                Log.e("DeliveryDetailsPage", "Error fetching delivery details: ${e.message}")
+            }
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Main Content with Menu Drawer
@@ -60,11 +105,11 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
                     DeliveryDetailsContent(
                         innerPadding = innerPadding,
                         parcelNumber = parcelNumber,
-                        arrivedAt = "2025-01-25",
-                        sender = "John Doe",
-                        parcelType = "Package",
-                        description = "A gift",
-                        collectedAt = null // This will display as "-"
+                        arrivedAt = arrivedAt,
+                        sender = sender,
+                        parcelType = parcelType,
+                        description = description,
+                        collectedAt = collectedAt
                     )
                 }
             )
@@ -92,6 +137,25 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
         }
     }
 }
+
+// Retrofit API interface
+interface DeliveryApi {
+    @GET("api/delivery/{parcelNumber}") // Backend endpoint for fetching delivery details
+    suspend fun getDeliveryDetails(
+        @Header("Authorization") token: String,
+        @Path("parcelNumber") parcelNumber: String
+    ): DeliveryDetails
+}
+
+// Data class for delivery details
+data class DeliveryDetails(
+    val arrivedAt: String?, // Date as a string or formatted datetime
+    val sender: String?,
+    val parcelType: String?,
+    val description: String?,
+    val collectedAt: String?
+)
+
 
 @Composable
 fun DeliveryDetailsContent(

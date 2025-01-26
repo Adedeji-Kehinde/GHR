@@ -121,7 +121,6 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
     }
 });
 
-
 // Protected Route to Get Delivery Details
 router.get('/deliveries', authenticateToken, async (req, res) => {
     try {
@@ -133,6 +132,23 @@ router.get('/deliveries', authenticateToken, async (req, res) => {
         res.json(deliveries);
     } catch (error) {
         console.error('Deliveries fetch error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// Protected Route to Get Delivery Details by Parcel Number
+router.get('/delivery/:parcelNumber', authenticateToken, async (req, res) => {
+    try {
+        const { parcelNumber } = req.params;
+        const delivery = await Delivery.findOne({ parcelNumber });
+
+        if (!delivery) {
+            return res.status(404).json({ message: 'Delivery not found' });
+        }
+
+        res.status(200).json(delivery);
+    } catch (error) {
+        console.error('Error fetching delivery:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
