@@ -2,6 +2,7 @@ package com.griffith.ghr
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -24,56 +25,83 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Path
 
+// Data class for Delivery Details
+data class DeliveryDetails(
+    val arrivedAt: String?,
+    val sender: String?,
+    val parcelType: String?,
+    val description: String?,
+    val collectedAt: String?
+)
+
+// Retrofit API interface for Delivery Details
+interface DeliveryDetailsApi {
+    @GET("api/delivery/{parcelNumber}")
+    suspend fun getDeliveryDetails(
+        @Header("Authorization") token: String,
+        @Path("parcelNumber") parcelNumber: String
+    ): DeliveryDetails
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     // State for menu drawer
     val menuDrawerState = rememberDrawerState(DrawerValue.Closed)
-
-    // State for notification drawer
     val isNotificationDrawerOpen = remember { mutableStateOf(false) }
 
-    // States for delivery details
-    var arrivedAt by remember { mutableStateOf<String?>(null) }
-    var sender by remember { mutableStateOf<String?>(null) }
-    var parcelType by remember { mutableStateOf<String?>(null) }
-    var description by remember { mutableStateOf<String?>(null) }
-    var collectedAt by remember { mutableStateOf<String?>(null) }
+    // State for delivery details
+    var arrivedAt by remember { mutableStateOf("-") }
+    var sender by remember { mutableStateOf("-") }
+    var parcelType by remember { mutableStateOf("-") }
+    var description by remember { mutableStateOf("-") }
+    var collectedAt by remember { mutableStateOf("-") }
 
-    val context = LocalContext.current
-
-    // Retrofit setup
+    // Initialize Retrofit
     val retrofit = remember {
         Retrofit.Builder()
-            .baseUrl("https://ghr-1.onrender.com") // Replace with your backend URL
+            .baseUrl("https://ghr-1.onrender.com")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
-    val deliveryApi = retrofit.create(DeliveryApi::class.java)
+    val deliveryDetailsApi = retrofit.create(DeliveryDetailsApi::class.java)
 
-    // Fetch delivery details on page load
+    // Fetch delivery details on first composition
     LaunchedEffect(parcelNumber) {
         val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         val token = sharedPreferences.getString("authToken", null)
 
         if (token != null) {
-            try {
-                val delivery = deliveryApi.getDeliveryDetails("Bearer $token", parcelNumber)
-                arrivedAt = delivery.arrivedAt
-                sender = delivery.sender
-                parcelType = delivery.parcelType
-                description = delivery.description
-                collectedAt = delivery.collectedAt
-            } catch (e: Exception) {
-                Log.e("DeliveryDetailsPage", "Error fetching delivery details: ${e.message}")
+            scope.launch {
+                try {
+                    val delivery = deliveryDetailsApi.getDeliveryDetails("Bearer $token", parcelNumber)
+                    arrivedAt = delivery.arrivedAt ?: "-"
+                    sender = delivery.sender ?: "-"
+                    parcelType = delivery.parcelType ?: "-"
+                    description = delivery.description ?: "-"
+                    collectedAt = delivery.collectedAt ?: "-"
+                } catch (e: Exception) {
+                    Log.e("DeliveryDetailsPage", "Error fetching delivery details", e)
+                    Toast.makeText(
+                        context,
+                        "Failed to fetch delivery details. Please try again.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
+        } else {
+            Toast.makeText(
+                context,
+                "No authentication token found. Please log in again.",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Main Content with Menu Drawer
         ModalNavigationDrawer(
             drawerState = menuDrawerState,
             drawerContent = {
@@ -85,142 +113,85 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
         ) {
             Scaffold(
                 topBar = {
-                    Column {
-                        AppHeader(
-                            onMenuClick = {
-                                scope.launch {
-                                    menuDrawerState.open() // Open the menu drawer
-                                }
-                            },
-                            onNotificationClick = {
-                                // Open the notification drawer
-                                isNotificationDrawerOpen.value = true
-                            },
-                            navController = navController,
-                            showBackButton = true // Show back button for navigation
-                        )
-                    }
+                    AppHeader(
+                        onMenuClick = {
+                            scope.launch { menuDrawerState.open() }
+                        },
+                        onNotificationClick = {
+                            isNotificationDrawerOpen.value = true
+                        },
+                        navController = navController,
+                        showBackButton = true
+                    )
                 },
                 content = { innerPadding ->
-                    DeliveryDetailsContent(
-                        innerPadding = innerPadding,
-                        parcelNumber = parcelNumber,
-                        arrivedAt = arrivedAt,
-                        sender = sender,
-                        parcelType = parcelType,
-                        description = description,
-                        collectedAt = collectedAt
-                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.Top,
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Parcel Number
+                        Text(
+                            text = "Parcel NO.",
+                            fontSize = 14.sp,
+                            color = Color.Gray
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            parcelNumber.forEach { digit ->
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp, 48.dp)
+                                        .background(Color.LightGray, RoundedCornerShape(4.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = digit.toString(),
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Black
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        // Delivery Details
+                        DeliveryDetailRow(label = "Arrived at", value = arrivedAt)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        DeliveryDetailRow(label = "Sender", value = sender)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        DeliveryDetailRow(label = "Parcel Type", value = parcelType)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        DeliveryDetailRow(label = "Description", value = description)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        DeliveryDetailRow(label = "Collected at", value = collectedAt)
+                    }
                 }
             )
         }
 
-        // Notification Drawer Overlay
         if (isNotificationDrawerOpen.value) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f)) // Dim background
-                    .clickable {
-                        isNotificationDrawerOpen.value = false // Close drawer when background is clicked
-                    }
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .clickable { isNotificationDrawerOpen.value = false }
             )
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width((2 * LocalConfiguration.current.screenWidthDp / 3).dp) // 2/3 width
+                    .width((2 * LocalConfiguration.current.screenWidthDp / 3).dp)
                     .align(Alignment.TopEnd)
-                    .background(Color.White, shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)) // Apply rounded corners only on the left side
+                    .background(Color.White, RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
             ) {
                 NotificationDrawerBox()
-            }
-        }
-    }
-}
-
-// Retrofit API interface
-interface DeliveryApi {
-    @GET("api/delivery/{parcelNumber}") // Backend endpoint for fetching delivery details
-    suspend fun getDeliveryDetails(
-        @Header("Authorization") token: String,
-        @Path("parcelNumber") parcelNumber: String
-    ): DeliveryDetails
-}
-
-// Data class for delivery details
-data class DeliveryDetails(
-    val arrivedAt: String?, // Date as a string or formatted datetime
-    val sender: String?,
-    val parcelType: String?,
-    val description: String?,
-    val collectedAt: String?
-)
-
-
-@Composable
-fun DeliveryDetailsContent(
-    innerPadding: PaddingValues,
-    parcelNumber: String,
-    arrivedAt: String?,
-    sender: String?,
-    parcelType: String?,
-    description: String?,
-    collectedAt: String?
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(innerPadding)
-            .padding(top = 16.dp) // Ensure content starts below app header
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp) // Padding on the sides
-        ) {
-            // "Parcel NO." Label and Number Boxes
-            Text(
-                text = "Parcel NO.",
-                fontSize = 14.sp,
-                color = Color.Gray
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.wrapContentSize()
-            ) {
-                parcelNumber.forEach { digit ->
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp, 48.dp)
-                            .background(Color.LightGray, shape = RoundedCornerShape(4.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = digit.toString(),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Black
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp)) // Space between Parcel NO. and details
-
-            // Delivery Details Section
-            Column(modifier = Modifier.fillMaxWidth()) {
-                DeliveryDetailRow(label = "Arrived at", value = arrivedAt)
-                Spacer(modifier = Modifier.height(16.dp))
-                DeliveryDetailRow(label = "Sender", value = sender)
-                Spacer(modifier = Modifier.height(16.dp))
-                DeliveryDetailRow(label = "Parcel Type", value = parcelType)
-                Spacer(modifier = Modifier.height(16.dp))
-                DeliveryDetailRow(label = "Description", value = description)
-                Spacer(modifier = Modifier.height(16.dp))
-                DeliveryDetailRow(label = "Collected at", value = collectedAt)
             }
         }
     }
