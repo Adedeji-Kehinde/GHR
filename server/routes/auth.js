@@ -84,15 +84,29 @@ router.get('/user', authenticateToken, async (req, res) => {
 // Route to Post a New Parcel
 router.post('/deliveries', authenticateToken, async (req, res) => {
     try {
-        const { arrivedAt, sender, parcelType, description, collectedAt } = req.body;
+        const { arrivedAt, parcelNumber, sender, parcelType, description, collectedAt } = req.body;
+
         // Validate parcel type
         const validParcelTypes = ['Letter', 'Package'];
         if (!validParcelTypes.includes(parcelType)) {
             return res.status(400).json({ message: 'Invalid parcel type' });
         }
 
+        // Validate parcel number
+        const parcelNumberRegex = /^\d{3}$/; // Must be a three-digit number
+        if (!parcelNumber || !parcelNumberRegex.test(parcelNumber)) {
+            return res.status(400).json({ message: 'Invalid parcel number. Must be a three-digit number.' });
+        }
+
+        // Check if the parcel number already exists
+        const existingDelivery = await Delivery.findOne({ parcelNumber });
+        if (existingDelivery) {
+            return res.status(400).json({ message: 'Parcel number already exists' });
+        }
+
         const newDelivery = new Delivery({
             arrivedAt,
+            parcelNumber,
             sender: sender || null,
             parcelType,
             description: description || null,
@@ -106,6 +120,7 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+
 
 // Protected Route to Get Delivery Details
 router.get('/deliveries', authenticateToken, async (req, res) => {
