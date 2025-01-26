@@ -11,8 +11,11 @@ fun NavGraph() {
 
     NavHost(
         navController = navController,
-        startDestination = "LoginPage"
+        startDestination = "splashScreen"
     ) {
+        //Navigate to Splash Screen
+        composable("SplashScreen") { SplashScreen(navController = navController) }
+
         // Navigate to Login page
         composable("LoginPage") { LoginPage(navController) }
 

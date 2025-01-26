@@ -21,7 +21,7 @@ router.post('/register', async (req, res) => {
   
       // Create and save the new user
       const newUser = new User({
-        password, // In this implementation, the password is not hashed (per your earlier request)
+        password, 
         name,
         lastName,
         roomNumber,

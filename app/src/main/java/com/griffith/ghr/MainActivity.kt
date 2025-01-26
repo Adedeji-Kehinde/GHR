@@ -10,7 +10,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             GHRTheme {
-                NavGraph()  // Start with the NavGraph
+                NavGraph()
             }
         }
     }

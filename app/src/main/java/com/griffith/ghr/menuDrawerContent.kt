@@ -136,7 +136,7 @@ fun MenuDrawerContent(navController: NavController) {
         Spacer(modifier = Modifier.height(16.dp)) // Add space below the profile section
 
         // Menu items
-        LazyColumn {
+        LazyColumn(modifier = Modifier.weight(1f)) { // Occupy remaining space
             item {
                 ListItem(
                     headlineContent = {
@@ -187,5 +187,25 @@ fun MenuDrawerContent(navController: NavController) {
                 )
             }
         }
+
+        // Logout Button
+        Text(
+            text = "Logout",
+            fontSize = 14.sp,
+            color = Color.Gray,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+                .clickable {
+                    // Clear the token and navigate to LoginPage
+                    val sharedPreferences =
+                        context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                    sharedPreferences.edit().remove("authToken").apply()
+                    navController.navigate("LoginPage") {
+                        popUpTo(0) // Clear the back stack
+                    }
+                },
+            textAlign = androidx.compose.ui.text.style.TextAlign.Start
+        )
     }
 }
