@@ -5,7 +5,6 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const authenticateToken = require('../middleware/authMiddleware.js'); // Import middleware
 const router = express.Router();
-const { format } = require('date-fns');
 
 // Register Route
 router.post('/register', async (req, res) => {
@@ -105,11 +104,8 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
             return res.status(400).json({ message: 'Parcel number already exists' });
         }
 
-        // Format the arrivedAt date
-        const formattedArrivedAt = format(new Date(arrivedAt), 'EEE, dd MMM \'at\' HH:mm');
-
         const newDelivery = new Delivery({
-            arrivedAt: formattedArrivedAt,
+            arrivedAt,
             parcelNumber,
             sender: sender || null,
             parcelType,
@@ -124,7 +120,6 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
-
 
 
 // Protected Route to Get Delivery Details
