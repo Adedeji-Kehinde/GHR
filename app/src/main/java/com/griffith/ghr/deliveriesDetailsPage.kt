@@ -23,9 +23,12 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Header
+import java.text.SimpleDateFormat
+import java.util.*
 
 // Data class for Delivery Details
 data class DeliveryDetails(
+    val parcelNumber: String,
     val arrivedAt: String?,
     val sender: String?,
     val parcelType: String?,
@@ -35,13 +38,9 @@ data class DeliveryDetails(
 
 // Retrofit API interface for Delivery Details
 interface DeliveryDetailsApi {
-    @GET("api/deliveries")
-    suspend fun getDeliveryDetails(
-        @Header("Authorization") token: String,
-        @retrofit2.http.Query("parcelNumber") parcelNumber: String
-    ): DeliveryDetails
+    @GET("api/auth/deliveries") // Replace with your backend endpoint
+    suspend fun getDeliveries(@Header("Authorization") token: String): List<DeliveryDetails>
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,7 +59,7 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
     var description by remember { mutableStateOf("-") }
     var collectedAt by remember { mutableStateOf("-") }
 
-    // Initialize Retrofit
+    // Retrofit setup
     val retrofit = remember {
         Retrofit.Builder()
             .baseUrl("https://ghr-1.onrender.com") // Update with your backend URL
@@ -69,7 +68,7 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
     }
     val deliveryDetailsApi = retrofit.create(DeliveryDetailsApi::class.java)
 
-    // Fetch delivery details on first composition
+    // Fetch all deliveries and find the matching one
     LaunchedEffect(parcelNumber) {
         val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         val token = sharedPreferences.getString("authToken", null)
@@ -77,14 +76,25 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
         if (token != null) {
             scope.launch {
                 try {
-                    val delivery = deliveryDetailsApi.getDeliveryDetails("Bearer $token", parcelNumber)
-                    arrivedAt = delivery.arrivedAt ?: "-"
-                    sender = delivery.sender ?: "-"
-                    parcelType = delivery.parcelType ?: "-"
-                    description = delivery.description ?: "-"
-                    collectedAt = delivery.collectedAt ?: "-"
+                    val deliveries = deliveryDetailsApi.getDeliveries("Bearer $token")
+                    val matchingDelivery = deliveries.find { it.parcelNumber == parcelNumber }
+
+                    if (matchingDelivery != null) {
+                        // Format the arrivedAt date
+                        arrivedAt = matchingDelivery.arrivedAt?.let { formatDateTime(it) } ?: "-"
+                        sender = matchingDelivery.sender ?: "-"
+                        parcelType = matchingDelivery.parcelType ?: "-"
+                        description = matchingDelivery.description ?: "-"
+                        collectedAt = matchingDelivery.collectedAt?.let { formatDateTime(it) } ?: "-"
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Delivery not found.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
                 } catch (e: Exception) {
-                    Log.e("DeliveryDetailsPage", "Error fetching delivery details", e)
+                    Log.e("DeliveryDetailsPage", "Error fetching deliveries", e)
                     Toast.makeText(
                         context,
                         "Failed to fetch delivery details. Please try again.",
@@ -197,6 +207,17 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
     }
 }
 
+// Function to format date and time
+fun formatDateTime(dateTimeString: String): String {
+    return try {
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("EEE, dd MMM yyyy, HH:mm", Locale.getDefault())
+        val date = inputFormat.parse(dateTimeString)
+        if (date != null) outputFormat.format(date) else "-"
+    } catch (e: Exception) {
+        "-"
+    }
+}
 
 @Composable
 fun DeliveryDetailRow(label: String, value: String?) {

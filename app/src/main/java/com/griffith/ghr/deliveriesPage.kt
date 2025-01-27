@@ -6,10 +6,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,7 +24,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Header
-import androidx.compose.runtime.LaunchedEffect
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -256,10 +255,6 @@ fun DeliveryCard(navController: NavController, delivery: Delivery) {
         }
     }
 }
-
-
-
-
 data class Delivery(
     val arrivedAt: String, // Date as a string or formatted datetime
     val parcelType: String, // Type of parcel: Letter or Package
