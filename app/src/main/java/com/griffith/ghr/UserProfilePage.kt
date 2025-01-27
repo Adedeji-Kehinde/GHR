@@ -35,7 +35,8 @@ data class UserProfile(
     val lastName: String,
     val gender: String,
     val email: String,
-    val phone: String? = null
+    val phone: String? = null,
+    val roomNumber: String
 )
 
 // Retrofit API interface

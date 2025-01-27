@@ -153,32 +153,6 @@ router.get('/deliveries', authenticateToken, async (req, res) => {
     }
 });
 
-// Route to Get Deliveries by Room Number
-router.post('/deliveries/filter', authenticateToken, async (req, res) => {
-    try {
-        const { roomNumber } = req.body;
-
-        // Validate that room number is provided
-        if (!roomNumber) {
-            return res.status(400).json({ message: 'Room number is required' });
-        }
-
-        // Find all deliveries for the given room number
-        const deliveries = await Delivery.find({ roomNumber });
-
-        // Check if no deliveries are found
-        if (!deliveries || deliveries.length === 0) {
-            return res.status(404).json({ message: 'No deliveries found for this room' });
-        }
-
-        // Return the filtered deliveries
-        res.status(200).json({ deliveries });
-    } catch (error) {
-        console.error('Error fetching deliveries:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
-});
-
 //update delivery status
 router.put('/deliveries/:parcelNumber/status', authenticateToken, async (req, res) => {
     try {

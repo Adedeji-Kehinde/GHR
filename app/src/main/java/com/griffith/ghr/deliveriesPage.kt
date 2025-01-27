@@ -122,7 +122,6 @@ interface DeliveryApi {
     @GET("api/auth/deliveries") // Replace with your backend endpoint
     suspend fun getDeliveries(@Header("Authorization") token: String): List<Delivery>
 }
-
 @Composable
 fun DeliveriesPageContent(
     navController: NavController,
@@ -131,8 +130,9 @@ fun DeliveriesPageContent(
 ) {
     val deliveries = remember { mutableStateListOf<Delivery>() }
     val context = LocalContext.current
+    var userRoomNumber by remember { mutableStateOf<String?>(null) } // Store user's room number
 
-    // Retrofit setup
+    // Retrofit setup for Delivery API
     val retrofit = remember {
         Retrofit.Builder()
             .baseUrl("https://ghr-1.onrender.com") // Replace with your backend URL
@@ -141,28 +141,38 @@ fun DeliveriesPageContent(
     }
     val deliveryApi = retrofit.create(DeliveryApi::class.java)
 
-    // Fetch all deliveries
+    // Retrofit setup for User API
+    val userApi = retrofit.create(UserProfileApi::class.java)
+
+    // Fetch user's room number and deliveries
     LaunchedEffect(Unit) {
         val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         val token = sharedPreferences.getString("authToken", null)
 
         if (token != null) {
             try {
+                // Fetch user profile to get room number
+                val userProfile = userApi.getUserProfile("Bearer $token")
+                userRoomNumber = userProfile.roomNumber
+
+                // Fetch all deliveries
                 val allDeliveries = deliveryApi.getDeliveries("Bearer $token")
                 deliveries.clear()
                 deliveries.addAll(allDeliveries) // Add all deliveries to the list
             } catch (e: Exception) {
-                Log.e("DeliveriesPageContent", "Error fetching deliveries: ${e.message}")
+                Log.e("DeliveriesPageContent", "Error fetching data: ${e.message}")
             }
         }
     }
 
-    // Filter deliveries based on the selected tab
-    val filteredDeliveries = when (selectedTab) {
-        0 -> deliveries.filter { it.status == "To Collect" }
-        1 -> deliveries.filter { it.status == "Collected" }
-        2 -> deliveries.filter { it.status == "Cancelled" }
-        else -> emptyList()
+    // Filter deliveries based on room number and selected tab
+    val filteredDeliveries = deliveries.filter { delivery ->
+        delivery.roomNumber == userRoomNumber && when (selectedTab) {
+            0 -> delivery.status == "To Collect"
+            1 -> delivery.status == "Collected"
+            2 -> delivery.status == "Cancelled"
+            else -> false
+        }
     }
 
     Box(
@@ -279,5 +289,7 @@ data class Delivery(
     val arrivedAt: String, // Date as a string or formatted datetime
     val parcelType: String, // Type of parcel: Letter or Package
     val parcelNumber: String, // Parcel number as a string
-    val status: String // Status of the parcel: To Collect, Collected, or Cancelled
+    val status: String, // Status of the parcel: To Collect, Collected, or Cancelled
+    val roomNumber: String // Room number associated with the parcel
 )
+
