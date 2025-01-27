@@ -81,10 +81,10 @@ router.get('/user', authenticateToken, async (req, res) => {
     }
 });
 
-// Route to Post a New Parcel
+// Protected Route to Create a New Delivery
 router.post('/deliveries', authenticateToken, async (req, res) => {
     try {
-        const { parcelNumber, sender, parcelType, description, collectedAt } = req.body;
+        const { sender, parcelType, description, collectedAt } = req.body;
 
         // Validate parcel type
         const validParcelTypes = ['Letter', 'Package'];
@@ -92,25 +92,32 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
             return res.status(400).json({ message: 'Invalid parcel type' });
         }
 
-        // Automatically generate a unique random three-digit parcel number if not provided
-        let newParcelNumber = parcelNumber;
-        if (!newParcelNumber) {
+        // Check for reusable parcel numbers
+        let parcelNumber;
+        const reusableDelivery = await Delivery.findOneAndDelete({
+            status: { $in: ['Collected', 'Cancelled'] }
+        });
+
+        if (reusableDelivery) {
+            parcelNumber = reusableDelivery.parcelNumber; // Reuse the parcel number
+        } else {
+            // Generate a new unique parcel number if no reusable numbers exist
             let isUnique = false;
             while (!isUnique) {
-                newParcelNumber = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
-                const existingDelivery = await Delivery.findOne({ parcelNumber: newParcelNumber });
+                parcelNumber = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
+                const existingDelivery = await Delivery.findOne({ parcelNumber });
                 isUnique = !existingDelivery; // Ensure the number is unique
             }
         }
 
-        // Automatically set arrivedAt to the current date and time
+        // Automatically set `arrivedAt` to the current date and time
         const newDelivery = new Delivery({
             arrivedAt: new Date(), // Set to the current date and time
-            parcelNumber: newParcelNumber,
+            parcelNumber,
             sender: sender || null,
             parcelType,
             description: description || null,
-            collectedAt: collectedAt || null, // If collectedAt is not provided, set it to null
+            collectedAt: collectedAt || null,
             status: "To Collect" // Default status
         });
 
@@ -121,6 +128,7 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+
 
 
 
@@ -139,6 +147,7 @@ router.get('/deliveries', authenticateToken, async (req, res) => {
     }
 });
 
+//update delivery status
 router.put('/deliveries/:parcelNumber/status', authenticateToken, async (req, res) => {
     try {
         const { parcelNumber } = req.params;
