@@ -33,7 +33,8 @@ data class DeliveryDetails(
     val sender: String?,
     val parcelType: String?,
     val description: String?,
-    val collectedAt: String?
+    val collectedAt: String?,
+    val status: String?
 )
 
 // Retrofit API interface for Delivery Details
@@ -58,6 +59,7 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
     var parcelType by remember { mutableStateOf("-") }
     var description by remember { mutableStateOf("-") }
     var collectedAt by remember { mutableStateOf("-") }
+    var status by remember { mutableStateOf("-") }
 
     // Retrofit setup
     val retrofit = remember {
@@ -86,6 +88,7 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
                         parcelType = matchingDelivery.parcelType ?: "-"
                         description = matchingDelivery.description ?: "-"
                         collectedAt = matchingDelivery.collectedAt?.let { formatDateTime(it) } ?: "-"
+                        status = matchingDelivery.status ?: "-"
                     } else {
                         Toast.makeText(
                             context,
@@ -145,28 +148,58 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
                     ) {
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Parcel Number
-                        Text(
-                            text = "Parcel NO.",
-                            fontSize = 14.sp,
-                            color = Color.Gray
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            parcelNumber.forEach { digit ->
-                                Box(
-                                    modifier = Modifier
-                                        .size(36.dp, 48.dp)
-                                        .background(Color.LightGray, RoundedCornerShape(4.dp)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = digit.toString(),
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.Black
-                                    )
+                        // Parcel Number and Status
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Parcel NO.",
+                                    fontSize = 14.sp,
+                                    color = Color.Gray
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    parcelNumber.forEach { digit ->
+                                        Box(
+                                            modifier = Modifier
+                                                .size(36.dp, 48.dp)
+                                                .background(Color.LightGray, RoundedCornerShape(4.dp)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = digit.toString(),
+                                                fontSize = 18.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.Black
+                                            )
+                                        }
+                                    }
                                 }
+                            }
+
+                            // Status in a rounded rectangle
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        color = when (status) {
+                                            "To Collect" -> Color.Blue
+                                            "Collected" -> Color.Green
+                                            "Cancelled" -> Color.Red
+                                            else -> Color.Gray
+                                        },
+                                        shape = RoundedCornerShape(16.dp)
+                                    )
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Text(
+                                    text = status,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
                             }
                         }
 

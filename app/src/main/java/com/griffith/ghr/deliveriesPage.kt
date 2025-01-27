@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -178,19 +179,23 @@ fun DeliveriesPageContent(
                 modifier = Modifier.align(Alignment.Center)
             )
         } else {
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp) // Add spacing between items
             ) {
+                // Loop through filteredDeliveries using a manual index
                 filteredDeliveries.forEach { delivery ->
-                    DeliveryCard(navController = navController, delivery = delivery)
-                    Spacer(modifier = Modifier.height(8.dp)) // Add spacing between cards
+                    item {
+                        DeliveryCard(navController = navController, delivery = delivery)
+                    }
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun DeliveryCard(navController: NavController, delivery: Delivery) {
