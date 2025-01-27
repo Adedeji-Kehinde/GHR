@@ -92,27 +92,26 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
             return res.status(400).json({ message: 'Invalid parcel type' });
         }
 
-        // Validate parcel number
-        const parcelNumberRegex = /^\d{3}$/; // Must be a three-digit number
-        if (!parcelNumber || !parcelNumberRegex.test(parcelNumber)) {
-            return res.status(400).json({ message: 'Invalid parcel number. Must be a three-digit number.' });
-        }
-
-        // Check if the parcel number already exists
-        const existingDelivery = await Delivery.findOne({ parcelNumber });
-        if (existingDelivery) {
-            return res.status(400).json({ message: 'Parcel number already exists' });
+        // Automatically generate a unique random three-digit parcel number if not provided
+        let newParcelNumber = parcelNumber;
+        if (!newParcelNumber) {
+            let isUnique = false;
+            while (!isUnique) {
+                newParcelNumber = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
+                const existingDelivery = await Delivery.findOne({ parcelNumber: newParcelNumber });
+                isUnique = !existingDelivery; // Ensure the number is unique
+            }
         }
 
         // Automatically set arrivedAt to the current date and time
         const newDelivery = new Delivery({
             arrivedAt: new Date(), // Set to the current date and time
-            parcelNumber,
+            parcelNumber: newParcelNumber,
             sender: sender || null,
             parcelType,
             description: description || null,
             collectedAt: collectedAt || null, // If collectedAt is not provided, set it to null
-            status: 'To Collect', // Default status
+            status: "To Collect" // Default status
         });
 
         await newDelivery.save();
@@ -122,6 +121,7 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+
 
 
 // Protected Route to Get Delivery Details
