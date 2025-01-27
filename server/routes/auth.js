@@ -193,8 +193,13 @@ router.post('/maintenance', authenticateToken, async (req, res) => {
         return res.status(400).json({ message: 'Invalid maintenance category' });
       }
   
+      // Find the highest existing requestId and increment it
+      const lastRequest = await Maintenance.findOne().sort({ requestId: -1 }); // Sort by descending order of requestId
+      const nextRequestId = lastRequest ? lastRequest.requestId + 1 : 1;
+  
       // Create the maintenance request
       const newRequest = new Maintenance({
+        requestId: nextRequestId,
         roomNumber,
         category,
         description,
@@ -208,7 +213,8 @@ router.post('/maintenance', authenticateToken, async (req, res) => {
       console.error('Error creating maintenance request:', error);
       res.status(500).json({ message: 'Server error', error: error.message });
     }
-  });  
+  });
+  
   
   // Route to Get All Maintenance Requests
 router.get('/maintenance', authenticateToken, async (req, res) => {

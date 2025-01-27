@@ -43,19 +43,6 @@ const MaintenanceSchema = new mongoose.Schema({
   },
 });
 
-// Middleware to generate a sequential requestId
-MaintenanceSchema.pre('save', async function (next) {
-  if (this.isNew) {
-    try {
-      const lastRequest = await Maintenance.findOne().sort({ requestId: -1 }); // Find the highest requestId
-      this.requestId = lastRequest ? lastRequest.requestId + 1 : 1; // Increment or start at 1
-    } catch (error) {
-      return next(error);
-    }
-  }
-  next();
-});
-
 // Export Maintenance Model
 const Maintenance = mongoose.model('Maintenance', MaintenanceSchema);
 module.exports = Maintenance;
