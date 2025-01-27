@@ -84,7 +84,7 @@ router.get('/user', authenticateToken, async (req, res) => {
 // Route to Post a New Parcel
 router.post('/deliveries', authenticateToken, async (req, res) => {
     try {
-        const { arrivedAt, parcelNumber, sender, parcelType, description, collectedAt } = req.body;
+        const { parcelNumber, sender, parcelType, description, collectedAt } = req.body;
 
         // Validate parcel type
         const validParcelTypes = ['Letter', 'Package'];
@@ -104,13 +104,15 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
             return res.status(400).json({ message: 'Parcel number already exists' });
         }
 
+        // Automatically set arrivedAt to the current date and time
         const newDelivery = new Delivery({
-            arrivedAt,
+            arrivedAt: new Date(), // Set to the current date and time
             parcelNumber,
             sender: sender || null,
             parcelType,
             description: description || null,
             collectedAt: collectedAt || null, // If collectedAt is not provided, set it to null
+            status: 'To Collect', // Default status
         });
 
         await newDelivery.save();
@@ -120,6 +122,7 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+
 
 // Protected Route to Get Delivery Details
 router.get('/deliveries', authenticateToken, async (req, res) => {
