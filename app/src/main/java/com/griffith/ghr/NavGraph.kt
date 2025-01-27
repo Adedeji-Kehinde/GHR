@@ -44,6 +44,17 @@ fun NavGraph() {
         // Navigate to Add Maintenance page
         composable("MaintenanceRequestPage") { MaintenanceRequestPage(navController) }
 
+        // Navigate to Maintenance Details page
+        composable(
+            route = "MaintenanceRequestDetailsPage/{requestId}",
+            arguments = listOf(navArgument("requestId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val requestId = backStackEntry.arguments?.getString("requestId")
+            requestId?.let {
+                MaintenanceRequestDetailsPage(navController = navController, requestId = it)
+            }
+        }
+
         // Navigate to Enquiries page
         composable("EnquiriesPage") { EnquiriesPage(navController) }
 

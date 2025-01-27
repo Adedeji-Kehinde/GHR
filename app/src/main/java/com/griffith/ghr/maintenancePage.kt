@@ -3,6 +3,7 @@ package com.griffith.ghr
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -10,7 +11,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
@@ -113,6 +116,12 @@ fun MaintenancePage(navController: NavController) {
 }
 
 
+data class MaintenanceRequest(
+    val requestId: String,
+    val category: String,
+    val status: String,
+    val dateTime: String
+)
 
 @Composable
 fun MaintenancePageContent(
@@ -120,22 +129,141 @@ fun MaintenancePageContent(
     innerPadding: PaddingValues,
     selectedTab: Int
 ) {
+    val dummyRequests = listOf(
+        MaintenanceRequest("001", "Plumbing Issue", "In Progress", "Mon, 25 Jan 2025, 10:30"),
+        MaintenanceRequest("002", "Electrical Issue", "Completed", "Tue, 26 Jan 2025, 14:00"),
+        MaintenanceRequest("003", "HVAC Issue", "In Progress", "Wed, 27 Jan 2025, 09:15"),
+        MaintenanceRequest("004", "Pest Control", "In Progress", "Thu, 28 Jan 2025, 11:45"),
+        MaintenanceRequest("005", "Painting", "Completed", "Fri, 29 Jan 2025, 16:20"),
+        MaintenanceRequest("006", "Roof Repair", "In Progress", "Sat, 30 Jan 2025, 08:10"),
+        MaintenanceRequest("007", "Floor Replacement", "Completed", "Sun, 31 Jan 2025, 12:00"),
+        MaintenanceRequest("008", "Window Replacement", "In Progress", "Mon, 01 Feb 2025, 10:45"),
+        MaintenanceRequest("009", "Door Repair", "Completed", "Tue, 02 Feb 2025, 14:30"),
+        MaintenanceRequest("010", "Ceiling Repair", "In Progress", "Wed, 03 Feb 2025, 09:50")
+    )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(innerPadding) // Apply inner padding
+            .padding(innerPadding)
+    ) {
+        if (dummyRequests.isEmpty()) {
+            Text(
+                text = "No maintenance requests to display",
+                fontSize = 16.sp,
+                color = Color.Gray,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                dummyRequests.forEach { request ->
+                    item {
+                        MaintenanceCard(
+                            requestId = request.requestId,
+                            category = request.category,
+                            status = request.status,
+                            dateTime = request.dateTime,
+                            navController = navController
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+
+@Composable
+fun MaintenanceCard(
+    navController: NavController,
+    requestId: String,
+    category: String,
+    status: String,
+    dateTime: String
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .clickable {
+                navController.navigate("MaintenanceRequestDetailsPage/${requestId}")
+            },
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(Color.White)
         ) {
-            // Display content based on the selected tab
-            when (selectedTab) {
-                0 -> Text(text = "Maintenance In Progress")
-                1 -> Text(text = "Completed Maintenance")
+            // Top Section: Request ID and Status
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Request ID
+                Text(
+                    text = "Request ID: $requestId",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+
+                // Status
+                Box(
+                    modifier = Modifier
+                        .background(
+                            color = when (status) {
+                                "In Progress" -> Color(0xFF1976D2) // Blue
+                                "Completed" -> Color(0xFF4CAF50) // Green
+                                else -> Color(0xFFF44336) // Red
+                            },
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = status,
+                        fontSize = 12.sp,
+                        color = Color.White
+                    )
+                }
+            }
+
+            // Main Section: Category
+            Text(
+                text = category,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 8.dp)
+            )
+
+            // Bottom Section: Date and Time
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFF5F5F5)) // Light grey background
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Text(
+                    text = dateTime,
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
             }
         }
     }

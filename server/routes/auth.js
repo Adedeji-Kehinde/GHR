@@ -1,6 +1,7 @@
 const express = require('express');
 const User = require('../models/User');
 const Delivery = require('../models/deliveries'); // Import the Delivery model
+const Maintenance = require('../models/maintenance');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const authenticateToken = require('../middleware/authMiddleware.js'); // Import middleware
@@ -181,4 +182,56 @@ router.put('/deliveries/:parcelNumber/status', authenticateToken, async (req, re
     }
 });
 
+// Route to Create a Maintenance Request
+router.post('/maintenance', authenticateToken, async (req, res) => {
+    try {
+      const { category, description, roomAccess, pictures } = req.body;
+  
+      // Validate category
+      const validCategories = ["Appliances", "Cleaning", "Plumbing & Leaking", "Heating", "Lighting", "Windows & Doors", "Furniture & Fitting", "Flooring", "Other"];
+      if (!validCategories.includes(category)) {
+        return res.status(400).json({ message: 'Invalid maintenance category' });
+      }
+  
+      // Fetch the room number from the authenticated user's token
+      const roomNumber = req.user.roomNumber;
+  
+      if (!roomNumber) {
+        return res.status(403).json({ message: 'Unauthorized: Room number not found' });
+      }
+  
+      // Create the maintenance request
+      const newRequest = new Maintenance({
+        roomNumber,
+        category,
+        description,
+        roomAccess,
+        pictures: pictures || [], // Optional array of picture URLs
+      });
+  
+      await newRequest.save();
+      res.status(201).json({ message: 'Maintenance request created successfully', request: newRequest });
+    } catch (error) {
+      console.error('Error creating maintenance request:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  });
+  
+  // Route to Get All Maintenance Requests
+router.get('/maintenance', authenticateToken, async (req, res) => {
+    try {
+      // Fetch all maintenance requests
+      const maintenanceRequests = await Maintenance.find();
+  
+      if (!maintenanceRequests || maintenanceRequests.length === 0) {
+        return res.status(404).json({ message: 'No maintenance requests found' });
+      }
+  
+      res.status(200).json(maintenanceRequests);
+    } catch (error) {
+      console.error('Error fetching maintenance requests:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  });
+  
 module.exports = router;
