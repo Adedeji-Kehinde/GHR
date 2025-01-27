@@ -55,7 +55,7 @@ router.post('/login', async (req, res) => {
         }
 
         const token = jwt.sign(
-            { id: user._id, email: user.email, roomNumber: user.roomNumber },
+            { id: user._id, email: user.email },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
@@ -185,7 +185,7 @@ router.put('/deliveries/:parcelNumber/status', authenticateToken, async (req, re
 // Route to Create a Maintenance Request
 router.post('/maintenance', authenticateToken, async (req, res) => {
     try {
-      const { category, description, roomAccess, pictures } = req.body;
+      const { roomNumber, category, description, roomAccess, pictures } = req.body;
   
       // Validate category
       const validCategories = ["Appliances", "Cleaning", "Plumbing & Leaking", "Heating", "Lighting", "Windows & Doors", "Furniture & Fitting", "Flooring", "Other"];
@@ -193,13 +193,6 @@ router.post('/maintenance', authenticateToken, async (req, res) => {
         return res.status(400).json({ message: 'Invalid maintenance category' });
       }
   
-      // Fetch the room number from the authenticated user's token
-        const roomNumber = req.user.roomNumber;
-
-        if (!roomNumber) {
-        return res.status(403).json({ message: 'Unauthorized: Room number not found' });
-        }
-
       // Find the highest existing requestId and increment it
       const lastRequest = await Maintenance.findOne().sort({ requestId: -1 }); // Sort by descending order of requestId
       const nextRequestId = lastRequest ? lastRequest.requestId + 1 : 1;
