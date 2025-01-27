@@ -22,6 +22,10 @@ const DeliverySchema = new mongoose.Schema({
     required: true, 
     enum: ['To Collect', 'Collected', 'Cancelled'], // Status options
     default: 'To Collect' // Default status
+  },
+  roomNumber: {
+    type: String,
+    required: true, // Room number must be provided for every delivery
   }
 });
 

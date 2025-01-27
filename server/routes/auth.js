@@ -85,12 +85,16 @@ router.get('/user', authenticateToken, async (req, res) => {
 // Protected Route to Create a New Delivery
 router.post('/deliveries', authenticateToken, async (req, res) => {
     try {
-        const { sender, parcelType, description, collectedAt } = req.body;
+        const { sender, parcelType, description, collectedAt, roomNumber } = req.body;
 
         // Validate parcel type
         const validParcelTypes = ['Letter', 'Package'];
         if (!validParcelTypes.includes(parcelType)) {
             return res.status(400).json({ message: 'Invalid parcel type' });
+        }
+
+        if (!roomNumber) {
+            return res.status(400).json({ message: 'Room number is required' });
         }
 
         let parcelNumber;
@@ -121,7 +125,8 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
             parcelType,
             description: description || null,
             collectedAt: collectedAt || null,
-            status: "To Collect" // Default status
+            status: "To Collect", // Default status
+            roomNumber // Set room number from the request body
         });
 
         await newDelivery.save();
@@ -131,6 +136,7 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+
 
 // Protected Route to Get Delivery Details
 router.get('/deliveries', authenticateToken, async (req, res) => {
@@ -143,6 +149,32 @@ router.get('/deliveries', authenticateToken, async (req, res) => {
         res.json(deliveries);
     } catch (error) {
         console.error('Deliveries fetch error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// Route to Get Deliveries by Room Number
+router.post('/deliveries/filter', authenticateToken, async (req, res) => {
+    try {
+        const { roomNumber } = req.body;
+
+        // Validate that room number is provided
+        if (!roomNumber) {
+            return res.status(400).json({ message: 'Room number is required' });
+        }
+
+        // Find all deliveries for the given room number
+        const deliveries = await Delivery.find({ roomNumber });
+
+        // Check if no deliveries are found
+        if (!deliveries || deliveries.length === 0) {
+            return res.status(404).json({ message: 'No deliveries found for this room' });
+        }
+
+        // Return the filtered deliveries
+        res.status(200).json({ deliveries });
+    } catch (error) {
+        console.error('Error fetching deliveries:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
@@ -216,17 +248,17 @@ router.post('/maintenance', authenticateToken, async (req, res) => {
   });
   
   
-// Route to Get Maintenance Requests by Room Number
+// Route to Get All Maintenance Requests
 router.get('/maintenance', authenticateToken, async (req, res) => {
     try {
-      // Query the Maintenance collection for the specified room number
-      const requests = await Maintenance.find({ roomNumber });
+      // Fetch all maintenance requests
+      const maintenanceRequests = await Maintenance.find();
   
-      if (!requests || requests.length === 0) {
-        return res.status(404).json({ message: `No maintenance requests found for room: ${roomNumber}` });
+      if (!maintenanceRequests || maintenanceRequests.length === 0) {
+        return res.status(404).json({ message: 'No maintenance requests found' });
       }
   
-      res.status(200).json({ requests });
+      res.status(200).json(maintenanceRequests);
     } catch (error) {
       console.error('Error fetching maintenance requests:', error);
       res.status(500).json({ message: 'Server error', error: error.message });
