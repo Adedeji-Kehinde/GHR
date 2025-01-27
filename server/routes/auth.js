@@ -216,21 +216,29 @@ router.post('/maintenance', authenticateToken, async (req, res) => {
   });
   
   
-  // Route to Get All Maintenance Requests
+// Route to Get Maintenance Requests by Room Number
 router.get('/maintenance', authenticateToken, async (req, res) => {
     try {
-      // Fetch all maintenance requests
-      const maintenanceRequests = await Maintenance.find();
+      // Retrieve the room number from the query parameters
+      const { roomNumber } = req.query;
   
-      if (!maintenanceRequests || maintenanceRequests.length === 0) {
-        return res.status(404).json({ message: 'No maintenance requests found' });
+      if (!roomNumber) {
+        return res.status(400).json({ message: 'Room number is required to fetch maintenance requests' });
       }
   
-      res.status(200).json(maintenanceRequests);
+      // Query the Maintenance collection for the specified room number
+      const requests = await Maintenance.find({ roomNumber });
+  
+      if (!requests || requests.length === 0) {
+        return res.status(404).json({ message: `No maintenance requests found for room: ${roomNumber}` });
+      }
+  
+      res.status(200).json({ requests });
     } catch (error) {
       console.error('Error fetching maintenance requests:', error);
       res.status(500).json({ message: 'Server error', error: error.message });
     }
   });
+  
   
 module.exports = router;
