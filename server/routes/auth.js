@@ -136,26 +136,32 @@ router.get('/deliveries', authenticateToken, async (req, res) => {
     }
 });
 
-// Protected Route to Get Delivery Details by Parcel Number
-router.post('/deliveries', authenticateToken, async (req, res) => {
+// Protected Route to Get Delivery Details
+router.get('/deliveries', authenticateToken, async (req, res) => {
     try {
-        const { parcelNumber } = req.body;
+        const { parcelNumber } = req.query;
 
-        if (!parcelNumber) {
-            return res.status(400).json({ message: 'Parcel number is required' });
+        if (parcelNumber) {
+            // Fetch specific delivery by parcel number
+            const delivery = await Delivery.findOne({ parcelNumber });
+            if (!delivery) {
+                return res.status(404).json({ message: 'Delivery not found' });
+            }
+            return res.status(200).json(delivery);
         }
 
-        const delivery = await Delivery.findOne({ parcelNumber });
-
-        if (!delivery) {
-            return res.status(404).json({ message: 'Delivery not found' });
+        // Fetch all deliveries
+        const deliveries = await Delivery.find();
+        if (!deliveries || deliveries.length === 0) {
+            return res.status(404).json({ message: 'No deliveries found' });
         }
 
-        res.status(200).json(delivery);
+        res.json(deliveries);
     } catch (error) {
-        console.error('Error fetching delivery:', error);
+        console.error('Deliveries fetch error:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+
 
 module.exports = router;

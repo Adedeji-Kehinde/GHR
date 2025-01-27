@@ -21,9 +21,8 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.Header
-import retrofit2.http.POST
 
 // Data class for Delivery Details
 data class DeliveryDetails(
@@ -36,12 +35,13 @@ data class DeliveryDetails(
 
 // Retrofit API interface for Delivery Details
 interface DeliveryDetailsApi {
-    @POST("api/deliveries")
+    @GET("api/deliveries")
     suspend fun getDeliveryDetails(
         @Header("Authorization") token: String,
-        @Body request: Map<String, String>
+        @retrofit2.http.Query("parcelNumber") parcelNumber: String
     ): DeliveryDetails
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,7 +63,7 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
     // Initialize Retrofit
     val retrofit = remember {
         Retrofit.Builder()
-            .baseUrl("https://ghr-1.onrender.com")
+            .baseUrl("https://ghr-1.onrender.com") // Update with your backend URL
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
@@ -77,10 +77,7 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
         if (token != null) {
             scope.launch {
                 try {
-                    val delivery = deliveryDetailsApi.getDeliveryDetails(
-                        token = "Bearer $token",
-                        request = mapOf("parcelNumber" to parcelNumber)
-                    )
+                    val delivery = deliveryDetailsApi.getDeliveryDetails("Bearer $token", parcelNumber)
                     arrivedAt = delivery.arrivedAt ?: "-"
                     sender = delivery.sender ?: "-"
                     parcelType = delivery.parcelType ?: "-"
@@ -104,7 +101,6 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
         }
     }
 
-    // UI content remains unchanged
     Box(modifier = Modifier.fillMaxSize()) {
         ModalNavigationDrawer(
             drawerState = menuDrawerState,
