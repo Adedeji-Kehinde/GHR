@@ -194,7 +194,7 @@ router.post('/maintenance', authenticateToken, async (req, res) => {
       }
   
       // Fetch the room number from the authenticated user's token
-      const roomNumber = req.user.roomNumber;
+      const roomNumber = req.User.roomNumber;
   
       if (!roomNumber) {
         return res.status(403).json({ message: 'Unauthorized: Room number not found' });

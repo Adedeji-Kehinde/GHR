@@ -9,7 +9,7 @@ const MaintenanceSchema = new mongoose.Schema({
   },
   roomNumber: {
     type: String,
-    required: true, // Automatically set based on the authenticated user's token
+    required: true,
   },
   category: {
     type: String,
