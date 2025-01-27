@@ -185,19 +185,12 @@ router.put('/deliveries/:parcelNumber/status', authenticateToken, async (req, re
 // Route to Create a Maintenance Request
 router.post('/maintenance', authenticateToken, async (req, res) => {
     try {
-      const { category, description, roomAccess, pictures } = req.body;
+      const { roomNumber, category, description, roomAccess, pictures } = req.body;
   
       // Validate category
       const validCategories = ["Appliances", "Cleaning", "Plumbing & Leaking", "Heating", "Lighting", "Windows & Doors", "Furniture & Fitting", "Flooring", "Other"];
       if (!validCategories.includes(category)) {
         return res.status(400).json({ message: 'Invalid maintenance category' });
-      }
-  
-      // Fetch the room number from the authenticated user's token
-      const roomNumber = req.User.roomNumber;
-  
-      if (!roomNumber) {
-        return res.status(403).json({ message: 'Unauthorized: Room number not found' });
       }
   
       // Create the maintenance request
@@ -215,7 +208,7 @@ router.post('/maintenance', authenticateToken, async (req, res) => {
       console.error('Error creating maintenance request:', error);
       res.status(500).json({ message: 'Server error', error: error.message });
     }
-  });
+  });  
   
   // Route to Get All Maintenance Requests
 router.get('/maintenance', authenticateToken, async (req, res) => {
