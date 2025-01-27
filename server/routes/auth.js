@@ -92,21 +92,23 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
             return res.status(400).json({ message: 'Invalid parcel type' });
         }
 
-        // Check for reusable parcel numbers
         let parcelNumber;
-        const reusableDelivery = await Delivery.findOneAndDelete({
-            status: { $in: ['Collected', 'Cancelled'] }
-        });
+        let isUnique = false;
 
-        if (reusableDelivery) {
-            parcelNumber = reusableDelivery.parcelNumber; // Reuse the parcel number
-        } else {
-            // Generate a new unique parcel number if no reusable numbers exist
-            let isUnique = false;
-            while (!isUnique) {
-                parcelNumber = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
-                const existingDelivery = await Delivery.findOne({ parcelNumber });
-                isUnique = !existingDelivery; // Ensure the number is unique
+        while (!isUnique) {
+            // Generate a random parcel number
+            parcelNumber = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
+
+            // Check if the parcel number exists in the database
+            const existingDelivery = await Delivery.findOne({ parcelNumber });
+
+            if (!existingDelivery) {
+                // If no parcel exists with this number, it's unique
+                isUnique = true;
+            } else if (existingDelivery.status === 'Collected' || existingDelivery.status === 'Cancelled') {
+                // If the parcel exists but is marked as "Collected" or "Cancelled," delete it and reuse the number
+                await Delivery.deleteOne({ parcelNumber });
+                isUnique = true;
             }
         }
 
@@ -128,9 +130,6 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
-
-
-
 
 // Protected Route to Get Delivery Details
 router.get('/deliveries', authenticateToken, async (req, res) => {
