@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -117,8 +116,6 @@ fun DeliveriesPage(navController: NavController) {
     }
 }
 
-
-
 // Retrofit API interface
 interface DeliveryApi {
     @GET("api/auth/deliveries") // Replace with your backend endpoint
@@ -159,20 +156,37 @@ fun DeliveriesPageContent(
         }
     }
 
+    // Filter deliveries based on the selected tab
+    val filteredDeliveries = when (selectedTab) {
+        0 -> deliveries.filter { it.status == "To Collect" }
+        1 -> deliveries.filter { it.status == "Collected" }
+        2 -> deliveries.filter { it.status == "Cancelled" }
+        else -> emptyList()
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
             .padding(innerPadding)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            deliveries.forEach { delivery ->
-                DeliveryCard(navController = navController, delivery = delivery)
-                Spacer(modifier = Modifier.height(8.dp)) // Add spacing between cards
+        if (filteredDeliveries.isEmpty()) {
+            Text(
+                text = "No deliveries to display",
+                fontSize = 16.sp,
+                color = Color.Gray,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp)
+            ) {
+                filteredDeliveries.forEach { delivery ->
+                    DeliveryCard(navController = navController, delivery = delivery)
+                    Spacer(modifier = Modifier.height(8.dp)) // Add spacing between cards
+                }
             }
         }
     }
@@ -255,10 +269,10 @@ fun DeliveryCard(navController: NavController, delivery: Delivery) {
         }
     }
 }
+
 data class Delivery(
     val arrivedAt: String, // Date as a string or formatted datetime
     val parcelType: String, // Type of parcel: Letter or Package
-    val parcelNumber: String // Parcel number as a string
+    val parcelNumber: String, // Parcel number as a string
+    val status: String // Status of the parcel: To Collect, Collected, or Cancelled
 )
-
-

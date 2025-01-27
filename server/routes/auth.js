@@ -136,4 +136,38 @@ router.get('/deliveries', authenticateToken, async (req, res) => {
     }
 });
 
+router.put('/deliveries/:parcelNumber/status', authenticateToken, async (req, res) => {
+    try {
+        const { parcelNumber } = req.params;
+        const { status } = req.body;
+
+        // Validate the status
+        const validStatuses = ['To Collect', 'Collected', 'Cancelled'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ message: 'Invalid status' });
+        }
+
+        // If marking as collected, set `collectedAt`
+        const update = { status };
+        if (status === 'Collected') {
+            update.collectedAt = new Date();
+        }
+
+        const updatedDelivery = await Delivery.findOneAndUpdate(
+            { parcelNumber },
+            update,
+            { new: true }
+        );
+
+        if (!updatedDelivery) {
+            return res.status(404).json({ message: 'Parcel not found' });
+        }
+
+        res.status(200).json({ message: 'Parcel status updated', delivery: updatedDelivery });
+    } catch (error) {
+        console.error('Error updating status:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
 module.exports = router;

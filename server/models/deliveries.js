@@ -17,6 +17,12 @@ const DeliverySchema = new mongoose.Schema({
   },
   description: { type: String }, // Optional description of the parcel
   collectedAt: { type: Date }, // Date and time parcel was collected (optional)
+  status: { 
+    type: String, 
+    required: true, 
+    enum: ['To Collect', 'Collected', 'Cancelled'], // Status options
+    default: 'To Collect' // Default status
+  }
 });
 
 // Export Deliveries Model
