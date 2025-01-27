@@ -21,9 +21,9 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
+import retrofit2.http.Body
 import retrofit2.http.Header
-import retrofit2.http.Path
+import retrofit2.http.POST
 
 // Data class for Delivery Details
 data class DeliveryDetails(
@@ -36,10 +36,10 @@ data class DeliveryDetails(
 
 // Retrofit API interface for Delivery Details
 interface DeliveryDetailsApi {
-    @GET("api/delivery/{parcelNumber}")
+    @POST("api/deliveries")
     suspend fun getDeliveryDetails(
         @Header("Authorization") token: String,
-        @Path("parcelNumber") parcelNumber: String
+        @Body request: Map<String, String>
     ): DeliveryDetails
 }
 
@@ -77,7 +77,10 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
         if (token != null) {
             scope.launch {
                 try {
-                    val delivery = deliveryDetailsApi.getDeliveryDetails("Bearer $token", parcelNumber)
+                    val delivery = deliveryDetailsApi.getDeliveryDetails(
+                        token = "Bearer $token",
+                        request = mapOf("parcelNumber" to parcelNumber)
+                    )
                     arrivedAt = delivery.arrivedAt ?: "-"
                     sender = delivery.sender ?: "-"
                     parcelType = delivery.parcelType ?: "-"
@@ -101,6 +104,7 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
         }
     }
 
+    // UI content remains unchanged
     Box(modifier = Modifier.fillMaxSize()) {
         ModalNavigationDrawer(
             drawerState = menuDrawerState,
@@ -196,6 +200,7 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
         }
     }
 }
+
 
 @Composable
 fun DeliveryDetailRow(label: String, value: String?) {

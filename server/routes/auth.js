@@ -137,9 +137,14 @@ router.get('/deliveries', authenticateToken, async (req, res) => {
 });
 
 // Protected Route to Get Delivery Details by Parcel Number
-router.get('/deliveries/:parcelNumber', authenticateToken, async (req, res) => {
+router.post('/deliveries', authenticateToken, async (req, res) => {
     try {
-        const { parcelNumber } = req.params;
+        const { parcelNumber } = req.body;
+
+        if (!parcelNumber) {
+            return res.status(400).json({ message: 'Parcel number is required' });
+        }
+
         const delivery = await Delivery.findOne({ parcelNumber });
 
         if (!delivery) {
