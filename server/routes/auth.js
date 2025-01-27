@@ -124,21 +124,6 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
 // Protected Route to Get Delivery Details
 router.get('/deliveries', authenticateToken, async (req, res) => {
     try {
-        const deliveries = await Delivery.find();
-        if (!deliveries || deliveries.length === 0) {
-            return res.status(404).json({ message: 'No deliveries found' });
-        }
-
-        res.json(deliveries);
-    } catch (error) {
-        console.error('Deliveries fetch error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
-});
-
-// Protected Route to Get Delivery Details
-router.get('/deliveries', authenticateToken, async (req, res) => {
-    try {
         const { parcelNumber } = req.query;
 
         if (parcelNumber) {
