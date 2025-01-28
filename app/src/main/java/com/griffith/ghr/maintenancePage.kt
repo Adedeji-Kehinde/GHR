@@ -1,5 +1,7 @@
 package com.griffith.ghr
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,12 +13,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
-
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.GET
+import retrofit2.http.Header
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Composable
 fun MaintenancePage(navController: NavController) {
@@ -53,11 +61,10 @@ fun MaintenancePage(navController: NavController) {
                                 }
                             },
                             onNotificationClick = {
-                                // Open the notification drawer
                                 isNotificationDrawerOpen.value = true
                             },
                             navController = navController,
-                            showBackButton = true,  // Show back button for navigation
+                            showBackButton = true  // Show back button for navigation
                         )
                         // Tab Navigation
                         TabRow(
@@ -85,8 +92,8 @@ fun MaintenancePage(navController: NavController) {
                 bottomBar = {
                     FooterButton(
                         navController = navController,
-                        buttonText = "Create Request", // Adapts to text length
-                        navigateTo = "MaintenanceRequestPage" // Define the page to navigate
+                        buttonText = "Create Request",
+                        navigateTo = "MaintenanceRequestPage"
                     )
                 }
             )
@@ -97,17 +104,17 @@ fun MaintenancePage(navController: NavController) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f)) // Dim background
+                    .background(Color.Black.copy(alpha = 0.5f))
                     .clickable {
-                        isNotificationDrawerOpen.value = false // Close drawer when background is clicked
+                        isNotificationDrawerOpen.value = false
                     }
             )
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width((2 * LocalConfiguration.current.screenWidthDp / 3).dp) // 2/3 width
+                    .width((2 * LocalConfiguration.current.screenWidthDp / 3).dp)
                     .align(Alignment.TopEnd)
-                    .background(Color.White, shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)) // Apply rounded corners only on the left side
+                    .background(Color.White, shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
             ) {
                 NotificationDrawerBox()
             }
@@ -115,39 +122,62 @@ fun MaintenancePage(navController: NavController) {
     }
 }
 
-
-data class MaintenanceRequest(
-    val requestId: String,
-    val category: String,
-    val status: String,
-    val dateTime: String
-)
-
 @Composable
 fun MaintenancePageContent(
     navController: NavController,
     innerPadding: PaddingValues,
     selectedTab: Int
 ) {
-    val dummyRequests = listOf(
-        MaintenanceRequest("001", "Plumbing Issue", "In Progress", "Mon, 25 Jan 2025, 10:30"),
-        MaintenanceRequest("002", "Electrical Issue", "Completed", "Tue, 26 Jan 2025, 14:00"),
-        MaintenanceRequest("003", "HVAC Issue", "In Progress", "Wed, 27 Jan 2025, 09:15"),
-        MaintenanceRequest("004", "Pest Control", "In Progress", "Thu, 28 Jan 2025, 11:45"),
-        MaintenanceRequest("005", "Painting", "Completed", "Fri, 29 Jan 2025, 16:20"),
-        MaintenanceRequest("006", "Roof Repair", "In Progress", "Sat, 30 Jan 2025, 08:10"),
-        MaintenanceRequest("007", "Floor Replacement", "Completed", "Sun, 31 Jan 2025, 12:00"),
-        MaintenanceRequest("008", "Window Replacement", "In Progress", "Mon, 01 Feb 2025, 10:45"),
-        MaintenanceRequest("009", "Door Repair", "Completed", "Tue, 02 Feb 2025, 14:30"),
-        MaintenanceRequest("010", "Ceiling Repair", "In Progress", "Wed, 03 Feb 2025, 09:50")
-    )
+    val maintenanceRequests = remember { mutableStateListOf<MaintenanceRequest>() }
+    val context = LocalContext.current
+    var userRoomNumber by remember { mutableStateOf<String?>(null) }
+
+    // Retrofit setup
+    val retrofit = remember {
+        Retrofit.Builder()
+            .baseUrl("https://ghr-1.onrender.com") // Replace with your backend URL
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+    val maintenanceApi = retrofit.create(MaintenanceApi::class.java)
+    val userApi = retrofit.create(UserProfileApi::class.java)
+
+    // Fetch user's room number and maintenance requests
+    LaunchedEffect(Unit) {
+        val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        val token = sharedPreferences.getString("authToken", null)
+
+        if (token != null) {
+            try {
+                // Fetch user profile to get room number
+                val userProfile = userApi.getUserProfile("Bearer $token")
+                userRoomNumber = userProfile.roomNumber
+
+                // Fetch all maintenance requests
+                val allRequests = maintenanceApi.getMaintenanceRequests("Bearer $token")
+                maintenanceRequests.clear()
+                maintenanceRequests.addAll(allRequests) // Add all requests to the list
+            } catch (e: Exception) {
+                Log.e("MaintenancePageContent", "Error fetching data: ${e.message}")
+            }
+        }
+    }
+
+    // Filter maintenance requests based on room number and selected tab
+    val filteredRequests = maintenanceRequests.filter { request ->
+        request.roomNumber == userRoomNumber && when (selectedTab) {
+            0 -> request.status == "In Process"
+            1 -> request.status == "Completed"
+            else -> false
+        }
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding)
     ) {
-        if (dummyRequests.isEmpty()) {
+        if (filteredRequests.isEmpty()) {
             Text(
                 text = "No maintenance requests to display",
                 fontSize = 16.sp,
@@ -161,14 +191,11 @@ fun MaintenancePageContent(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                dummyRequests.forEach { request ->
-                    item {
+                filteredRequests.forEach() { request ->
+                    item{
                         MaintenanceCard(
-                            requestId = request.requestId,
-                            category = request.category,
-                            status = request.status,
-                            dateTime = request.dateTime,
-                            navController = navController
+                            navController = navController,
+                            request = request
                         )
                     }
                 }
@@ -178,23 +205,46 @@ fun MaintenancePageContent(
 }
 
 
+// Retrofit API interface for maintenance requests
+interface MaintenanceApi {
+    @GET("api/auth/maintenance")
+    suspend fun getMaintenanceRequests(@Header("Authorization") token: String): List<MaintenanceRequest>
+}
 
 
+
+data class MaintenanceRequest(
+    val requestId: Int,
+    val roomNumber: String,
+    val category: String,
+    val description: String,
+    val roomAccess: String,
+    val pictures: List<String>,
+    val status: String,
+    val createdAt: String,
+    val completedAt: String?
+)
 
 @Composable
-fun MaintenanceCard(
-    navController: NavController,
-    requestId: String,
-    category: String,
-    status: String,
-    dateTime: String
-) {
+fun MaintenanceCard(navController: NavController, request: MaintenanceRequest) {
+    // Format the date and time
+    val formattedDateTime = remember(request.createdAt) {
+        try {
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()) // Assuming ISO format
+            val outputFormat = SimpleDateFormat("EEE, dd MMM yyyy, HH:mm", Locale.getDefault()) // Date with time
+            val date = inputFormat.parse(request.createdAt)
+            outputFormat.format(date ?: request.createdAt)
+        } catch (e: Exception) {
+            request.createdAt // Fallback to original if parsing fails
+        }
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .clickable {
-                navController.navigate("MaintenanceRequestDetailsPage/${requestId}")
+                navController.navigate("MaintenanceRequestDetailsPage/${request.requestId}")
             },
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(4.dp)
@@ -214,7 +264,7 @@ fun MaintenanceCard(
             ) {
                 // Request ID
                 Text(
-                    text = "Request ID: $requestId",
+                    text = "Request ID: ${request.requestId}",
                     fontSize = 12.sp,
                     color = Color.Gray
                 )
@@ -223,7 +273,7 @@ fun MaintenanceCard(
                 Box(
                     modifier = Modifier
                         .background(
-                            color = when (status) {
+                            color = when (request.status) {
                                 "In Progress" -> Color(0xFF1976D2) // Blue
                                 "Completed" -> Color(0xFF4CAF50) // Green
                                 else -> Color(0xFFF44336) // Red
@@ -234,7 +284,7 @@ fun MaintenanceCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = status,
+                        text = request.status,
                         fontSize = 12.sp,
                         color = Color.White
                     )
@@ -243,7 +293,7 @@ fun MaintenanceCard(
 
             // Main Section: Category
             Text(
-                text = category,
+                text = request.category,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
@@ -260,7 +310,7 @@ fun MaintenanceCard(
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text(
-                    text = dateTime,
+                    text = formattedDateTime,
                     fontSize = 14.sp,
                     color = Color.Gray
                 )

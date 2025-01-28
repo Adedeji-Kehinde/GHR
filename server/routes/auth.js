@@ -239,32 +239,4 @@ router.get('/maintenance', authenticateToken, async (req, res) => {
     }
   });
 
-  // Route to Get Maintenance Requests by Room Number
-router.post('/maintenance/filter', authenticateToken, async (req, res) => {
-    try {
-      const { roomNumber } = req.body;
-  
-      // Validate that a room number is provided
-      if (!roomNumber) {
-        return res.status(400).json({ message: 'Room number is required' });
-      }
-  
-      // Find all maintenance requests for the given room number
-      const maintenanceRequests = await Maintenance.find({ roomNumber });
-  
-      // Check if no requests are found
-      if (!maintenanceRequests || maintenanceRequests.length === 0) {
-        return res.status(404).json({ message: 'No maintenance requests found for this room' });
-      }
-  
-      // Return the filtered maintenance requests
-      res.status(200).json({ requests: maintenanceRequests });
-    } catch (error) {
-      console.error('Error fetching maintenance requests:', error);
-      res.status(500).json({ message: 'Server error', error: error.message });
-    }
-  });
-  
-  
-  
 module.exports = router;
