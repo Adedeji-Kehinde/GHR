@@ -239,5 +239,40 @@ router.get('/maintenance', authenticateToken, async (req, res) => {
     }
   });
 
+  // Update Maintenance Status
+router.put('/maintenance/:requestId/status', authenticateToken, async (req, res) => {
+    try {
+        const { requestId } = req.params;
+        const { status } = req.body;
+
+        // Validate the status
+        const validStatuses = ['In Process', 'Completed'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ message: 'Invalid status' });
+        }
+
+        // If marking as completed, set `completedAt`
+        const update = { status };
+        if (status === 'Completed') {
+            update.completedAt = new Date();
+        }
+
+        const updatedMaintenance = await Maintenance.findOneAndUpdate(
+            { requestId },
+            update,
+            { new: true } // Return the updated document
+        );
+
+        if (!updatedMaintenance) {
+            return res.status(404).json({ message: 'Maintenance request not found' });
+        }
+
+        res.status(200).json({ message: 'Maintenance status updated', maintenance: updatedMaintenance });
+    } catch (error) {
+        console.error('Error updating maintenance status:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
 
 module.exports = router;
