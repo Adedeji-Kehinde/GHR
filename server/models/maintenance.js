@@ -25,9 +25,8 @@ const MaintenanceSchema = new mongoose.Schema({
     enum: ['Yes', 'No'], // Whether the maintenance team can enter the room when the user is away
   },
   pictures: {
-    data: Buffer,
-    contentType: String,
-    filename: String
+    type: [String], // Array of image URLs or base64 strings
+    default: [],
   },
   status: {
     type: String,
