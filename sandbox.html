@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Request Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input, select, button, textarea {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            max-width: 400px;
+        }
+        button {
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .message {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Login</h1>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <button id="loginButton">Login</button>
+    <p id="loginStatus" class="message"></p>
+
+    <h1>Maintenance Request</h1>
+    <select id="category">
+        <option value="">Select Category</option>
+        <option value="plumbing">Plumbing</option>
+        <option value="electrical">Electrical</option>
+        <option value="hvac">HVAC</option>
+        <option value="appliance">Appliance</option>
+        <option value="structural">Structural</option>
+        <option value="other">Other</option>
+    </select>
+    <textarea id="description" placeholder="Description"></textarea>
+    <select id="roomAccess">
+        <option value="">Allow room access?</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+    </select>
+    <input type="file" id="pictures" multiple accept="image/*">
+    <button id="submitRequest">Submit Request</button>
+    <button id="getRequests">Get Requests</button>
+    <p id="requestStatus" class="message"></p>
+
+    <script>
+        let authToken = "";
+
+        // Login function
+        document.getElementById("loginButton").addEventListener("click", async () => {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                const response = await fetch("http://localhost:8000/api/auth/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    authToken = result.token;
+                    document.getElementById("loginStatus").textContent = "Login successful!";
+                    document.getElementById("loginStatus").style.color = "green";
+                } else {
+                    document.getElementById("loginStatus").textContent = result.message || "Login failed.";
+                    document.getElementById("loginStatus").style.color = "red";
+                }
+            } catch (error) {
+                document.getElementById("loginStatus").textContent = "An error occurred during login.";
+                document.getElementById("loginStatus").style.color = "red";
+                console.error(error);
+            }
+        });
+
+        // Submit maintenance request function (POST)
+        document.getElementById("submitRequest").addEventListener("click", async () => {
+            if (!authToken) {
+                alert("Please log in first.");
+                return;
+            }
+
+            const category = document.getElementById("category").value;
+            const description = document.getElementById("description").value;
+            const roomAccess = document.getElementById("roomAccess").value;
+            const picturesInput = document.getElementById("pictures");
+
+            if (!category || !description || !roomAccess) {
+                alert("All fields are required except pictures.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("roomNumber", "Room 101");
+            formData.append("category", category);
+            formData.append("description", description);
+            formData.append("roomAccess", roomAccess);
+
+            Array.from(picturesInput.files).forEach((file) => {
+                formData.append("pictures", file);
+            });
+
+            try {
+                const response = await fetch("http://localhost:8000/api/auth/maintenance", {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${authToken}`,
+                    },
+                    body: formData,
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById("requestStatus").textContent = "Request submitted successfully!";
+                    document.getElementById("requestStatus").style.color = "green";
+                    console.log(data);
+                } else {
+                    throw new Error(data.message || "Submission failed");
+                }
+            } catch (error) {
+                document.getElementById("requestStatus").textContent = "An error occurred during submission.";
+                document.getElementById("requestStatus").style.color = "red";
+                console.error("Error:", error);
+            }
+        });
+
+        // Get maintenance requests function (GET)
+        document.getElementById("getRequests").addEventListener("click", async () => {
+            if (!authToken) {
+                alert("Please log in first.");
+                return;
+            }
+
+            try {
+                const response = await fetch("http://localhost:8000/api/auth/maintenance", {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${authToken}`,
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById("requestStatus").textContent = "Requests retrieved successfully!";
+                    document.getElementById("requestStatus").style.color = "green";
+                    console.log("Maintenance Requests:", data);
+                } else {
+                    throw new Error(data.message || "Failed to retrieve requests");
+                }
+            } catch (error) {
+                document.getElementById("requestStatus").textContent = "An error occurred while retrieving requests.";
+                document.getElementById("requestStatus").style.color = "red";
+                console.error("Error:", error);
+            }
+        });
+    </script>
+</body>
+</html>
