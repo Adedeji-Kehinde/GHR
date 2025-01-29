@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 // Define Deliveries Schema
 const DeliverySchema = new mongoose.Schema({
-  arrivedAt: { type: Date, required: true }, // Date and time parcel arrived
+  arrivedAt: { type: Date, default: Date.now}, // Date and time parcel arrived
   parcelNumber: { 
     type: String, 
     required: true, 

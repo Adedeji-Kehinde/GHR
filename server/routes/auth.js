@@ -1,7 +1,8 @@
 const express = require('express');
 const User = require('../models/User');
 const Delivery = require('../models/deliveries'); // Import the Delivery model
-const Maintenance = require('../models/maintenance');
+const Maintenance = require('../models/maintenance'); // Import Maintenance Model
+const Enquiry = require('../models/enquiry'); // Import Enquiry Model
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const authenticateToken = require('../middleware/authMiddleware.js'); // Import middleware
@@ -85,7 +86,7 @@ router.get('/user', authenticateToken, async (req, res) => {
 // Protected Route to Create a New Delivery
 router.post('/deliveries', authenticateToken, async (req, res) => {
     try {
-        const { sender, parcelType, description, collectedAt, roomNumber } = req.body;
+        const { sender, parcelType, description, roomNumber } = req.body;
 
         // Validate parcel type
         const validParcelTypes = ['Letter', 'Package'];
@@ -119,12 +120,10 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
 
         // Automatically set `arrivedAt` to the current date and time
         const newDelivery = new Delivery({
-            arrivedAt: new Date(), // Set to the current date and time
             parcelNumber,
             sender: sender || null,
             parcelType,
             description: description || null,
-            collectedAt: collectedAt || null,
             status: "To Collect", // Default status
             roomNumber // Set room number from the request body
         });
@@ -274,5 +273,85 @@ router.put('/maintenance/:requestId/status', authenticateToken, async (req, res)
     }
 });
 
+// POST Route: Create a New Enquiry
+router.post('/enquiries', authenticateToken, async (req, res) => {
+    try {
+        const { roomNumber, enquiryText } = req.body;
+
+        // Validate input
+        if (!roomNumber || !enquiryText) {
+            return res.status(400).json({ message: 'Room number and enquiry text are required' });
+        }
+
+        // Find the highest existing requestId and increment it
+        const lastRequest = await Enquiry.findOne().sort({ requestId: -1 });
+        const nextRequestId = lastRequest ? lastRequest.requestId + 1 : 1;
+
+        // Create a new enquiry
+        const newEnquiry = new Enquiry({
+            requestId: nextRequestId,
+            roomNumber,
+            enquiryText,
+        });
+
+        await newEnquiry.save();
+        res.status(201).json({ message: 'Enquiry submitted successfully', enquiry: newEnquiry });
+    } catch (error) {
+        console.error('Error creating enquiry:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// GET Route: Fetch All Enquiries
+router.get('/enquiries', authenticateToken, async (req, res) => {
+    try {
+        // Fetch all enquiries
+        const enquiries = await Enquiry.find();
+
+        if (!enquiries || enquiries.length === 0) {
+            return res.status(404).json({ message: 'No enquiries found' });
+        }
+
+        res.status(200).json(enquiries);
+    } catch (error) {
+        console.error('Error fetching enquiries:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// PUT Route: Update Enquiry Status
+router.put('/enquiries/:requestId/status', authenticateToken, async (req, res) => {
+    try {
+        const { requestId } = req.params;
+        const { status } = req.body;
+
+        // Validate the status
+        const validStatuses = ['Pending', 'Resolved'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ message: 'Invalid status' });
+        }
+
+        // If marking as resolved, set `resolvedAt`
+        const update = { status };
+        if (status === 'Resolved') {
+            update.resolvedAt = new Date();
+        }
+
+        const updatedEnquiry = await Enquiry.findOneAndUpdate(
+            { requestId },
+            update,
+            { new: true } // Return the updated document
+        );
+
+        if (!updatedEnquiry) {
+            return res.status(404).json({ message: 'Enquiry not found' });
+        }
+
+        res.status(200).json({ message: 'Enquiry status updated', enquiry: updatedEnquiry });
+    } catch (error) {
+        console.error('Error updating enquiry status:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
 
 module.exports = router;
