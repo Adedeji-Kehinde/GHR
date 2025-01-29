@@ -1,10 +1,11 @@
 const express = require('express');
 const User = require('../models/User');
-const Delivery = require('../models/deliveries'); // Import the Delivery model
-const Maintenance = require('../models/maintenance');
+const Delivery = require('../models/deliveries');
+const { Maintenance, upload } = require('../models/maintenance');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const authenticateToken = require('../middleware/authMiddleware.js'); // Import middleware
+const authenticateToken = require('../middleware/authMiddleware.js');
+const sharp = require('sharp');
 const router = express.Router();
 
 // Register Route
@@ -119,14 +120,14 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
 
         // Automatically set `arrivedAt` to the current date and time
         const newDelivery = new Delivery({
-            arrivedAt: new Date(), // Set to the current date and time
+            arrivedAt: new Date(),
             parcelNumber,
             sender: sender || null,
             parcelType,
             description: description || null,
             collectedAt: collectedAt || null,
-            status: "To Collect", // Default status
-            roomNumber // Set room number from the request body
+            status: "To Collect",
+            roomNumber
         });
 
         await newDelivery.save();
@@ -136,7 +137,6 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
-
 
 // Protected Route to Get Delivery Details
 router.get('/deliveries', authenticateToken, async (req, res) => {
@@ -188,55 +188,100 @@ router.put('/deliveries/:parcelNumber/status', authenticateToken, async (req, re
     }
 });
 
-// Route to Create a Maintenance Request
-router.post('/maintenance', authenticateToken, async (req, res) => {
-    try {
-      const { roomNumber, category, description, roomAccess, pictures } = req.body;
-  
-      // Validate category
-      const validCategories = ["Appliances", "Cleaning", "Plumbing & Leaking", "Heating", "Lighting", "Windows & Doors", "Furniture & Fitting", "Flooring", "Other"];
-      if (!validCategories.includes(category)) {
-        return res.status(400).json({ message: 'Invalid maintenance category' });
-      }
-  
-      // Find the highest existing requestId and increment it
-      const lastRequest = await Maintenance.findOne().sort({ requestId: -1 }); // Sort by descending order of requestId
-      const nextRequestId = lastRequest ? lastRequest.requestId + 1 : 1;
-  
-      // Create the maintenance request
-      const newRequest = new Maintenance({
-        requestId: nextRequestId,
-        roomNumber,
-        category,
-        description,
-        roomAccess,
-        pictures: pictures || [], // Optional array of picture URLs
-      });
-  
-      await newRequest.save();
-      res.status(201).json({ message: 'Maintenance request created successfully', request: newRequest });
-    } catch (error) {
-      console.error('Error creating maintenance request:', error);
-      res.status(500).json({ message: 'Server error', error: error.message });
+// Route to Create a Maintenance Request with Image Upload
+router.post("/maintenance", authenticateToken, upload.array("pictures", 5), async (req, res) => {
+  try {
+    const { roomNumber, category, description, roomAccess } = req.body;
+
+    // Validate the category
+    const validCategories = [
+      "Appliances",
+      "Cleaning",
+      "Plumbing & Leaking",
+      "Heating",
+      "Lighting",
+      "Windows & Doors",
+      "Furniture & Fitting",
+      "Flooring",
+      "Other",
+    ];
+    if (!validCategories.includes(category)) {
+      return res.status(400).json({ message: "Invalid maintenance category" });
     }
-  });
-  
-  
-// Route to Get All Maintenance Requests
-router.get('/maintenance', authenticateToken, async (req, res) => {
-    try {
-      // Fetch all maintenance requests
-      const maintenanceRequests = await Maintenance.find();
-  
-      if (!maintenanceRequests || maintenanceRequests.length === 0) {
-        return res.status(404).json({ message: 'No maintenance requests found' });
+
+    // Process uploaded images
+    const pictures = [];
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const processedImage = await sharp(file.buffer)
+          .resize(800, 600, { fit: "inside", withoutEnlargement: true })
+          .jpeg({ quality: 80 })
+          .toBuffer();
+
+        pictures.push({
+          data: processedImage,
+          contentType: file.mimetype,
+          filename: file.originalname,
+        });
       }
-  
-      res.status(200).json(maintenanceRequests);
-    } catch (error) {
-      console.error('Error fetching maintenance requests:', error);
-      res.status(500).json({ message: 'Server error', error: error.message });
     }
-  });
+
+    // Find the highest existing requestId and increment it
+    const lastRequest = await Maintenance.findOne().sort({ requestId: -1 });
+    const nextRequestId = lastRequest ? lastRequest.requestId + 1 : 1;
+
+    // Create the maintenance request
+    const newRequest = new Maintenance({
+      requestId: nextRequestId,
+      roomNumber,
+      category,
+      description,
+      roomAccess,
+      pictures,
+      status: "In Process",
+    });
+
+    await newRequest.save();
+
+    res.status(201).json({
+      message: "Maintenance request created successfully",
+      request: {
+        ...newRequest._doc,
+        pictures: newRequest.pictures.map((pic) => ({
+          filename: pic.filename,
+          contentType: pic.contentType,
+        })),
+      },
+    });
+  } catch (error) {
+    console.error("Error creating maintenance request:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// Route to Get All Maintenance Requests with Images
+router.get("/maintenance", authenticateToken, async (req, res) => {
+  try {
+    const maintenanceRequests = await Maintenance.find();
+
+    if (!maintenanceRequests || maintenanceRequests.length === 0) {
+      return res.status(404).json({ message: "No maintenance requests found" });
+    }
+
+    const formattedRequests = maintenanceRequests.map((request) => ({
+      ...request._doc,
+      pictures: request.pictures.map((pic) => ({
+        data: pic.data.toString("base64"),
+        contentType: pic.contentType,
+        filename: pic.filename,
+      })),
+    }));
+
+    res.status(200).json(formattedRequests);
+  } catch (error) {
+    console.error("Error fetching maintenance requests:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
 
 module.exports = router;
