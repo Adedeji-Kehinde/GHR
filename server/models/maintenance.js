@@ -46,11 +46,11 @@ const MaintenanceSchema = new mongoose.Schema({
     required: true,
     enum: ['Yes', 'No'],
   },
-  pictures: [{
+  pictures: {
     data: Buffer,
     contentType: String,
     filename: String
-  }],
+  },
   status: {
     type: String,
     required: true,
