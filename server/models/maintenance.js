@@ -1,26 +1,4 @@
 const mongoose = require('mongoose');
-const multer = require('multer');
-const sharp = require('sharp');
-const path = require('path');
-
-// Configure multer for file upload
-const storage = multer.memoryStorage();
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    if (extname && mimetype) {
-      return cb(null, true);
-    } else {
-      cb('Error: Images only!');
-    }
-  }
-});
 
 // Define Maintenance Request Schema
 const MaintenanceSchema = new mongoose.Schema({
@@ -35,8 +13,8 @@ const MaintenanceSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    required: true,
-    enum: ["Appliances", "Cleaning", "Plumbing & Leaking", "Heating", "Lighting", "Windows & Doors", "Furniture & Fitting", "Flooring", "Other"],
+    required: true, // Maintenance category like Plumbing, Electrical, etc.
+    enum: ["Appliances", "Cleaning", "Plumbing & Leaking", "Heating", "Lighting", "Windows & Doors", "Furniture & Fitting", "Flooring", "Other"], // Add more as needed
   },
   description: {
     type: String,
@@ -44,48 +22,27 @@ const MaintenanceSchema = new mongoose.Schema({
   roomAccess: {
     type: String,
     required: true,
-    enum: ['Yes', 'No'],
+    enum: ['Yes', 'No'], // Whether the maintenance team can enter the room when the user is away
   },
-  pictures: [{
-    data: Buffer,
-    contentType: String,
-    filename: String
-  }],
+  pictures: {
+    type: Buffer, // Array of image URLs or base64 strings
+    required: false,
+  },
   status: {
     type: String,
     required: true,
-    enum: ['In Process', 'Completed'],
-    default: 'In Process',
+    enum: ['In Process', 'Completed'], // The status of the maintenance request
+    default: 'In Process', // Default status when created
   },
   createdAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now, // Automatically set to the current date and time when created
   },
   completedAt: {
-    type: Date,
+    type: Date, // Will be set when the status is updated to "Completed"
   },
 });
 
-// Middleware to process image before saving
-MaintenanceSchema.pre('save', async function(next) {
-  if (!this.isModified('pictures')) return next();
-
-  try {
-    for (let i = 0; i < this.pictures.length; i++) {
-      if (this.pictures[i].data) {
-        const processedImage = await sharp(this.pictures[i].data)
-          .resize(800, 600, { fit: 'inside', withoutEnlargement: true })
-          .jpeg({ quality: 80 })
-          .toBuffer();
-        this.pictures[i].data = processedImage;
-      }
-    }
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Export Maintenance Model and upload middleware
+// Export Maintenance Model
 const Maintenance = mongoose.model('Maintenance', MaintenanceSchema);
-module.exports = { Maintenance, upload };
+module.exports = Maintenance;
