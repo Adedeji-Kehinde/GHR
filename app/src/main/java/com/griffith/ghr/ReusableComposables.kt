@@ -165,6 +165,7 @@ fun Dropdown(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
+            .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
             .background(
                 color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(8.dp)

@@ -214,7 +214,7 @@ interface MaintenanceApi {
 
 
 data class MaintenanceRequest(
-    val requestId: Int,
+    val requestId: String,
     val roomNumber: String,
     val category: String,
     val description: String,

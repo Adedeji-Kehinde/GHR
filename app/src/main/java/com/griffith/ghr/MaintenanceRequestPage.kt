@@ -227,10 +227,12 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
                 color = Color.Black
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = roomNumber ?: "Loading...",
-                fontSize = 16.sp,
-                color = if (roomNumber != null) Color.Black else Color.Gray
+            Dropdown(
+                label = "Select Room",
+                options = listOf("$roomNumber"),
+                onOptionSelected = { selectedRoom ->
+                    roomNumber = selectedRoom
+                }
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -368,7 +370,7 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
                         if (token != null && roomNumber != null) {
                             isSubmitting.value = true
                             try {
-                                val response = maintenanceRequestApi.createMaintenanceRequest(
+                                maintenanceRequestApi.createMaintenanceRequest(
                                     token = "Bearer $token",
                                     request = MaintenanceRequestData(
                                         roomNumber = roomNumber!!,
