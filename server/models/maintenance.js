@@ -24,11 +24,11 @@ const MaintenanceSchema = new mongoose.Schema({
     required: true,
     enum: ['Yes', 'No'], // Whether the maintenance team can enter the room when the user is away
   },
-  pictures: [{
+  pictures: {
     data: Buffer,
     contentType: String,
     filename: String
-  }],
+  },
   status: {
     type: String,
     required: true,
