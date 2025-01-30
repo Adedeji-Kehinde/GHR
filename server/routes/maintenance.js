@@ -2,7 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const authenticateToken = require("../middleware/authMiddleware");
-const Maintenance = require("../models/Maintenance");
+const Maintenance = require("../models/maintenance");
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() }); // Store in memory before Cloudinary upload
