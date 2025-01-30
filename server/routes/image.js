@@ -52,19 +52,19 @@ router.post("/upload", authenticate, upload.single("photo"), async (req, res) =>
           }
 
           // ✅ **Delete old avatar from Cloudinary**
-          if (user.avatarPublicId) {
-            console.log("🛑 Deleting old avatar:", user.avatarPublicId);
-            await cloudinary.uploader.destroy(user.avatarPublicId);
+          if (user.profileImageId) {
+            console.log("🛑 Deleting old avatar:", user.profileImageUrl);
+            await cloudinary.uploader.destroy(user.profileImageId);
           }
 
           // ✅ **Update User Profile with New Avatar**
-          user.avatarUrl = result.secure_url;
-          user.avatarPublicId = result.public_id;
+          user.profileImageUrl = result.secure_url;
+          user.profileImageId = result.public_id;
           await user.save();
 
           return res.status(201).json({ 
             message: "Image uploaded successfully", 
-            avatarUrl: user.avatarUrl 
+            profileImageUrl: user.profileImageUrl 
           });
 
         } catch (dbError) {
