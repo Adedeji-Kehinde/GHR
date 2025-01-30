@@ -13,52 +13,41 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
-import retrofit2.http.Header
-
-// Data class for user details
-data class UserDetails(
-    val name: String,
-    val lastName: String,
-    val email: String
-)
-
-// Retrofit API interface
-interface UserApi {
-    @GET("api/auth/user") // Replace with your endpoint
-    suspend fun getUserDetails(@Header("Authorization") token: String): UserDetails
-}
 
 @Composable
 fun MenuDrawerContent(navController: NavController) {
-    val placeholderImage: Painter = painterResource(id = R.drawable.app_logo)
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     // State for user data
     var userName by remember { mutableStateOf("Loading...") }
     var userEmail by remember { mutableStateOf("Loading...") }
+    var profileImageUrl by remember { mutableStateOf("") }
 
-    // Initialize Retrofit
+    // Retrofit setup
     val retrofit = remember {
         Retrofit.Builder()
-            .baseUrl("https://ghr-1.onrender.com") // Replace with your backend URL
+            .baseUrl("https://ghr-1.onrender.com")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
-    val userApi = retrofit.create(UserApi::class.java)
+    val userProfileApi = retrofit.create(UserProfileApi::class.java)
 
     // Fetch user details on first composition
     LaunchedEffect(Unit) {
@@ -68,24 +57,19 @@ fun MenuDrawerContent(navController: NavController) {
         if (token != null) {
             coroutineScope.launch {
                 try {
-                    val userDetails = userApi.getUserDetails("Bearer $token")
+                    val userDetails = userProfileApi.getUserProfile("Bearer $token")
                     userName = "${userDetails.name} ${userDetails.lastName}"
                     userEmail = userDetails.email
+                    profileImageUrl = userDetails.profileImageUrl?.ifEmpty {
+                        "https://res.cloudinary.com/dxlrv28eb/user_profiles/default_Image.JPG"
+                    } ?: "https://res.cloudinary.com/dxlrv28eb/user_profiles/default_Image.JPG"
                 } catch (e: Exception) {
                     Log.e("MenuDrawerContent", "Error fetching user details", e)
-                    Toast.makeText(
-                        context,
-                        "Failed to fetch user details. Please try again.",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    Toast.makeText(context, "Failed to fetch profile details.", Toast.LENGTH_LONG).show()
                 }
             }
         } else {
-            Toast.makeText(
-                context,
-                "No authentication token found. Please log in again.",
-                Toast.LENGTH_LONG
-            ).show()
+            Toast.makeText(context, "No authentication token found. Please log in again.", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -102,19 +86,24 @@ fun MenuDrawerContent(navController: NavController) {
                 .clickable { navController.navigate("UserProfilePage") },
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // User profile image
-            Box(
+            // Profile Image with Coil
+            Image(
+                painter = rememberAsyncImagePainter(
+                    ImageRequest.Builder(LocalContext.current)
+                        .data(profileImageUrl)
+                        .crossfade(true)
+                        .build()
+                ),
+                contentDescription = "User Profile Image",
                 modifier = Modifier
                     .size(60.dp)
-                    .background(Color.Gray, shape = CircleShape)
-            ) {
-                Image(
-                    painter = placeholderImage,
-                    contentDescription = "User Profile Image",
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
+                    .clip(CircleShape) // Crops to a circle
+                    .background(Color.Gray, shape = CircleShape),
+                contentScale = ContentScale.Crop // Ensures it fits inside the circle
+            )
+
             Spacer(modifier = Modifier.width(16.dp))
+
             Column {
                 Text(
                     text = userName,
@@ -137,39 +126,19 @@ fun MenuDrawerContent(navController: NavController) {
         // Menu items with icons
         LazyColumn(modifier = Modifier.weight(1f)) {
             item {
-                MenuItem(
-                    navController = navController,
-                    icon = painterResource(id = R.drawable.home), // Replace with actual icon
-                    title = "Home",
-                    route = "HomePage"
-                )
+                MenuItem(navController, painterResource(id = R.drawable.home), "Home", "HomePage")
             }
             item { Spacer(modifier = Modifier.height(20.dp)) }
             item {
-                MenuItem(
-                    navController = navController,
-                    icon = painterResource(id = R.drawable.deliveries), // Replace with actual icon
-                    title = "Deliveries",
-                    route = "DeliveriesPage"
-                )
+                MenuItem(navController, painterResource(id = R.drawable.deliveries), "Deliveries", "DeliveriesPage")
             }
             item { Spacer(modifier = Modifier.height(20.dp)) }
             item {
-                MenuItem(
-                    navController = navController,
-                    icon = painterResource(id = R.drawable.maintenance), // Replace with actual icon
-                    title = "Maintenance",
-                    route = "MaintenancePage"
-                )
+                MenuItem(navController, painterResource(id = R.drawable.maintenance), "Maintenance", "MaintenancePage")
             }
             item { Spacer(modifier = Modifier.height(20.dp)) }
             item {
-                MenuItem(
-                    navController = navController,
-                    icon = painterResource(id = R.drawable.enquiries), // Replace with actual icon
-                    title = "Enquiries",
-                    route = "EnquiriesPage"
-                )
+                MenuItem(navController, painterResource(id = R.drawable.enquiries), "Enquiries", "EnquiriesPage")
             }
         }
 
@@ -179,18 +148,14 @@ fun MenuDrawerContent(navController: NavController) {
                 .fillMaxWidth()
                 .padding(8.dp)
                 .clickable {
-                    // Clear the token and navigate to LoginPage
-                    val sharedPreferences =
-                        context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                    val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
                     sharedPreferences.edit().remove("authToken").apply()
-                    navController.navigate("LoginPage") {
-                        popUpTo(0) // Clear the back stack
-                    }
+                    navController.navigate("LoginPage") { popUpTo(0) }
                 },
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.logout), // Replace with actual icon
+                painter = painterResource(id = R.drawable.logout),
                 contentDescription = "Logout",
                 tint = Color.Gray,
                 modifier = Modifier.size(24.dp)
