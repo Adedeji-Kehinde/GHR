@@ -10,9 +10,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
@@ -102,6 +101,7 @@ fun HomePageContent(navController: NavController, innerPadding: PaddingValues) {
             LargeCard(
                 title = "My Deliveries",
                 subtitle = "",
+                icon = painterResource(id = R.drawable.deliveries),
                 onClick = {
                     navController.navigate("deliveriesPage")
                 }
@@ -116,6 +116,7 @@ fun HomePageContent(navController: NavController, innerPadding: PaddingValues) {
                 SmallCard(
                     title = "Maintenance",
                     subtitle = "Have an issue?",
+                    icon = painterResource(id = R.drawable.maintenance),
                     onClick = {
                         navController.navigate("maintenancePage")
                     },
@@ -124,6 +125,7 @@ fun HomePageContent(navController: NavController, innerPadding: PaddingValues) {
                 SmallCard(
                     title = "Enquiries",
                     subtitle = "Ask us anything",
+                    icon = painterResource(id = R.drawable.enquiries),
                     onClick = {
                         navController.navigate("enquiriesPage")
                     },
@@ -135,6 +137,7 @@ fun HomePageContent(navController: NavController, innerPadding: PaddingValues) {
             LargeCard(
                 title = "Useful Information",
                 subtitle = "Find out more information",
+                icon = painterResource(id = R.drawable.info),
                 onClick = {
                     navController.navigate("usefulInfoPage")
                 }

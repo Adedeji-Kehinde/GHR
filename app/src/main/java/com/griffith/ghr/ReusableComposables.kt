@@ -40,8 +40,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -50,70 +53,143 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 
 @Composable
-fun SmallCard(title: String, subtitle: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun SmallCard(
+    title: String,
+    subtitle: String,
+    icon: Painter, // Icon added as parameter
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Card(
         modifier = modifier
-            .height(120.dp) // Adjusted height for smaller cards
-            .clickable { onClick() }, // Make the card clickable and trigger navigation
+            .height(160.dp)
+            .clickable { onClick() }, // Make the card clickable
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White) // Set card background to white
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Background from image
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
-            // Title in bold and larger font
-            Text(
-                text = title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
+            // Background Image
+            Image(
+                painter = painterResource(id = R.drawable.card), // Replace with actual image resource
+                contentDescription = "Card Background",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            // Subtitle in smaller font
-            if (subtitle.isNotEmpty()) {
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp), // Padding to prevent overlap
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Icon at the top left
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Image(
+                        painter = icon,
+                        contentDescription = "Card Icon",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Title
                 Text(
-                    text = subtitle,
-                    fontSize = 12.sp,
+                    text = title,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Subtitle
+                if (subtitle.isNotEmpty()) {
+                    Text(
+                        text = subtitle,
+                        fontSize = 12.sp,
+                        color = Color.Black
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun LargeCard(title: String, subtitle: String, onClick: () -> Unit) {
+fun LargeCard(
+    title: String,
+    subtitle: String,
+    icon: Painter, // Icon added as parameter
+    onClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(160.dp) // Adjusted height for large card to accommodate more text
+            .height(160.dp)
             .padding(8.dp)
-            .clickable { onClick() }, // Make the card clickable and trigger navigation
+            .clickable { onClick() }, // Make the card clickable
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White) // Set card background to white
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Background from image
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
-            // Title in bold and larger font
-            Text(
-                text = title,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
+            // Background Image
+            Image(
+                painter = painterResource(id = R.drawable.card), // Replace with actual image resource
+                contentDescription = "Card Background",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            // Subtitle in smaller font
-            if (subtitle.isNotEmpty()) {
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp), // Padding to prevent overlap
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Icon at the top left
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Image(
+                        painter = icon,
+                        contentDescription = "Card Icon",
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Title
                 Text(
-                    text = subtitle,
-                    fontSize = 14.sp,
+                    text = title,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Subtitle
+                if (subtitle.isNotEmpty()) {
+                    Text(
+                        text = subtitle,
+                        fontSize = 14.sp,
+                        color = Color.Black
+                    )
+                }
             }
         }
     }
