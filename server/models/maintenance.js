@@ -1,7 +1,12 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 // Define Maintenance Request Schema
 const MaintenanceSchema = new mongoose.Schema({
+  userId: { // ✅ Add this field to track the user who submitted the request
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
   requestId: {
     type: Number,
     unique: true,
@@ -13,36 +18,33 @@ const MaintenanceSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    required: true, // Maintenance category like Plumbing, Electrical, etc.
-    enum: ["Appliances", "Cleaning", "Plumbing & Leaking", "Heating", "Lighting", "Windows & Doors", "Furniture & Fitting", "Flooring", "Other"], // Add more as needed
+    required: true,
+    enum: ["Appliances", "Cleaning", "Plumbing & Leaking", "Heating", "Lighting", "Windows & Doors", "Furniture & Fitting", "Flooring", "Other"],
   },
-  description: {
-    type: String,
-  },
+  description: { type: String },
   roomAccess: {
     type: String,
     required: true,
-    enum: ['Yes', 'No'], // Whether the maintenance team can enter the room when the user is away
+    enum: ["Yes", "No"],
   },
   pictures: {
-    type: [String], // Array of image URLs or base64 strings
+    type: [String], // Array of image URLs
     default: [],
   },
   status: {
     type: String,
     required: true,
-    enum: ['In Process', 'Completed'], // The status of the maintenance request
-    default: 'In Process', // Default status when created
+    enum: ["In Process", "Completed"],
+    default: "In Process",
   },
   createdAt: {
     type: Date,
-    default: Date.now, // Automatically set to the current date and time when created
+    default: Date.now,
   },
   completedAt: {
-    type: Date, // Will be set when the status is updated to "Completed"
+    type: Date,
   },
 });
 
-// Export Maintenance Model
-const Maintenance = mongoose.model('Maintenance', MaintenanceSchema);
+const Maintenance = mongoose.model("Maintenance", MaintenanceSchema);
 module.exports = Maintenance;

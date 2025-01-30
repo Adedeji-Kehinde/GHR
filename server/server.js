@@ -27,6 +27,10 @@ mongoose
 // Routes
 const authRoutes = require("./routes/auth"); // Import auth routes
 app.use("/api/auth", authRoutes); // Mount auth routes under "/api/auth"
+const imageRoutes = require("./routes/image"); // Import image routes
+app.use("/api/image", imageRoutes); // Mount image routes under "/api/image"
+const maintenanceRoutes = require("./routes/maintenance"); // Import maintenance routes
+app.use("/api/maintenance", maintenanceRoutes); // Mount maintenance routes under "/api/maintenance"
 
 // Base Route
 app.get("/", (req, res) => {
