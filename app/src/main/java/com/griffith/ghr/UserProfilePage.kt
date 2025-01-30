@@ -16,13 +16,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -36,7 +38,8 @@ data class UserProfile(
     val gender: String,
     val email: String,
     val phone: String? = null,
-    val roomNumber: String
+    val roomNumber: String,
+    val profileImageUrl: String? // Fetch the user's actual profile image
 )
 
 // Retrofit API interface
@@ -60,6 +63,7 @@ fun UserProfilePage(navController: NavController) {
     var userGender by remember { mutableStateOf("Loading...") }
     var userEmail by remember { mutableStateOf("Loading...") }
     var userPhone by remember { mutableStateOf("Loading...") }
+    var profileImageUrl by remember { mutableStateOf("") } // Store the profile image URL
 
     // Initialize Retrofit
     val retrofit = remember {
@@ -84,6 +88,7 @@ fun UserProfilePage(navController: NavController) {
                     userGender = userProfile.gender
                     userEmail = userProfile.email
                     userPhone = userProfile.phone ?: "Not Provided"
+                    profileImageUrl = userProfile.profileImageUrl ?: "" // Load actual image URL
                 } catch (e: Exception) {
                     Log.e("UserProfilePage", "Error fetching user profile", e)
                     Toast.makeText(
@@ -138,15 +143,22 @@ fun UserProfilePage(navController: NavController) {
                         Box(
                             modifier = Modifier
                                 .size(120.dp)
-                                .background(Color.Gray, shape = CircleShape),
+                                .clip(CircleShape)
+                                .border(2.dp, Color.Gray, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Image(
-                                painter = painterResource(id = R.drawable.app_logo),
+                                painter = rememberAsyncImagePainter(
+                                    ImageRequest.Builder(LocalContext.current)
+                                        .data(profileImageUrl.ifEmpty { "https://res.cloudinary.com/dxlrv28eb/user_profiles/default_Image.JPG" }) // Fallback to default
+                                        .crossfade(true)
+                                        .build()
+                                ),
                                 contentDescription = "Profile Image",
                                 modifier = Modifier
                                     .size(120.dp)
-                                    .clip(CircleShape)
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
                             )
                         }
 

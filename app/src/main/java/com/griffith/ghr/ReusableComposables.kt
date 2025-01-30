@@ -44,6 +44,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -56,23 +57,25 @@ import coil.compose.rememberAsyncImagePainter
 fun SmallCard(
     title: String,
     subtitle: String,
-    icon: Painter, // Icon added as parameter
+    icon: Painter,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val cardHeight = screenHeight * 0.23f // Adaptive height (18% of screen height)
+
     Card(
         modifier = modifier
-            .height(160.dp)
-            .clickable { onClick() }, // Make the card clickable
+            .fillMaxWidth()
+            .height(cardHeight)
+            .clickable { onClick() },
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Background from image
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
             // Background Image
             Image(
-                painter = painterResource(id = R.drawable.card), // Replace with actual image resource
+                painter = painterResource(id = R.drawable.card),
                 contentDescription = "Card Background",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
@@ -81,7 +84,7 @@ fun SmallCard(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp), // Padding to prevent overlap
+                    .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Icon at the top left
@@ -127,24 +130,24 @@ fun SmallCard(
 fun LargeCard(
     title: String,
     subtitle: String,
-    icon: Painter, // Icon added as parameter
+    icon: Painter,
     onClick: () -> Unit
 ) {
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val cardHeight = screenHeight * 0.22f // Adaptive height (22% of screen height)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(160.dp)
-            .padding(8.dp)
-            .clickable { onClick() }, // Make the card clickable
+            .height(cardHeight)
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Background from image
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
             // Background Image
             Image(
-                painter = painterResource(id = R.drawable.card), // Replace with actual image resource
+                painter = painterResource(id = R.drawable.card),
                 contentDescription = "Card Background",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
@@ -153,7 +156,7 @@ fun LargeCard(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp), // Padding to prevent overlap
+                    .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Icon at the top left
