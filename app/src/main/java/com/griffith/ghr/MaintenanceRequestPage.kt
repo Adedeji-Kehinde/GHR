@@ -304,41 +304,20 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
                 color = Color.Gray
             )
             Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // Display Images with Upload Icon
-            for (rowIndex in 0..(selectedImages.size / 2)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp) // Spacing between images
-                ) {
-                    val firstIndex = rowIndex * 2
-                    if (firstIndex < selectedImages.size) {
-                        ImageBox(
-                            uri = selectedImages[firstIndex],
-                            size = imageSize,
-                            onRemove = { selectedImages.removeAt(firstIndex) },
-                            onExpand = { isImageExpanded.value = selectedImages[firstIndex] }
-                        )
-                    }
-
-                    val secondIndex = firstIndex + 1
-                    if (secondIndex < selectedImages.size) {
-                        ImageBox(
-                            uri = selectedImages[secondIndex],
-                            size = imageSize,
-                            onRemove = { selectedImages.removeAt(secondIndex) },
-                            onExpand = { isImageExpanded.value = selectedImages[secondIndex] }
-                        )
-                    } else if (selectedImages.size < 3) {
-                        // Upload Image Icon Box
-                        UploadImageBox(
-                            size = imageSize,
-                            onClick = { launcher.launch("image/*") }
-                        )
-                    }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                selectedImages.forEachIndexed { index, uri ->
+                    ImageBox(uri = uri, size = imageSize,
+                        onRemove = { selectedImages.removeAt(index) },
+                        onExpand = { isImageExpanded.value = selectedImages[index] })
                 }
-                Spacer(modifier = Modifier.height(8.dp)) // Vertical spacing between rows
+                if (selectedImages.size < 3) {
+                    UploadImageBox(size = imageSize,
+                        onClick = { launcher.launch("image/*")})
+                }
             }
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Full-Screen Image View
             isImageExpanded.value?.let { expandedUri ->
@@ -404,26 +383,6 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
             showMessage.value?.let { message ->
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(text = message, fontSize = 16.sp, color = if (message.contains("success")) Color.Green else Color.Red)
-            }
-        }
-
-        // Full-Screen Image View
-        isImageExpanded.value?.let { expandedUri ->
-            Dialog(onDismissRequest = { isImageExpanded.value = null }) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black)
-                ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(expandedUri),
-                        contentDescription = null,
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clickable { isImageExpanded.value = null }
-                    )
-                }
             }
         }
     }

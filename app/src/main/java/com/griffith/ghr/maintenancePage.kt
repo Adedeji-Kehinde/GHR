@@ -207,7 +207,7 @@ fun MaintenancePageContent(
 
 // Retrofit API interface for maintenance requests
 interface MaintenanceApi {
-    @GET("api/auth/maintenance")
+    @GET("api/maintenance/")
     suspend fun getMaintenanceRequests(@Header("Authorization") token: String): List<MaintenanceRequest>
 }
 
