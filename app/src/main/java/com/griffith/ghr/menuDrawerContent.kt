@@ -17,9 +17,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
@@ -99,16 +99,15 @@ fun MenuDrawerContent(navController: NavController) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { navController.navigate("UserProfilePage") }, // Navigate to UserProfilePage
+                .clickable { navController.navigate("UserProfilePage") },
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // User profile image in a circular shape
+            // User profile image
             Box(
                 modifier = Modifier
                     .size(60.dp)
                     .background(Color.Gray, shape = CircleShape)
             ) {
-                // Always use the placeholder image
                 Image(
                     painter = placeholderImage,
                     contentDescription = "User Profile Image",
@@ -116,7 +115,6 @@ fun MenuDrawerContent(navController: NavController) {
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
-            // User name and email
             Column {
                 Text(
                     text = userName,
@@ -131,68 +129,52 @@ fun MenuDrawerContent(navController: NavController) {
                 )
             }
         }
-        Spacer(modifier = Modifier.height(8.dp)) // Add space below the profile section
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-        Spacer(modifier = Modifier.height(16.dp)) // Add space below the profile section
 
-        // Menu items
-        LazyColumn(modifier = Modifier.weight(1f)) { // Occupy remaining space
+        Spacer(modifier = Modifier.height(8.dp))
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Menu items with icons
+        LazyColumn(modifier = Modifier.weight(1f)) {
             item {
-                ListItem(
-                    headlineContent = {
-                        Text(text = "Home", fontSize = 20.sp)
-                    },
-                    modifier = Modifier.clickable {
-                        navController.navigate("HomePage") // Navigate to HomePage
-                    }
+                MenuItem(
+                    navController = navController,
+                    icon = painterResource(id = R.drawable.home), // Replace with actual icon
+                    title = "Home",
+                    route = "HomePage"
                 )
             }
+            item { Spacer(modifier = Modifier.height(20.dp)) }
             item {
-                Spacer(modifier = Modifier.height(16.dp)) // Add space between items
-            }
-            item {
-                ListItem(
-                    headlineContent = {
-                        Text(text = "Deliveries", fontSize = 20.sp)
-                    },
-                    modifier = Modifier.clickable {
-                        navController.navigate("DeliveriesPage") // Navigate to DeliveriesPage
-                    }
+                MenuItem(
+                    navController = navController,
+                    icon = painterResource(id = R.drawable.deliveries), // Replace with actual icon
+                    title = "Deliveries",
+                    route = "DeliveriesPage"
                 )
             }
+            item { Spacer(modifier = Modifier.height(20.dp)) }
             item {
-                Spacer(modifier = Modifier.height(16.dp)) // Add space between items
-            }
-            item {
-                ListItem(
-                    headlineContent = {
-                        Text(text = "Maintenance", fontSize = 20.sp)
-                    },
-                    modifier = Modifier.clickable {
-                        navController.navigate("MaintenancePage") // Navigate to MaintenancePage
-                    }
+                MenuItem(
+                    navController = navController,
+                    icon = painterResource(id = R.drawable.maintenance), // Replace with actual icon
+                    title = "Maintenance",
+                    route = "MaintenancePage"
                 )
             }
+            item { Spacer(modifier = Modifier.height(20.dp)) }
             item {
-                Spacer(modifier = Modifier.height(16.dp)) // Add space between items
-            }
-            item {
-                ListItem(
-                    headlineContent = {
-                        Text(text = "Enquiries", fontSize = 20.sp)
-                    },
-                    modifier = Modifier.clickable {
-                        navController.navigate("EnquiriesPage") // Navigate to EnquiriesPage
-                    }
+                MenuItem(
+                    navController = navController,
+                    icon = painterResource(id = R.drawable.enquiries), // Replace with actual icon
+                    title = "Enquiries",
+                    route = "EnquiriesPage"
                 )
             }
         }
 
         // Logout Button
-        Text(
-            text = "Logout",
-            fontSize = 14.sp,
-            color = Color.Gray,
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp)
@@ -205,7 +187,47 @@ fun MenuDrawerContent(navController: NavController) {
                         popUpTo(0) // Clear the back stack
                     }
                 },
-            textAlign = androidx.compose.ui.text.style.TextAlign.Start
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.logout), // Replace with actual icon
+                contentDescription = "Logout",
+                tint = Color.Gray,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Logout",
+                fontSize = 16.sp,
+                color = Color.Gray,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+// Reusable Menu Item
+@Composable
+fun MenuItem(navController: NavController, icon: Painter, title: String, route: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { navController.navigate(route) }
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = icon,
+            contentDescription = title,
+            tint = Color.Black,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = title,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
         )
     }
 }
