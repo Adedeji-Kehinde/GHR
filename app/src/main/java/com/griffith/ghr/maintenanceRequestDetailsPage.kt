@@ -3,21 +3,28 @@ package com.griffith.ghr
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -40,6 +47,7 @@ fun MaintenanceRequestDetailsPage(navController: NavController, requestId: Strin
     var status by remember { mutableStateOf("-") }
     var completedAt by remember { mutableStateOf("-") }
     var pictures by remember { mutableStateOf<List<String>>(emptyList()) }
+    var selectedImage by remember { mutableStateOf<String?>(null) } // To store clicked image
 
     // Retrofit setup
     val retrofit = remember {
@@ -50,7 +58,7 @@ fun MaintenanceRequestDetailsPage(navController: NavController, requestId: Strin
     }
     val maintenanceApi = retrofit.create(MaintenanceApi::class.java)
 
-    // Fetch maintenance requests and find the matching one
+    // Fetch maintenance request details
     LaunchedEffect(requestId) {
         val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         val token = sharedPreferences.getString("authToken", null)
@@ -107,12 +115,8 @@ fun MaintenanceRequestDetailsPage(navController: NavController, requestId: Strin
             Scaffold(
                 topBar = {
                     AppHeader(
-                        onMenuClick = {
-                            scope.launch { menuDrawerState.open() }
-                        },
-                        onNotificationClick = {
-                            isNotificationDrawerOpen.value = true
-                        },
+                        onMenuClick = { scope.launch { menuDrawerState.open() } },
+                        onNotificationClick = { isNotificationDrawerOpen.value = true },
                         navController = navController,
                         showBackButton = true
                     )
@@ -122,7 +126,8 @@ fun MaintenanceRequestDetailsPage(navController: NavController, requestId: Strin
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding)
-                            .padding(16.dp),
+                            .padding(16.dp)
+                            .verticalScroll(rememberScrollState()), // ✅ Makes the page scrollable
                         verticalArrangement = Arrangement.Top,
                         horizontalAlignment = Alignment.Start
                     ) {
@@ -134,11 +139,7 @@ fun MaintenanceRequestDetailsPage(navController: NavController, requestId: Strin
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "Request ID: $requestId",
-                                fontSize = 14.sp,
-                                color = Color.Gray
-                            )
+                            Text(text = "Request ID: $requestId", fontSize = 14.sp, color = Color.Gray)
                             Box(
                                 modifier = Modifier
                                     .background(
@@ -151,12 +152,7 @@ fun MaintenanceRequestDetailsPage(navController: NavController, requestId: Strin
                                     )
                                     .padding(horizontal = 16.dp, vertical = 8.dp)
                             ) {
-                                Text(
-                                    text = status,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
+                                Text(text = status, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
                             }
                         }
 
@@ -176,12 +172,7 @@ fun MaintenanceRequestDetailsPage(navController: NavController, requestId: Strin
                         Spacer(modifier = Modifier.height(32.dp))
 
                         // Attachments
-                        Text(
-                            text = "Attachments",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
+                        Text(text = "Attachments", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                         Spacer(modifier = Modifier.height(16.dp))
 
                         if (pictures.isEmpty()) {
@@ -192,16 +183,24 @@ fun MaintenanceRequestDetailsPage(navController: NavController, requestId: Strin
                                     .background(Color.LightGray, shape = RoundedCornerShape(8.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    text = "No Attachments Available",
-                                    fontSize = 14.sp,
-                                    color = Color.Gray
-                                )
+                                Text(text = "No Attachments Available", fontSize = 14.sp, color = Color.Gray)
                             }
                         } else {
-                            Column {
-                                pictures.forEach { picture ->
-                                    Text(text = picture, color = Color.Blue)
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(pictures.size) { index ->
+                                    Image(
+                                        painter = rememberAsyncImagePainter(pictures[index]),
+                                        contentDescription = "Maintenance Image",
+                                        modifier = Modifier
+                                            .size(120.dp)
+                                            .background(Color.Gray, shape = RoundedCornerShape(8.dp))
+                                            .padding(4.dp)
+                                            .clickable { selectedImage = pictures[index] }, // ✅ Clicking image opens full screen
+                                        contentScale = ContentScale.Crop
+                                    )
                                 }
                             }
                         }
@@ -209,7 +208,7 @@ fun MaintenanceRequestDetailsPage(navController: NavController, requestId: Strin
                 }
             )
         }
-
+        // Notification Drawer Overlay
         if (isNotificationDrawerOpen.value) {
             Box(
                 modifier = Modifier
@@ -222,13 +221,33 @@ fun MaintenanceRequestDetailsPage(navController: NavController, requestId: Strin
                     .fillMaxHeight()
                     .width((2 * LocalConfiguration.current.screenWidthDp / 3).dp)
                     .align(Alignment.TopEnd)
-                    .background(Color.White, RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
+                    .background(Color.White, shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
             ) {
                 NotificationDrawerBox()
             }
         }
+        // Full-Screen Image Viewer
+        selectedImage?.let { imageUrl ->
+            Dialog(onDismissRequest = { selectedImage = null }) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black)
+                        .clickable { selectedImage = null }, // Click anywhere to close
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = rememberAsyncImagePainter(imageUrl),
+                        contentDescription = "Full-Screen Image",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+            }
+        }
     }
 }
+
 
 @Composable
 fun MaintenanceDetailRow(label: String, value: String) {

@@ -2,6 +2,7 @@ package com.griffith.ghr
 
 import android.content.Context
 import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -53,24 +54,32 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Body
 import retrofit2.http.Header
+import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.Part
+import java.io.InputStream
 
+// Retrofit API Interface
 interface MaintenanceRequestApi {
-    @POST("api/auth/maintenance") // Update with your backend endpoint
+    @Multipart
+    @POST("api/maintenance/register")
     suspend fun createMaintenanceRequest(
         @Header("Authorization") token: String,
-        @Body request: MaintenanceRequestData
-    ): MaintenanceResponse
+        @Part("roomNumber") roomNumber: RequestBody,
+        @Part("category") category: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part("roomAccess") roomAccess: RequestBody,
+        @Part images: List<MultipartBody.Part>
+    ): ResponseBody
 }
-// Data class for the response
-data class MaintenanceResponse(
-    val message: String,
-    val request: MaintenanceRequestData
-)
+
 // Data class for maintenance request payload
 data class MaintenanceRequestData(
     val roomNumber: String,
@@ -155,17 +164,14 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
     val userProfileApi = retrofit.create(UserProfileApi::class.java)
 
     // State for room number and form inputs
-    var roomNumber by remember { mutableStateOf<String?>(null) }
+    var roomNumber by remember { mutableStateOf("") }
     val category = remember { mutableStateOf("") }
     val description = remember { mutableStateOf("") }
     val roomAccess = remember { mutableStateOf("") }
-    val pictures = remember { mutableStateListOf<String>() }
     val selectedImages = remember { mutableStateListOf<Uri>() } // Mutable list for selected images
     val isImageExpanded = remember { mutableStateOf<Uri?>(null) } // Tracks the expanded image
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        if (uri != null && selectedImages.size < 3) {
-            selectedImages.add(uri) // Add the new image if below the limit
-        }
+        uri?.let { if (selectedImages.size < 5) selectedImages.add(it) }
     }
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val imageSize = (screenWidth - 24.dp) / 2 // Adjust size to fit two images per row with spacing
@@ -299,23 +305,46 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "up to 3 pictures, max file size is 10MB",
+                text = "Upload Images (5 Max)",
                 fontSize = 14.sp,
                 color = Color.Gray
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Spacer(modifier = Modifier.height(8.dp))
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                selectedImages.forEachIndexed { index, uri ->
-                    ImageBox(uri = uri, size = imageSize,
-                        onRemove = { selectedImages.removeAt(index) },
-                        onExpand = { isImageExpanded.value = selectedImages[index] })
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Display Images with Upload Icon
+            for (rowIndex in 0..(selectedImages.size / 2)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp) // Spacing between images
+                ) {
+                    val firstIndex = rowIndex * 2
+                    if (firstIndex < selectedImages.size) {
+                        ImageBox(
+                            uri = selectedImages[firstIndex],
+                            size = imageSize,
+                            onRemove = { selectedImages.removeAt(firstIndex) },
+                            onExpand = { isImageExpanded.value = selectedImages[firstIndex] }
+                        )
+                    }
+
+                    val secondIndex = firstIndex + 1
+                    if (secondIndex < selectedImages.size) {
+                        ImageBox(
+                            uri = selectedImages[secondIndex],
+                            size = imageSize,
+                            onRemove = { selectedImages.removeAt(secondIndex) },
+                            onExpand = { isImageExpanded.value = selectedImages[secondIndex] }
+                        )
+                    } else if (selectedImages.size < 3) {
+                        // Upload Image Icon Box
+                        UploadImageBox(
+                            size = imageSize,
+                            onClick = { launcher.launch("image/*") }
+                        )
+                    }
                 }
-                if (selectedImages.size < 3) {
-                    UploadImageBox(size = imageSize,
-                        onClick = { launcher.launch("image/*")})
-                }
+                Spacer(modifier = Modifier.height(8.dp)) // Vertical spacing between rows
             }
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -343,29 +372,28 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
             Button(
                 onClick = {
                     scope.launch {
-                        val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-                        val token = sharedPreferences.getString("authToken", null)
+                        isSubmitting.value = true
+                        try {
+                            val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                            val token = sharedPreferences.getString("authToken", null)
 
-                        if (token != null && roomNumber != null) {
-                            isSubmitting.value = true
-                            try {
-                                maintenanceRequestApi.createMaintenanceRequest(
-                                    token = "Bearer $token",
-                                    request = MaintenanceRequestData(
-                                        roomNumber = roomNumber!!,
-                                        category = category.value,
-                                        description = description.value,
-                                        roomAccess = roomAccess.value,
-                                        pictures = pictures
-                                    )
-                                )
-                                showMessage.value = "Request submitted successfully!"
-                                navController.navigate("MaintenancePage") // Refresh or navigate
-                            } catch (e: Exception) {
-                                showMessage.value = "Failed to submit request. Please try again."
-                            } finally {
-                                isSubmitting.value = false
+                            val imagesParts = selectedImages.map { uri ->
+                                uriToMultipartBody(context, uri)
                             }
+                            val response = maintenanceRequestApi.createMaintenanceRequest(
+                                token = "Bearer $token",
+                                roomNumber = RequestBody.create("text/plain".toMediaTypeOrNull(), roomNumber),
+                                category = RequestBody.create("text/plain".toMediaTypeOrNull(), category.value),
+                                description = RequestBody.create("text/plain".toMediaTypeOrNull(), description.value),
+                                roomAccess = RequestBody.create("text/plain".toMediaTypeOrNull(), roomAccess.value),
+                                images = imagesParts
+                            )
+                            showMessage.value = "Success!"
+                            navController.navigate("MaintenancePage")
+                        } catch (e: Exception) {
+                            showMessage.value = "Error: ${e.message}"
+                        } finally {
+                            isSubmitting.value = false
                         }
                     }
                 },
@@ -386,4 +414,37 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
             }
         }
     }
+}
+
+
+// Function to Convert URI to MultipartBody.Part
+fun uriToMultipartBody(context: Context, uri: Uri): MultipartBody.Part {
+    val contentResolver = context.contentResolver
+    val inputStream: InputStream? = contentResolver.openInputStream(uri)
+    val fileName = getFileName(context, uri)
+
+    val requestBody = inputStream?.readBytes()?.let { bytes ->
+        RequestBody.create(contentResolver.getType(uri)?.toMediaTypeOrNull() ?: "image/*".toMediaTypeOrNull(), bytes)
+    } ?: throw IllegalStateException("Failed to read input stream")
+
+    return MultipartBody.Part.createFormData("images", fileName, requestBody)
+}
+
+// Function to Get File Name from URI
+fun getFileName(context: Context, uri: Uri): String {
+    var result: String? = null
+    if (uri.scheme == "content") {
+        val cursor = context.contentResolver.query(uri, null, null, null, null)
+        try {
+            if (cursor != null && cursor.moveToFirst()) {
+                val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (index >= 0) {
+                    result = cursor.getString(index)
+                }
+            }
+        } finally {
+            cursor?.close()
+        }
+    }
+    return result ?: "image_${System.currentTimeMillis()}.jpg"
 }

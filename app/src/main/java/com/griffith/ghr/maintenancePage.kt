@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -178,12 +179,25 @@ fun MaintenancePageContent(
             .padding(innerPadding)
     ) {
         if (filteredRequests.isEmpty()) {
-            Text(
-                text = "No maintenance requests to display",
-                fontSize = 16.sp,
-                color = Color.Gray,
-                modifier = Modifier.align(Alignment.Center)
-            )
+            Column(
+                modifier = Modifier.align(Alignment.Center), // Center content in the Box
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.maintenance),
+                    contentDescription = "No Requests",
+                    tint = Color.Gray,
+                    modifier = Modifier.size(48.dp) // Adjust icon size
+                )
+
+                Spacer(modifier = Modifier.height(8.dp)) // Space between icon and text
+
+                Text(
+                    text = "No maintenance requests to display",
+                    fontSize = 16.sp,
+                    color = Color.Gray
+                )
+            }
         } else {
             LazyColumn(
                 modifier = Modifier
