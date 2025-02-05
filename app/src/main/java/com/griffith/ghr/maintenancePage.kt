@@ -2,7 +2,6 @@ package com.griffith.ghr
 
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,8 +22,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Header
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 // ------------------------- API INTERFACE -------------------------
 
@@ -210,19 +207,8 @@ fun MaintenancePageContent(
  */
 @Composable
 fun MaintenanceCard(navController: NavController, request: MaintenanceRequest) {
-    val context = LocalContext.current
-
     val formattedDateTime = remember(request.createdAt) {
-        try {
-            val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-            val outputFormat = SimpleDateFormat("EEE, dd MMM yyyy, HH:mm", Locale.getDefault())
-            val date = inputFormat.parse(request.createdAt)
-            outputFormat.format(date ?: request.createdAt)
-        } catch (e: Exception) {
-            Log.e("MaintenanceCard", "Error formatting date", e)
-            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-            request.createdAt // Fallback to original date
-        }
+        formatDateTime(request.createdAt)
     }
 
     Card(
@@ -243,22 +229,7 @@ fun MaintenanceCard(navController: NavController, request: MaintenanceRequest) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = "Request ID: ${request.requestId}", fontSize = 12.sp, color = Color.Gray)
-
-                Box(
-                    modifier = Modifier
-                        .background(
-                            color = when (request.status) {
-                                "In Progress" -> Color(0xFF1976D2) // Blue
-                                "Completed" -> Color(0xFF4CAF50) // Green
-                                else -> Color(0xFFF44336) // Red
-                            },
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(horizontal = 12.dp, vertical = 4.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(text = request.status, fontSize = 12.sp, color = Color.White)
-                }
+                StatusBadge(status = request.status)
             }
 
             // Maintenance Category

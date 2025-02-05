@@ -3,9 +3,7 @@ package com.griffith.ghr
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -126,25 +124,7 @@ fun EnquiryDetailsContent(requestId: String, enquiryDetails: Enquiry?, innerPadd
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = "Request ID: $requestId", fontSize = 14.sp, color = Color.Gray)
-            Box(
-                modifier = Modifier
-                    .background(
-                        color = when (enquiryDetails?.status) {
-                            "Pending" -> Color.Blue
-                            "Resolved" -> Color.Green
-                            else -> Color.Gray
-                        },
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Text(
-                    text = enquiryDetails?.status ?: "-",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            }
+            StatusBadge(status = enquiryDetails?.status)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -157,7 +137,7 @@ fun EnquiryDetailsContent(requestId: String, enquiryDetails: Enquiry?, innerPadd
     }
 }
 
-// ------------------------- HELPER COMPOSABLES -------------------------
+// ------------------------- HELPER COMPOSABLE -------------------------
 
 /**
  * EnquiryDetailRow - A reusable row for displaying a label and its corresponding value.
@@ -177,5 +157,3 @@ fun EnquiryDetailRow(label: String, value: String?) {
         }
     }
 }
-
-

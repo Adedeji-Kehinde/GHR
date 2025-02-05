@@ -2,7 +2,6 @@ package com.griffith.ghr
 
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,8 +23,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Header
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 // ------------------------- API INTERFACE -------------------------
 
@@ -204,19 +201,8 @@ fun DeliveriesPageContent(
  */
 @Composable
 fun DeliveryCard(navController: NavController, delivery: Delivery) {
-    val context = LocalContext.current
-
     val formattedDateTime = remember(delivery.arrivedAt) {
-        try {
-            val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-            val outputFormat = SimpleDateFormat("EEE, dd MMM yyyy, HH:mm", Locale.getDefault())
-            val date = inputFormat.parse(delivery.arrivedAt)
-            outputFormat.format(date ?: delivery.arrivedAt)
-        } catch (e: Exception) {
-            Log.e("DeliveryCard", "Error formatting date", e)
-            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-            delivery.arrivedAt // Fallback to original date
-        }
+        formatDateTime(delivery.arrivedAt)
     }
 
     Card(

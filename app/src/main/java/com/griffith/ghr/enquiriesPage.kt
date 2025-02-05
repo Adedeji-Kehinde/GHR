@@ -2,7 +2,6 @@ package com.griffith.ghr
 
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,8 +22,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Header
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 // ------------------------- API INTERFACE -------------------------
 
@@ -207,19 +204,8 @@ fun EnquiriesPageContent(
  */
 @Composable
 fun EnquiriesCard(navController: NavController, enquiry: Enquiry) {
-    val context = LocalContext.current
-
     val formattedDateTime = remember(enquiry.createdAt) {
-        try {
-            val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-            val outputFormat = SimpleDateFormat("EEE, dd MMM yyyy, HH:mm", Locale.getDefault())
-            val date = inputFormat.parse(enquiry.createdAt)
-            outputFormat.format(date ?: enquiry.createdAt)
-        } catch (e: Exception) {
-            Log.e("EnquiriesCard", "Error formatting date", e)
-            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-            enquiry.createdAt // Fallback to original date
-        }
+        formatDateTime(enquiry.createdAt)
     }
 
     Card(
@@ -239,22 +225,7 @@ fun EnquiriesCard(navController: NavController, enquiry: Enquiry) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = "Request ID: ${enquiry.requestId}", fontSize = 12.sp, color = Color.Gray)
-
-                Box(
-                    modifier = Modifier
-                        .background(
-                            color = when (enquiry.status) {
-                                "Pending" -> Color(0xFFFFC107) // Amber
-                                "Resolved" -> Color(0xFF4CAF50) // Green
-                                else -> Color(0xFFF44336) // Red
-                            },
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(horizontal = 12.dp, vertical = 4.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(text = enquiry.status, fontSize = 12.sp, color = Color.White)
-                }
+                StatusBadge(status = enquiry.status)
             }
 
             Text(text = enquiry.enquiryText, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp))

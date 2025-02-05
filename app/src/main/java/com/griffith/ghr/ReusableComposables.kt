@@ -1,6 +1,7 @@
 package com.griffith.ghr
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -195,7 +196,34 @@ fun formatDateTime(dateTimeString: String): String {
         val date = inputFormat.parse(dateTimeString)
         if (date != null) outputFormat.format(date) else "-"
     } catch (e: Exception) {
+        Log.e("DateFormattingError", "Error formatting date: ${e.message}", e)
         "-"
+    }
+}
+
+// ------------------------- REUSABLE STATUS BADGE -------------------------
+
+/**
+ * StatusBadge - A reusable Composable to display status labels.
+ */
+@Composable
+fun StatusBadge(status: String?) {
+    val backgroundColor = when (status) {
+        "Pending" -> Color.Blue
+        "In Process" -> Color.Blue
+        "Resolved" -> Color.Green
+        "Completed" -> Color.Green
+        "To Collect" -> Color.Blue
+        "Collected" -> Color.Green
+        "Cancelled" -> Color.Red
+        else -> Color.Gray
+    }
+    Box(
+        modifier = Modifier
+            .background(backgroundColor, shape = RoundedCornerShape(16.dp))
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Text(text = status ?: "-", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
     }
 }
 

@@ -17,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -29,30 +28,29 @@ import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+// ------------------------- MAINTENANCE REQUEST DETAILS PAGE -------------------------
+
+/**
+ * MaintenanceRequestDetailsPage - Displays detailed information about a specific maintenance request.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaintenanceRequestDetailsPage(navController: NavController, requestId: String) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // State for menu drawer
+    // Drawer states
     val menuDrawerState = rememberDrawerState(DrawerValue.Closed)
     val isNotificationDrawerOpen = remember { mutableStateOf(false) }
 
-    // State for maintenance details
-    var roomNumber by remember { mutableStateOf("-") }
-    var category by remember { mutableStateOf("-") }
-    var description by remember { mutableStateOf("-") }
-    var roomAccess by remember { mutableStateOf("-") }
-    var status by remember { mutableStateOf("-") }
-    var completedAt by remember { mutableStateOf("-") }
-    var pictures by remember { mutableStateOf<List<String>>(emptyList()) }
-    var selectedImage by remember { mutableStateOf<String?>(null) } // To store clicked image
+    // Maintenance request details state
+    var maintenanceDetails by remember { mutableStateOf<MaintenanceRequest?>(null) }
+    var selectedImage by remember { mutableStateOf<String?>(null) } // Selected image for full-screen preview
 
     // Retrofit setup
     val retrofit = remember {
         Retrofit.Builder()
-            .baseUrl("https://ghr-1.onrender.com") // Update with your backend URL
+            .baseUrl("https://ghr-1.onrender.com")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
@@ -67,49 +65,25 @@ fun MaintenanceRequestDetailsPage(navController: NavController, requestId: Strin
             scope.launch {
                 try {
                     val maintenanceRequests = maintenanceApi.getMaintenanceRequests("Bearer $token")
-                    val matchingRequest = maintenanceRequests.find { it.requestId == requestId }
+                    maintenanceDetails = maintenanceRequests.find { it.requestId == requestId }
 
-                    if (matchingRequest != null) {
-                        roomNumber = matchingRequest.roomNumber
-                        category = matchingRequest.category
-                        description = matchingRequest.description
-                        roomAccess = matchingRequest.roomAccess
-                        status = matchingRequest.status
-                        completedAt = matchingRequest.completedAt?.let { formatDateTime(it) } ?: "-"
-                        pictures = matchingRequest.pictures
-                    } else {
-                        Toast.makeText(
-                            context,
-                            "Maintenance request not found.",
-                            Toast.LENGTH_LONG
-                        ).show()
+                    if (maintenanceDetails == null) {
+                        Toast.makeText(context, "Maintenance request not found.", Toast.LENGTH_LONG).show()
                     }
                 } catch (e: Exception) {
                     Log.e("MaintenanceDetailsPage", "Error fetching maintenance requests", e)
-                    Toast.makeText(
-                        context,
-                        "Failed to fetch maintenance details. Please try again.",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    Toast.makeText(context, "Failed to fetch maintenance details.", Toast.LENGTH_LONG).show()
                 }
             }
         } else {
-            Toast.makeText(
-                context,
-                "No authentication token found. Please log in again.",
-                Toast.LENGTH_LONG
-            ).show()
+            Toast.makeText(context, "No authentication token found. Please log in again.", Toast.LENGTH_LONG).show()
         }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
         ModalNavigationDrawer(
             drawerState = menuDrawerState,
-            drawerContent = {
-                ModalDrawerSheet {
-                    MenuDrawerContent(navController = navController)
-                }
-            },
+            drawerContent = { ModalDrawerSheet { MenuDrawerContent(navController) } },
             modifier = Modifier.fillMaxSize()
         ) {
             Scaffold(
@@ -122,135 +96,122 @@ fun MaintenanceRequestDetailsPage(navController: NavController, requestId: Strin
                     )
                 },
                 content = { innerPadding ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding)
-                            .padding(16.dp)
-                            .verticalScroll(rememberScrollState()), // ✅ Makes the page scrollable
-                        verticalArrangement = Arrangement.Top,
-                        horizontalAlignment = Alignment.Start
-                    ) {
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Request ID and Status
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(text = "Request ID: $requestId", fontSize = 14.sp, color = Color.Gray)
-                            Box(
-                                modifier = Modifier
-                                    .background(
-                                        color = when (status) {
-                                            "In Process" -> Color.Blue
-                                            "Completed" -> Color.Green
-                                            else -> Color.Gray
-                                        },
-                                        shape = RoundedCornerShape(16.dp)
-                                    )
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text(text = status, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(32.dp))
-
-                        // Maintenance Details
-                        MaintenanceDetailRow(label = "Room Number", value = roomNumber)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        MaintenanceDetailRow(label = "Category", value = category)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        MaintenanceDetailRow(label = "Description", value = description)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        MaintenanceDetailRow(label = "Room Access", value = roomAccess)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        MaintenanceDetailRow(label = "Completed At", value = completedAt)
-
-                        Spacer(modifier = Modifier.height(32.dp))
-
-                        // Attachments
-                        Text(text = "Attachments", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        if (pictures.isEmpty()) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(100.dp)
-                                    .background(Color.LightGray, shape = RoundedCornerShape(8.dp)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(text = "No Attachments Available", fontSize = 14.sp, color = Color.Gray)
-                            }
-                        } else {
-                            LazyRow(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                items(pictures.size) { index ->
-                                    Image(
-                                        painter = rememberAsyncImagePainter(pictures[index]),
-                                        contentDescription = "Maintenance Image",
-                                        modifier = Modifier
-                                            .size(120.dp)
-                                            .background(Color.Gray, shape = RoundedCornerShape(8.dp))
-                                            .padding(4.dp)
-                                            .clickable { selectedImage = pictures[index] }, // ✅ Clicking image opens full screen
-                                        contentScale = ContentScale.Crop
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    MaintenanceDetailsContent(
+                        maintenanceDetails = maintenanceDetails,
+                        innerPadding = innerPadding,
+                        selectedImage = selectedImage,
+                        onImageClick = { selectedImage = it },
+                        onCloseImage = { selectedImage = null }
+                    )
                 }
             )
         }
-        // Notification Drawer Overlay
+
         if (isNotificationDrawerOpen.value) {
+            NotificationDrawerOverlay(isNotificationDrawerOpen)
+        }
+    }
+}
+
+// ------------------------- MAINTENANCE DETAILS CONTENT -------------------------
+
+/**
+ * MaintenanceDetailsContent - Displays the content inside the Maintenance Request Details Page.
+ */
+@Composable
+fun MaintenanceDetailsContent(
+    maintenanceDetails: MaintenanceRequest?,
+    innerPadding: PaddingValues,
+    selectedImage: String?,
+    onImageClick: (String) -> Unit,
+    onCloseImage: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()), // ✅ Scrollable page
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start
+    ) {
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Request ID and Status
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Request ID: ${maintenanceDetails?.requestId ?: "-"}", fontSize = 14.sp, color = Color.Gray)
+            StatusBadge(status = maintenanceDetails?.status)
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Maintenance Details
+        MaintenanceDetailRow(label = "Room Number", value = maintenanceDetails?.roomNumber)
+        MaintenanceDetailRow(label = "Category", value = maintenanceDetails?.category)
+        MaintenanceDetailRow(label = "Description", value = maintenanceDetails?.description)
+        MaintenanceDetailRow(label = "Room Access", value = maintenanceDetails?.roomAccess)
+        MaintenanceDetailRow(label = "Completed At", value = maintenanceDetails?.completedAt?.let { formatDateTime(it) })
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Attachments
+        Text(text = "Attachments", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (maintenanceDetails?.pictures.isNullOrEmpty()) {
+            EmptyPageMessage(icon = R.drawable.maintenance, message = "No Attachments Available")
+        } else {
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                maintenanceDetails.pictures.forEach { imageUrl ->
+                    item {
+                        Image(
+                            painter = rememberAsyncImagePainter(imageUrl),
+                            contentDescription = "Maintenance Image",
+                            modifier = Modifier
+                                .size(120.dp)
+                                .background(Color.Gray, shape = RoundedCornerShape(8.dp))
+                                .padding(4.dp)
+                                .clickable { onImageClick(imageUrl) }, // ✅ Clicking image opens full screen
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // Full-Screen Image Viewer
+    selectedImage?.let { imageUrl ->
+        Dialog(onDismissRequest = { onCloseImage() }) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f))
-                    .clickable { isNotificationDrawerOpen.value = false }
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width((2 * LocalConfiguration.current.screenWidthDp / 3).dp)
-                    .align(Alignment.TopEnd)
-                    .background(Color.White, shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
+                    .background(Color.Black)
+                    .clickable { onCloseImage() }, // Click anywhere to close
+                contentAlignment = Alignment.Center
             ) {
-                NotificationDrawerBox()
-            }
-        }
-        // Full-Screen Image Viewer
-        selectedImage?.let { imageUrl ->
-            Dialog(onDismissRequest = { selectedImage = null }) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black)
-                        .clickable { selectedImage = null }, // Click anywhere to close
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(imageUrl),
-                        contentDescription = "Full-Screen Image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit
-                    )
-                }
+                Image(
+                    painter = rememberAsyncImagePainter(imageUrl),
+                    contentDescription = "Full-Screen Image",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
             }
         }
     }
 }
 
+// ------------------------- HELPER COMPOSABLE -------------------------
 
 @Composable
-fun MaintenanceDetailRow(label: String, value: String) {
+fun MaintenanceDetailRow(label: String, value: String?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -258,23 +219,10 @@ fun MaintenanceDetailRow(label: String, value: String) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = label,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color.Gray,
-            modifier = Modifier.weight(1f)
+        Text(text = label, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color.Gray, modifier = Modifier.weight(1f)
         )
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(0.5f)
-        ) {
-            Text(
-                text = value,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Normal,
-                color = Color.Black
-            )
+        Box(modifier = Modifier.fillMaxWidth(0.5f)) {
+            Text(text = value?: "-", fontSize = 16.sp, fontWeight = FontWeight.Normal, color = Color.Black)
         }
     }
 }
