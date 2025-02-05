@@ -23,16 +23,34 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.POST
 
-// Data classes for login request and response
+// ------------------------- Data Models -------------------------
+
+/**
+ * Represents the login request payload.
+ */
 data class LoginRequest(val email: String, val password: String)
+
+/**
+ * Represents the login response from the server.
+ */
 data class LoginResponse(val message: String, val token: String?)
 
-// Retrofit API interface
+// ------------------------- Retrofit API Service -------------------------
+
+/**
+ * Defines authentication API endpoints.
+ */
 interface AuthApi {
-    @POST("api/auth/login") // Match your backend endpoint
+    @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): LoginResponse
 }
 
+// ------------------------- Login Page UI -------------------------
+
+/**
+ * LoginPage composable function.
+ * Handles user login and navigation upon successful authentication.
+ */
 @Composable
 fun LoginPage(navController: NavController) {
     val email = remember { mutableStateOf("") }
@@ -41,15 +59,14 @@ fun LoginPage(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // Initialize Retrofit for your backend
-    val retrofit = remember {
+    // Initialize Retrofit instance once
+    val authApi = remember {
         Retrofit.Builder()
-            .baseUrl("https://ghr-1.onrender.com") // Corrected base URL
+            .baseUrl("https://ghr-1.onrender.com") // Backend URL
             .addConverterFactory(GsonConverterFactory.create())
             .build()
+            .create(AuthApi::class.java)
     }
-
-    val authApi = remember { retrofit.create(AuthApi::class.java) }
 
     Box(
         modifier = Modifier
@@ -73,7 +90,7 @@ fun LoginPage(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // email Input
+            // Email Input
             OutlinedTextField(
                 value = email.value,
                 onValueChange = { email.value = it },
@@ -99,40 +116,14 @@ fun LoginPage(navController: NavController) {
                 onClick = {
                     coroutineScope.launch {
                         isLoading.value = true
-                        try {
-                            val response = authApi.login(
-                                LoginRequest(email.value, password.value)
-                            )
-                            if (response.token != null) {
-                                // Store the token
-                                val sharedPreferences =
-                                    context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-                                sharedPreferences.edit()
-                                    .putString("authToken", response.token).apply()
-
-                                Toast.makeText(
-                                    context,
-                                    "Login Successful",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                                navController.navigate("HomePage") // Navigate to HomePage
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "Error: ${response.message}",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
-                        } catch (e: Exception) {
-                            Log.e("LoginError", "Error during login", e)
-                            Toast.makeText(
-                                context,
-                                "Error: ${e.message}",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        } finally {
-                            isLoading.value = false
-                        }
+                        performLogin(
+                            authApi = authApi,
+                            email = email.value,
+                            password = password.value,
+                            context = context,
+                            navController = navController,
+                            isLoading = isLoading
+                        )
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -146,5 +137,39 @@ fun LoginPage(navController: NavController) {
                 }
             }
         }
+    }
+}
+
+// ------------------------- Helper Functions -------------------------
+
+/**
+ * Handles login request and navigation.
+ */
+private suspend fun performLogin(
+    authApi: AuthApi,
+    email: String,
+    password: String,
+    context: Context,
+    navController: NavController,
+    isLoading: MutableState<Boolean>
+) {
+    try {
+        val response = authApi.login(LoginRequest(email, password))
+
+        if (response.token != null) {
+            // Store authentication token in shared preferences
+            val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+            sharedPreferences.edit().putString("authToken", response.token).apply()
+
+            Toast.makeText(context, "Login Successful", Toast.LENGTH_LONG).show()
+            navController.navigate("HomePage")
+        } else {
+            Toast.makeText(context, "Error: ${response.message}", Toast.LENGTH_LONG).show()
+        }
+    } catch (e: Exception) {
+        Log.e("LoginError", "Error during login", e)
+        Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+    } finally {
+        isLoading.value = false
     }
 }
