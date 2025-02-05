@@ -2,6 +2,7 @@ package com.griffith.ghr
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,9 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,10 +26,21 @@ import retrofit2.http.Header
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+// ------------------------- API INTERFACE -------------------------
+
+/**
+ * Enquiry API interface for fetching user enquiries.
+ */
 interface EnquiryApi {
     @GET("api/auth/enquiries")
     suspend fun getEnquiries(@Header("Authorization") token: String): List<Enquiry>
 }
+
+// ------------------------- DATA MODEL -------------------------
+
+/**
+ * Data class representing an enquiry request.
+ */
 data class Enquiry(
     val requestId: String,
     val roomNumber: String,
@@ -40,47 +50,41 @@ data class Enquiry(
     val resolvedAt: String
 )
 
+// ------------------------- ENQUIRIES PAGE -------------------------
+
+/**
+ * EnquiriesPage - Displays the user's enquiries categorized by status.
+ */
 @Composable
 fun EnquiriesPage(navController: NavController) {
     val scope = rememberCoroutineScope()
 
-    // State for menu drawer
+    // Drawer States
     val menuDrawerState = rememberDrawerState(DrawerValue.Closed)
-
-    // State for notification drawer
     val isNotificationDrawerOpen = remember { mutableStateOf(false) }
 
-    // State for the selected tab
+    // Tab Navigation State
     val selectedTabIndex = remember { mutableStateOf(0) }
     val tabs = listOf("Pending", "Resolved")
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Main Content with Menu Drawer
+        // Menu Drawer with Main Content
         ModalNavigationDrawer(
             drawerState = menuDrawerState,
-            drawerContent = {
-                ModalDrawerSheet {
-                    MenuDrawerContent(navController = navController)
-                }
-            },
+            drawerContent = { ModalDrawerSheet { MenuDrawerContent(navController) } },
             modifier = Modifier.fillMaxSize()
         ) {
             Scaffold(
                 topBar = {
                     Column {
+                        // App Header with Menu & Notifications
                         AppHeader(
-                            onMenuClick = {
-                                scope.launch {
-                                    menuDrawerState.open() // Open the menu drawer
-                                }
-                            },
-                            onNotificationClick = {
-                                // Open the notification drawer
-                                isNotificationDrawerOpen.value = true
-                            },
+                            onMenuClick = { scope.launch { menuDrawerState.open() } },
+                            onNotificationClick = { isNotificationDrawerOpen.value = true },
                             navController = navController,
-                            showBackButton = true  // Show back button for navigation
+                            showBackButton = true
                         )
+
                         // Tab Navigation
                         TabRow(
                             selectedTabIndex = selectedTabIndex.value,
@@ -107,8 +111,8 @@ fun EnquiriesPage(navController: NavController) {
                 bottomBar = {
                     FooterButton(
                         navController = navController,
-                        buttonText = "Property Enquiry", // Button text
-                        navigateTo = "EnquiriesRequestPage" // Destination page
+                        buttonText = "Property Enquiry",
+                        navigateTo = "EnquiriesRequestPage"
                     )
                 }
             )
@@ -116,27 +120,16 @@ fun EnquiriesPage(navController: NavController) {
 
         // Notification Drawer Overlay
         if (isNotificationDrawerOpen.value) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f)) // Dim background
-                    .clickable {
-                        isNotificationDrawerOpen.value = false // Close drawer when background is clicked
-                    }
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width((2 * LocalConfiguration.current.screenWidthDp / 3).dp) // 2/3 width
-                    .align(Alignment.TopEnd)
-                    .background(Color.White, shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)) // Apply rounded corners only on the left side
-            ) {
-                NotificationDrawerBox()
-            }
+            NotificationDrawerOverlay(isNotificationDrawerOpen)
         }
     }
 }
 
+// ------------------------- ENQUIRIES PAGE CONTENT -------------------------
+
+/**
+ * EnquiriesPageContent - Displays enquiries based on the selected tab.
+ */
 @Composable
 fun EnquiriesPageContent(
     navController: NavController,
@@ -147,38 +140,34 @@ fun EnquiriesPageContent(
     val context = LocalContext.current
     var userRoomNumber by remember { mutableStateOf<String?>(null) }
 
-    // Retrofit setup
+    // Fetch user room number and enquiries (same as before)
     val retrofit = remember {
         Retrofit.Builder()
-            .baseUrl("https://ghr-1.onrender.com") // Replace with your backend URL
+            .baseUrl("https://ghr-1.onrender.com")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
     val enquiryApi = retrofit.create(EnquiryApi::class.java)
     val userApi = retrofit.create(UserProfileApi::class.java)
 
-    // Fetch user's room number and enquiries
     LaunchedEffect(Unit) {
         val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         val token = sharedPreferences.getString("authToken", null)
 
         if (token != null) {
             try {
-                // Fetch user profile to get room number
                 val userProfile = userApi.getUserProfile("Bearer $token")
                 userRoomNumber = userProfile.roomNumber
 
-                // Fetch all enquiries
                 val allEnquiries = enquiryApi.getEnquiries("Bearer $token")
                 enquiries.clear()
-                enquiries.addAll(allEnquiries) // Add all enquiries to the list
+                enquiries.addAll(allEnquiries)
             } catch (e: Exception) {
                 Log.e("EnquiriesPageContent", "Error fetching data: ${e.message}")
             }
         }
     }
 
-    // Filter enquiries based on room number and selected tab
     val filteredEnquiries = enquiries.filter { enquiry ->
         enquiry.roomNumber == userRoomNumber && when (selectedTab) {
             0 -> enquiry.status == "Pending"
@@ -193,39 +182,17 @@ fun EnquiriesPageContent(
             .padding(innerPadding)
     ) {
         if (filteredEnquiries.isEmpty()) {
-            Column(
-                modifier = Modifier.align(Alignment.Center), // Center content in the Box
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.enquiries),
-                    contentDescription = "No Requests",
-                    tint = Color.Gray,
-                    modifier = Modifier.size(48.dp) // Adjust icon size
-                )
-
-                Spacer(modifier = Modifier.height(8.dp)) // Space between icon and text
-
-                Text(
-                    text = "No enquiries to display",
-                    fontSize = 16.sp,
-                    color = Color.Gray,
-                )
-            }
+            EmptyPageMessage(
+                icon = R.drawable.enquiries,
+                message = "No enquiries to display"
+            )
         } else {
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
+                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 filteredEnquiries.forEach { enquiry ->
-                    item {
-                        EnquiriesCard(
-                            navController = navController,
-                            enquiry = enquiry
-                        )
-                    }
+                    item { EnquiriesCard(navController, enquiry) }
                 }
             }
         }
@@ -233,17 +200,25 @@ fun EnquiriesPageContent(
 }
 
 
+// ------------------------- ENQUIRY CARD -------------------------
+
+/**
+ * EnquiriesCard - Displays individual enquiry details in a card format.
+ */
 @Composable
 fun EnquiriesCard(navController: NavController, enquiry: Enquiry) {
-    // Format the date and time
+    val context = LocalContext.current
+
     val formattedDateTime = remember(enquiry.createdAt) {
         try {
-            val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()) // Assuming ISO format
-            val outputFormat = SimpleDateFormat("EEE, dd MMM yyyy, HH:mm", Locale.getDefault()) // Date with time
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+            val outputFormat = SimpleDateFormat("EEE, dd MMM yyyy, HH:mm", Locale.getDefault())
             val date = inputFormat.parse(enquiry.createdAt)
             outputFormat.format(date ?: enquiry.createdAt)
         } catch (e: Exception) {
-            enquiry.createdAt // Fallback to original if parsing fails
+            Log.e("EnquiriesCard", "Error formatting date", e)
+            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            enquiry.createdAt // Fallback to original date
         }
     }
 
@@ -251,33 +226,20 @@ fun EnquiriesCard(navController: NavController, enquiry: Enquiry) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable {
-                navController.navigate("EnquiryDetailsPage/${enquiry.requestId}")
-            },
+            .clickable { navController.navigate("EnquiryDetailsPage/${enquiry.requestId}") },
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
+            modifier = Modifier.fillMaxWidth().background(Color.White)
         ) {
-            // Top Section: Request ID and Status
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Request ID
-                Text(
-                    text = "Request ID: ${enquiry.requestId}",
-                    fontSize = 12.sp,
-                    color = Color.Gray
-                )
+                Text(text = "Request ID: ${enquiry.requestId}", fontSize = 12.sp, color = Color.Gray)
 
-                // Status
                 Box(
                     modifier = Modifier
                         .background(
@@ -291,39 +253,18 @@ fun EnquiriesCard(navController: NavController, enquiry: Enquiry) {
                         .padding(horizontal = 12.dp, vertical = 4.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = enquiry.status,
-                        fontSize = 12.sp,
-                        color = Color.White
-                    )
+                    Text(text = enquiry.status, fontSize = 12.sp, color = Color.White)
                 }
             }
 
-            // Main Section: Enquiry Text
-            Text(
-                text = enquiry.enquiryText,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 8.dp)
-            )
+            Text(text = enquiry.enquiryText, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp))
 
-            // Bottom Section: Date and Time
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFFF5F5F5)) // Light grey background
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth().background(Color(0xFFF5F5F5)).padding(horizontal = 16.dp, vertical = 8.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
-                Text(
-                    text = formattedDateTime,
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
+                Text(text = formattedDateTime, fontSize = 14.sp, color = Color.Gray)
             }
         }
     }
 }
-

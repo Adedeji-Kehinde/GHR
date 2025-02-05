@@ -21,6 +21,58 @@ import androidx.compose.ui.unit.*
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 
+// ------------------------- Notification Drawer Overlay -------------------------
+
+/**
+ * NotificationDrawerOverlay - Displays a dimmed overlay with a slide-in notification drawer.
+ */
+@Composable
+fun NotificationDrawerOverlay(isNotificationDrawerOpen: MutableState<Boolean>) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.5f)) // Dim background
+            .clickable { isNotificationDrawerOpen.value = false } // Close drawer on tap
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width((2 * LocalConfiguration.current.screenWidthDp / 3).dp) // 2/3 screen width
+                .align(Alignment.TopEnd)
+                .background(Color.White, shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)) // Rounded corners on the left
+        ) {
+            NotificationDrawerBox()
+        }
+    }
+}
+
+// ------------------------- Empty Page Message Content -------------------------
+
+@Composable
+fun EmptyPageMessage(icon: Int, message: String) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            painter = painterResource(id = icon),
+            contentDescription = "No Items",
+            tint = Color.Gray,
+            modifier = Modifier.size(48.dp) // Adjust icon size
+        )
+
+        Spacer(modifier = Modifier.height(8.dp)) // Space between icon and text
+
+        Text(
+            text = message,
+            fontSize = 16.sp,
+            color = Color.Gray
+        )
+    }
+}
+
+
 // ------------------------- Small Card Component -------------------------
 
 @Composable

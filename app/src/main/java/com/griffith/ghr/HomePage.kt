@@ -1,32 +1,29 @@
 package com.griffith.ghr
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
+// ------------------------- Home Page -------------------------
+
+/**
+ * HomePage - The main screen containing navigation drawers, header, and home content.
+ */
 @Composable
 fun HomePage(navController: NavController) {
     val scope = rememberCoroutineScope()
-
-    // State for menu drawer
-    val menuDrawerState = rememberDrawerState(DrawerValue.Closed)
-
-    // State for notification drawer
-    val isNotificationDrawerOpen = remember { mutableStateOf(false) }
+    val menuDrawerState = rememberDrawerState(DrawerValue.Closed)// State for menu drawer
+    val isNotificationDrawerOpen = remember { mutableStateOf(false) }// State for notification drawer
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Main Content with Menu Drawer
+        // Menu Drawer with Main Content
         ModalNavigationDrawer(
             drawerState = menuDrawerState,
             drawerContent = {
@@ -40,56 +37,42 @@ fun HomePage(navController: NavController) {
                 topBar = {
                     AppHeader(
                         onMenuClick = {
-                            scope.launch {
-                                menuDrawerState.open() // Open the menu drawer
-                            }
+                            scope.launch { menuDrawerState.open() } // Open menu drawer
                         },
                         onNotificationClick = {
-                            // Open the notification drawer
-                            isNotificationDrawerOpen.value = true
+                            isNotificationDrawerOpen.value = true // Open notification drawer
                         },
                         navController = navController,
                         showBackButton = false
                     )
                 },
                 content = { innerPadding ->
-                    HomePageContent(
-                        navController = navController,
-                        innerPadding = innerPadding
-                    )
+                    HomePageContent(navController = navController, innerPadding = innerPadding)
                 }
             )
         }
 
-    // Notification Drawer Overlay
-    if (isNotificationDrawerOpen.value) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f)) // Dim background
-                    .clickable {
-                        isNotificationDrawerOpen.value = false // Close drawer when background is clicked
-                    }
+        // Notification Drawer Overlay
+        if (isNotificationDrawerOpen.value) {
+            NotificationDrawerOverlay(
+                isNotificationDrawerOpen = isNotificationDrawerOpen
             )
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width((2 * LocalConfiguration.current.screenWidthDp / 3).dp) // 2/3 width
-                    .align(Alignment.TopEnd)
-                    .background(Color.White, shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)) // Apply rounded corners only on the left side
-            ) {
-                NotificationDrawerBox()
-            }
         }
     }
 }
+
+// ------------------------- Home Page Content -------------------------
+
+/**
+ * HomePageContent - Displays the main content inside the Home Page.
+ */
 @Composable
 fun HomePageContent(navController: NavController, innerPadding: PaddingValues) {
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Red)
-            .padding(innerPadding) // Apply inner padding
+            .padding(innerPadding) // Apply inner padding from Scaffold
     ) {
         Column(
             modifier = Modifier
@@ -97,50 +80,41 @@ fun HomePageContent(navController: NavController, innerPadding: PaddingValues) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // First large card with custom text and clickable navigation
+            // Large card for "My Deliveries"
             LargeCard(
                 title = "My Deliveries",
                 subtitle = "",
                 icon = painterResource(id = R.drawable.deliveries),
-                onClick = {
-                    navController.navigate("deliveriesPage")
-                }
+                onClick = { navController.navigate("deliveriesPage") }
             )
 
             // Row with two smaller cards side by side
             Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp) // Spacing between cards
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 SmallCard(
                     title = "Maintenance",
                     subtitle = "Have an issue?",
                     icon = painterResource(id = R.drawable.maintenance),
-                    onClick = {
-                        navController.navigate("maintenancePage")
-                    },
+                    onClick = { navController.navigate("maintenancePage") },
                     modifier = Modifier.weight(1f) // Equal width for both cards
                 )
                 SmallCard(
                     title = "Enquiries",
                     subtitle = "Ask us anything",
                     icon = painterResource(id = R.drawable.enquiries),
-                    onClick = {
-                        navController.navigate("enquiriesPage")
-                    },
+                    onClick = { navController.navigate("enquiriesPage") },
                     modifier = Modifier.weight(1f) // Equal width for both cards
                 )
             }
 
-            // Second large card with custom text and clickable navigation
+            // Large card for "Useful Information"
             LargeCard(
                 title = "Useful Information",
                 subtitle = "Find out more information",
                 icon = painterResource(id = R.drawable.info),
-                onClick = {
-                    navController.navigate("usefulInfoPage")
-                }
+                onClick = { navController.navigate("usefulInfoPage") }
             )
         }
     }
