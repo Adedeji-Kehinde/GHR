@@ -3,11 +3,10 @@ package com.griffith.ghr
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
-import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,93 +17,112 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
-// Logo Composable
+// ------------------------- Logo Component -------------------------
+
+/**
+ * Displays the app logo at the center.
+ */
 @Composable
 fun AppLogo() {
     Box(
-        modifier = Modifier.fillMaxWidth(), // Make the Box fill the width
-        contentAlignment = Alignment.Center // Center-align the logo inside the Box
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.app_logo), // Replace with your logo
+            painter = painterResource(id = R.drawable.app_logo),
             contentDescription = "App Logo",
-            modifier = Modifier.size(40.dp) // Adjust size as needed
+            modifier = Modifier.size(40.dp)
         )
     }
 }
 
-// Menu Icon Composable (Left Icon)
+// ------------------------- Icon Components -------------------------
+
+/**
+ * Menu Icon - Displays the menu icon on the left.
+ */
 @Composable
 fun MenuIcon(onClick: () -> Unit) {
     IconButton(onClick = onClick) {
         Icon(
             imageVector = Icons.Filled.Menu,
             contentDescription = "Open Menu",
-            tint = Color.White // Set the icon color to white
+            tint = Color.White
         )
     }
 }
 
-// Back Arrow Icon Composable (Left Icon)
+/**
+ * Back Arrow Icon - Displays a back button on the left.
+ */
 @Composable
 fun BackArrowIcon(onClick: () -> Unit) {
     IconButton(onClick = onClick) {
         Icon(
-            imageVector = Icons.Filled.ArrowBack,
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
             contentDescription = "Go Back",
-            tint = Color.White // Set the icon color to white
+            tint = Color.White
         )
     }
 }
 
-// Notification Icon Composable (Right Icon)
+/**
+ * Notification Icon - Displays a notification bell on the right.
+ */
 @Composable
 fun NotificationIcon(onClick: () -> Unit) {
     IconButton(onClick = onClick) {
         Icon(
             imageVector = Icons.Filled.Notifications,
             contentDescription = "Open Notifications",
-            tint = Color.White // Set the icon color to white
+            tint = Color.White
         )
     }
 }
 
-// The main Header Composable
+// ------------------------- Header Component -------------------------
+
+/**
+ * AppHeader - A top app bar with a logo, menu icon, back button (optional), and notification icon.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppHeader(
     onMenuClick: () -> Unit, // Action when the menu button is clicked
     onNotificationClick: () -> Unit, // Action when the notification button is clicked
-    navController: NavController, // Navigation controller to pop the back stack
-    showBackButton: Boolean = false // Flag to decide whether to show back button
+    navController: NavController, // Navigation controller to handle back navigation
+    showBackButton: Boolean = false // Whether to show the back button
 ) {
     TopAppBar(
-        title = { AppLogo() }, // Center-aligned logo
+        title = { AppLogo() },
         navigationIcon = {
-            Row() {
-                MenuIcon(onClick = onMenuClick) // Left button for menu
+            Row {
+                MenuIcon(onClick = onMenuClick) // Menu icon (always present)
                 if (showBackButton) {
-                    BackArrowIcon(onClick = {
-                        navController.popBackStack() // Pop the current screen off the stack
-                    })
+                    BackArrowIcon(onClick = { navController.popBackStack() }) // Back button if enabled
                 }
             }
         },
-        actions = { NotificationIcon(onClick = onNotificationClick) }, // Right button for notification
+        actions = { NotificationIcon(onClick = onNotificationClick) }, // Notification icon on the right
         modifier = Modifier.fillMaxWidth(),
-        colors = topAppBarColors(
-            containerColor = Color.Red // Set the background color to bright red
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.Red // Sets the app bar background color to red
         )
     )
 }
 
+// ------------------------- Preview -------------------------
+
+/**
+ * Preview of the AppHeader component with dummy navigation.
+ */
 @Preview(showBackground = true)
 @Composable
 fun AppHeaderPreview() {
     AppHeader(
         onMenuClick = {},
         onNotificationClick = {},
-        navController = NavController(context = LocalContext.current), // Pass a dummy NavController here for preview
-        showBackButton = true // Show the back button
+        navController = NavController(context = LocalContext.current),
+        showBackButton = true // Enables the back button in the preview
     )
 }

@@ -17,66 +17,81 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+// ------------------------- Notification Drawer -------------------------
+
+/**
+ * NotificationDrawerBox - Contains the notification drawer, which opens from the right
+ */
 @Composable
 fun NotificationDrawerBox() {
-    // Apply RTL layout direction for drawer opening, but keep the content LTR
+    // Set layout direction to RTL for opening the drawer from the right
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Box(
             modifier = Modifier
                 .fillMaxHeight()
-                .width((2 * LocalConfiguration.current.screenWidthDp / 3).dp) // 2/3 width
-
+                .width((2 * LocalConfiguration.current.screenWidthDp / 3).dp) // 2/3 of screen width
         ) {
-            NotificationDrawerContent() // Notification content stays LTR
+            NotificationDrawerContent() // Display notifications inside the drawer
         }
     }
 }
 
+/**
+ * NotificationDrawerContent - Holds the content inside the notification drawer.
+ */
 @Composable
 fun NotificationDrawerContent() {
-    // Reset LocalLayoutDirection to LTR for the content inside the drawer
+    // Reset layout direction to LTR for proper content alignment
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Column(
             modifier = Modifier
-                .fillMaxHeight() // Drawer fills the height
+                .fillMaxHeight()
                 .padding(16.dp)
         ) {
-            // Header for notifications
+            // Header Title
             Text(
                 text = "Notifications",
-                modifier = Modifier
-                    .padding(bottom = 16.dp), // Add space after the header
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 16.dp) // Adds spacing below the header
             )
 
-            // Random notification data
+            // Sample notification data
             val notifications = listOf(
-                "Maintenance request Completed.",
-                "Delivery Collected",
-                "Enquiry Completed",
+                "Maintenance request completed.",
+                "Delivery collected.",
+                "Enquiry completed."
             )
 
+            // Display notification cards
             notifications.forEach { notification ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.Gray.copy(alpha = 0.1f))
-                ) {
-                    Text(
-                        text = notification,
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .align(Alignment.Start), // Ensure left alignment
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.Black
-                    )
-                }
+                NotificationCard(notification)
             }
         }
+    }
+}
+
+/**
+ * NotificationCard - Displays individual notification messages inside a card.
+ */
+@Composable
+fun NotificationCard(message: String) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Gray.copy(alpha = 0.1f))
+    ) {
+        Text(
+            text = message,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Normal,
+            color = Color.Black,
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.Start) // Ensures left alignment
+        )
     }
 }
