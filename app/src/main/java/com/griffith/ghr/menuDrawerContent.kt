@@ -29,27 +29,31 @@ import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+// ------------------------- MENU DRAWER -------------------------
+
+/**
+ * Sidebar Menu Drawer - Displays user profile and navigation options.
+ */
 @Composable
 fun MenuDrawerContent(navController: NavController) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    // State for user data
+    // State for storing user details
     var userName by remember { mutableStateOf("Loading...") }
     var userEmail by remember { mutableStateOf("Loading...") }
     var profileImageUrl by remember { mutableStateOf("") }
 
-    // Retrofit setup
+    // Retrofit API setup
     val retrofit = remember {
         Retrofit.Builder()
             .baseUrl("https://ghr-1.onrender.com")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
-
     val userProfileApi = retrofit.create(UserProfileApi::class.java)
 
-    // Fetch user details on first composition
+    // Fetch user details when the composable is first displayed
     LaunchedEffect(Unit) {
         val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         val token = sharedPreferences.getString("authToken", null)
@@ -60,9 +64,8 @@ fun MenuDrawerContent(navController: NavController) {
                     val userDetails = userProfileApi.getUserProfile("Bearer $token")
                     userName = "${userDetails.name} ${userDetails.lastName}"
                     userEmail = userDetails.email
-                    profileImageUrl = userDetails.profileImageUrl?.ifEmpty {
-                        "https://res.cloudinary.com/dxlrv28eb/user_profiles/default_Image.JPG"
-                    } ?: "https://res.cloudinary.com/dxlrv28eb/user_profiles/default_Image.JPG"
+                    profileImageUrl = userDetails.profileImageUrl.takeIf { it?.isNotEmpty() == true }
+                        ?: "https://res.cloudinary.com/dxlrv28eb/user_profiles/default_Image.JPG"
                 } catch (e: Exception) {
                     Log.e("MenuDrawerContent", "Error fetching user details", e)
                     Toast.makeText(context, "Failed to fetch profile details.", Toast.LENGTH_LONG).show()
@@ -73,57 +76,21 @@ fun MenuDrawerContent(navController: NavController) {
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxHeight()
-            .width(280.dp)
-            .padding(16.dp)
-    ) {
+    Column(modifier = Modifier.fillMaxHeight().width(280.dp).padding(16.dp))
+    {
         // User profile section
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { navController.navigate("UserProfilePage") },
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Profile Image with Coil
-            Image(
-                painter = rememberAsyncImagePainter(
-                    ImageRequest.Builder(LocalContext.current)
-                        .data(profileImageUrl)
-                        .crossfade(true)
-                        .build()
-                ),
-                contentDescription = "User Profile Image",
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(CircleShape) // Crops to a circle
-                    .background(Color.Gray, shape = CircleShape),
-                contentScale = ContentScale.Crop // Ensures it fits inside the circle
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column {
-                Text(
-                    text = userName,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
-                Text(
-                    text = userEmail,
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
-            }
-        }
+        ProfileSection(
+            userName = userName,
+            userEmail = userEmail,
+            profileImageUrl = profileImageUrl,
+            onClick = { navController.navigate("UserProfilePage") }
+        )
 
         Spacer(modifier = Modifier.height(8.dp))
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Menu items with icons
+        // Navigation Menu Items
         LazyColumn(modifier = Modifier.weight(1f)) {
             item {
                 MenuItem(navController, painterResource(id = R.drawable.home), "Home", "HomePage")
@@ -142,57 +109,82 @@ fun MenuDrawerContent(navController: NavController) {
             }
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
         // Logout Button
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp)
-                .clickable {
-                    val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-                    sharedPreferences.edit().remove("authToken").apply()
-                    navController.navigate("LoginPage") { popUpTo(0) }
-                },
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.logout),
-                contentDescription = "Logout",
-                tint = Color.Gray,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Logout",
-                fontSize = 16.sp,
-                color = Color.Gray,
-                fontWeight = FontWeight.Medium
-            )
+        LogoutButton(navController = navController, context = context)
+    }
+}
+
+// ------------------------- PROFILE SECTION -------------------------
+
+/**
+ * User Profile Section in the Sidebar Menu
+ */
+@Composable
+fun ProfileSection(userName: String, userEmail: String, profileImageUrl: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Profile Image using Coil
+        Image(
+            painter = rememberAsyncImagePainter(
+                ImageRequest.Builder(LocalContext.current)
+                    .data(profileImageUrl)
+                    .crossfade(true)
+                    .build()
+            ),
+            contentDescription = "User Profile Image",
+            modifier = Modifier.size(60.dp).clip(CircleShape).background(Color.Gray, shape = CircleShape),
+            contentScale = ContentScale.Crop
+        )
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column {
+            Text(text = userName, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(text = userEmail, fontSize = 14.sp, color = Color.Gray)
         }
     }
 }
 
-// Reusable Menu Item
+// ------------------------- MENU ITEMS -------------------------
+
+/**
+ * Reusable Navigation Menu Item
+ */
 @Composable
 fun MenuItem(navController: NavController, icon: Painter, title: String, route: String) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { navController.navigate(route) }
-            .padding(vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth().clickable { navController.navigate(route) }.padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            painter = icon,
-            contentDescription = title,
-            tint = Color.Black,
-            modifier = Modifier.size(24.dp)
-        )
+        Icon(painter = icon, contentDescription = title, tint = Color.Black, modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = title,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
+        Text(text = title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+    }
+}
+
+// ------------------------- LOGOUT BUTTON -------------------------
+
+/**
+ * Logout Button - Clears authentication token and navigates to Login Page.
+ */
+@Composable
+fun LogoutButton(navController: NavController, context: Context) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(8.dp)
+            .clickable {
+                val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                sharedPreferences.edit().remove("authToken").apply()
+                navController.navigate("LoginPage") { popUpTo(0) }
+                Toast.makeText(context, "Logged out successfully.", Toast.LENGTH_LONG).show()
+            },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(painter = painterResource(id = R.drawable.logout), contentDescription = "Logout", tint = Color.Gray, modifier = Modifier.size(24.dp))
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = "Logout", fontSize = 16.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
     }
 }

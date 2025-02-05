@@ -28,45 +28,45 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 
+// ------------------------- USEFUL INFORMATION PAGE -------------------------
+
+/**
+ * Useful Information Page - Displays sections with PDFs containing useful guides and policies.
+ */
 @Composable
 fun UsefulInfoPage(navController: NavController) {
     val scope = rememberCoroutineScope()
-
-    // State for menu drawer
     val menuDrawerState = rememberDrawerState(DrawerValue.Closed)
 
+    // State for tracking selected PDF section
     var selectedSection by remember { mutableStateOf<Pair<String, String>?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (selectedSection != null) {
+            // PDF Viewer Mode
             PdfViewerScreen(
-                sectionTitle = selectedSection!!.first, // Show section name in the top bar
+                sectionTitle = selectedSection!!.first,
                 fileName = selectedSection!!.second,
                 onClose = { selectedSection = null }
             )
         } else {
-            // Main Content with Menu Drawer
+            // Main Page with Drawer
             ModalNavigationDrawer(
                 drawerState = menuDrawerState,
-                drawerContent = {
-                    ModalDrawerSheet {
-                        MenuDrawerContent(navController = navController)
-                    }
-                },
+                drawerContent = { ModalDrawerSheet { MenuDrawerContent(navController) } },
                 modifier = Modifier.fillMaxSize()
             ) {
                 Scaffold(
                     topBar = {
                         AppHeader(
                             onMenuClick = { scope.launch { menuDrawerState.open() } },
-                            onNotificationClick = { /* Open the notification drawer */ },
+                            onNotificationClick = { /* Handle notifications */ },
                             navController = navController,
-                            showBackButton = true,
+                            showBackButton = true
                         )
                     },
                     content = { innerPadding ->
                         UsefulInfoPageContent(
-                            navController = navController,
                             innerPadding = innerPadding,
                             onOpenPdf = { title, file -> selectedSection = title to file }
                         )
@@ -77,9 +77,11 @@ fun UsefulInfoPage(navController: NavController) {
     }
 }
 
+/**
+ * Displays a list of useful information sections, each opening a PDF when clicked.
+ */
 @Composable
 fun UsefulInfoPageContent(
-    navController: NavController,
     innerPadding: PaddingValues,
     onOpenPdf: (String, String) -> Unit
 ) {
@@ -93,46 +95,33 @@ fun UsefulInfoPageContent(
     )
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(innerPadding)
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxSize().background(Color.White).padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         sections.forEach { (title, fileName) ->
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onOpenPdf(title, fileName) },
+                modifier = Modifier.fillMaxWidth().clickable { onOpenPdf(title, fileName) },
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
+                    modifier = Modifier.fillMaxWidth().padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.info),
-                        contentDescription = null,
-                        tint = Color.Red,
-                        modifier = Modifier.size(24.dp)
-                    )
+                    Icon(painter = painterResource(id = R.drawable.info), contentDescription = null, tint = Color.Red, modifier = Modifier.size(24.dp))
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = title,
-                        fontWeight = FontWeight.Medium,
-                        color = Color.Black,
-                    )
+                    Text(text = title, fontWeight = FontWeight.Medium, color = Color.Black)
                 }
             }
         }
     }
 }
 
+// ------------------------- HELPFUL COMPONENT -------------------------
+
+/**
+ * PDF Viewer Screen - Loads and displays a PDF file from assets.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PdfViewerScreen(sectionTitle: String, fileName: String, onClose: () -> Unit) {
@@ -142,36 +131,42 @@ fun PdfViewerScreen(sectionTitle: String, fileName: String, onClose: () -> Unit)
     LaunchedEffect(fileName) {
         val pdfFile = File(context.cacheDir, fileName)
 
-        // Copy the PDF file from assets to the cache directory
-        context.assets.open(fileName).use { inputStream ->
-            FileOutputStream(pdfFile).use { outputStream ->
-                inputStream.copyTo(outputStream)
+        // Copy the PDF from assets to cache if not already copied
+        if (!pdfFile.exists()) {
+            context.assets.open(fileName).use { inputStream ->
+                FileOutputStream(pdfFile).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
             }
         }
 
-        // Use PdfRenderer to render pages
-        val fileDescriptor = ParcelFileDescriptor.open(pdfFile, ParcelFileDescriptor.MODE_READ_ONLY)
-        val pdfRenderer = PdfRenderer(fileDescriptor)
+        // Render PDF pages as images
+        try {
+            val fileDescriptor = ParcelFileDescriptor.open(pdfFile, ParcelFileDescriptor.MODE_READ_ONLY)
+            val pdfRenderer = PdfRenderer(fileDescriptor)
 
-        for (pageIndex in 0 until pdfRenderer.pageCount) {
-            val page = pdfRenderer.openPage(pageIndex)
-            val scale = context.resources.displayMetrics.density * 2
-            val bitmap = Bitmap.createBitmap(
-                (page.width * scale).toInt(),
-                (page.height * scale).toInt(),
-                Bitmap.Config.ARGB_8888
-            )
-            page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-            bitmaps.add(bitmap)
-            page.close()
+            for (pageIndex in 0 until pdfRenderer.pageCount) {
+                val page = pdfRenderer.openPage(pageIndex)
+                val scale = context.resources.displayMetrics.density * 2
+                val bitmap = Bitmap.createBitmap(
+                    (page.width * scale).toInt(),
+                    (page.height * scale).toInt(),
+                    Bitmap.Config.ARGB_8888
+                )
+                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                bitmaps.add(bitmap)
+                page.close()
+            }
+            pdfRenderer.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        pdfRenderer.close()
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(sectionTitle, fontSize = 18.sp) }, // Display section title instead of "PDF Viewer"
+                title = { Text(sectionTitle, fontSize = 18.sp) },
                 navigationIcon = {
                     IconButton(onClick = onClose) {
                         Icon(Icons.Default.Close, contentDescription = "Close")
@@ -187,14 +182,20 @@ fun PdfViewerScreen(sectionTitle: String, fileName: String, onClose: () -> Unit)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            bitmaps.forEach { bitmap ->
-                Image(
-                    bitmap = bitmap.asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(6.dp)
-                )
+            if (bitmaps.isEmpty()) {
+                // Loading Indicator if PDF is still rendering
+                CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+            } else {
+                // Display PDF pages as images
+                bitmaps.forEach { bitmap ->
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(6.dp)
+                    )
+                }
             }
         }
     }

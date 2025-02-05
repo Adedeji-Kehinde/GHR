@@ -6,7 +6,6 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -31,7 +29,20 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Header
 
-// Data class for user details
+// ------------------------- API INTERFACE -------------------------
+/**
+ * User Profile API interface for fetching user deliveries.
+ */
+interface UserProfileApi {
+    @GET("api/auth/user")
+    suspend fun getUserProfile(@Header("Authorization") token: String): UserProfile
+}
+
+// ------------------------- DATA MODEL -------------------------
+
+/**
+ * Data class representing a user Profile item.
+ */
 data class UserProfile(
     val name: String,
     val lastName: String,
@@ -39,43 +50,41 @@ data class UserProfile(
     val email: String,
     val phone: String? = null,
     val roomNumber: String,
-    val profileImageUrl: String? // Fetch the user's actual profile image
+    val profileImageUrl: String?
 )
 
-// Retrofit API interface
-interface UserProfileApi {
-    @GET("api/auth/user")
-    suspend fun getUserProfile(@Header("Authorization") token: String): UserProfile
-}
+// ------------------------- USER PROFILE PAGE -------------------------
 
+/**
+ * UserProfilePage - Displays the user's details and displays profile picture.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserProfilePage(navController: NavController) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // State for menu drawer
+    // Drawer States
     val menuDrawerState = rememberDrawerState(DrawerValue.Closed)
     val isNotificationDrawerOpen = remember { mutableStateOf(false) }
 
-    // State for user profile details
+    //  States for user profile details
     var userName by remember { mutableStateOf("Loading...") }
     var userGender by remember { mutableStateOf("Loading...") }
     var userEmail by remember { mutableStateOf("Loading...") }
     var userPhone by remember { mutableStateOf("Loading...") }
-    var profileImageUrl by remember { mutableStateOf("") } // Store the profile image URL
+    var profileImageUrl by remember { mutableStateOf("") }
 
-    // Initialize Retrofit
+    //  Initialize Retrofit
     val retrofit = remember {
         Retrofit.Builder()
             .baseUrl("https://ghr-1.onrender.com")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
-
     val userProfileApi = retrofit.create(UserProfileApi::class.java)
 
-    // Fetch user profile on first composition
+    //  Fetch user profile data on launch
     LaunchedEffect(Unit) {
         val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         val token = sharedPreferences.getString("authToken", null)
@@ -88,132 +97,111 @@ fun UserProfilePage(navController: NavController) {
                     userGender = userProfile.gender
                     userEmail = userProfile.email
                     userPhone = userProfile.phone ?: "Not Provided"
-                    profileImageUrl = userProfile.profileImageUrl ?: "" // Load actual image URL
+                    profileImageUrl = userProfile.profileImageUrl ?: ""
                 } catch (e: Exception) {
                     Log.e("UserProfilePage", "Error fetching user profile", e)
-                    Toast.makeText(
-                        context,
-                        "Failed to fetch profile. Please try again.",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    Toast.makeText(context, "Failed to fetch profile. Please try again.", Toast.LENGTH_LONG).show()
                 }
             }
         } else {
-            Toast.makeText(
-                context,
-                "No authentication token found. Please log in again.",
-                Toast.LENGTH_LONG
-            ).show()
+            Toast.makeText(context, "No authentication token found. Please log in again.", Toast.LENGTH_LONG).show()
         }
     }
 
+    //  Layout of the Profile Page
     Box(modifier = Modifier.fillMaxSize()) {
+        //  Navigation Drawer
         ModalNavigationDrawer(
             drawerState = menuDrawerState,
-            drawerContent = {
-                ModalDrawerSheet {
-                    MenuDrawerContent(navController = navController)
-                }
-            },
+            drawerContent = { ModalDrawerSheet { MenuDrawerContent(navController = navController) } },
             modifier = Modifier.fillMaxSize()
         ) {
+            //  Scaffold with Top Bar
             Scaffold(
                 topBar = {
                     AppHeader(
-                        onMenuClick = {
-                            scope.launch { menuDrawerState.open() }
-                        },
-                        onNotificationClick = {
-                            isNotificationDrawerOpen.value = true
-                        },
+                        onMenuClick = { scope.launch { menuDrawerState.open() } },
+                        onNotificationClick = { isNotificationDrawerOpen.value = true },
                         navController = navController,
                         showBackButton = true
                     )
                 },
                 content = { innerPadding ->
                     Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding)
-                            .padding(16.dp),
+                        modifier = Modifier.fillMaxSize().padding(innerPadding).padding(16.dp),
                         verticalArrangement = Arrangement.Top,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // Profile Image
-                        Box(
-                            modifier = Modifier
-                                .size(120.dp)
-                                .clip(CircleShape)
-                                .border(2.dp, Color.Gray, CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                painter = rememberAsyncImagePainter(
-                                    ImageRequest.Builder(LocalContext.current)
-                                        .data(profileImageUrl.ifEmpty { "https://res.cloudinary.com/dxlrv28eb/user_profiles/default_Image.JPG" }) // Fallback to default
-                                        .crossfade(true)
-                                        .build()
-                                ),
-                                contentDescription = "Profile Image",
-                                modifier = Modifier
-                                    .size(120.dp)
-                                    .clip(CircleShape),
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-
+                        //  Profile Image
+                        ProfileImage(profileImageUrl)
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // User Name
-                        Text(
-                            text = userName,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-
+                        //  User Name
+                        Text(text = userName, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                         Spacer(modifier = Modifier.height(32.dp))
 
-                        // User Details Box
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(
-                                    color = MaterialTheme.colorScheme.surface,
-                                    shape = RoundedCornerShape(16.dp)
-                                )
-                                .border(1.dp, Color.Black, RoundedCornerShape(16.dp))
-                                .padding(16.dp)
-                        ) {
-                            Column {
-                                UserDetailRow(label = "Gender", detail = userGender)
-                                HorizontalDivider(color = Color.Gray, thickness = 0.5.dp)
-                                UserDetailRow(label = "Email", detail = userEmail)
-                                HorizontalDivider(color = Color.Gray, thickness = 0.5.dp)
-                                UserDetailRow(label = "Phone", detail = userPhone)
-                            }
-                        }
+                        //  User Details Section
+                        UserDetailsSection(userGender, userEmail, userPhone)
                     }
                 }
             )
         }
 
+        // Notification Drawer Overlay
         if (isNotificationDrawerOpen.value) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f))
-                    .clickable { isNotificationDrawerOpen.value = false }
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width((2 * LocalConfiguration.current.screenWidthDp / 3).dp)
-                    .align(Alignment.TopEnd)
-                    .background(Color.White, shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
-            ) {
-                NotificationDrawerBox()
-            }
+            NotificationDrawerOverlay(isNotificationDrawerOpen)
         }
     }
 }
+
+// ------------------------- DELIVERIES PAGE CONTENT -------------------------
+
+/**
+ * ProfileImage - Composable for displaying the user's profile image.
+ */
+@Composable
+fun ProfileImage(profileImageUrl: String) {
+    Box(
+        modifier = Modifier.size(120.dp).clip(CircleShape).border(2.dp, Color.Gray, CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = rememberAsyncImagePainter(
+                ImageRequest.Builder(LocalContext.current)
+                    .data(profileImageUrl.ifEmpty { "https://res.cloudinary.com/dxlrv28eb/user_profiles/default_Image.JPG" }) // Fallback image
+                    .crossfade(true)
+                    .build()
+            ),
+            contentDescription = "Profile Image",
+            modifier = Modifier.size(120.dp).clip(CircleShape),
+            contentScale = ContentScale.Crop
+        )
+    }
+}
+
+// ------------------------- DELIVERIES PAGE CONTENT -------------------------
+
+/**
+ * UserDetailsSetion - Composable for displaying user details section.
+ */
+@Composable
+fun UserDetailsSection(gender: String, email: String, phone: String) {
+    Box(
+        modifier = Modifier.fillMaxWidth()
+            .background(
+                color = MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(16.dp)
+            )
+            .border(1.dp, Color.Black, RoundedCornerShape(16.dp))
+            .padding(16.dp)
+    ) {
+        Column {
+            UserDetailRow(label = "Gender", detail = gender)
+            HorizontalDivider(color = Color.Gray, thickness = 0.5.dp)
+            UserDetailRow(label = "Email", detail = email)
+            HorizontalDivider(color = Color.Gray, thickness = 0.5.dp)
+            UserDetailRow(label = "Phone", detail = phone)
+        }
+    }
+}
+
