@@ -47,7 +47,10 @@ data class Delivery(
     val parcelType: String,
     val parcelNumber: String,
     val status: String,
-    val roomNumber: String
+    val roomNumber: String,
+    val sender: String?,
+    val description: String?,
+    val collectedAt: String?
 )
 
 // ------------------------- DELIVERIES PAGE -------------------------

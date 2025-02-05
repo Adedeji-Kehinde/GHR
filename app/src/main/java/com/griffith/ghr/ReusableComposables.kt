@@ -20,6 +20,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 // ------------------------- Notification Drawer Overlay -------------------------
 
@@ -178,6 +180,22 @@ fun FooterButton(navController: NavController, buttonText: String, navigateTo: S
                 Text(text = buttonText, color = Color.White, style = MaterialTheme.typography.bodyLarge, maxLines = 1)
             }
         }
+    }
+}
+
+// ------------------------- Formatted Date Component -------------------------
+
+/**
+ * formatDateTime - Formats the provided date string to a readable format.
+ */
+fun formatDateTime(dateTimeString: String): String {
+    return try {
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("EEE, dd MMM yyyy, HH:mm", Locale.getDefault())
+        val date = inputFormat.parse(dateTimeString)
+        if (date != null) outputFormat.format(date) else "-"
+    } catch (e: Exception) {
+        "-"
     }
 }
 
