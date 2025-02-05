@@ -208,6 +208,13 @@ fun EnquiriesCard(navController: NavController, enquiry: Enquiry) {
         formatDateTime(enquiry.createdAt)
     }
 
+    // Truncate Enquiry Text to 50 characters max
+    val truncatedEnquiryText = if (enquiry.enquiryText.length > 50) {
+        "${enquiry.enquiryText.take(30)}..."
+    } else {
+        enquiry.enquiryText
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -228,7 +235,7 @@ fun EnquiriesCard(navController: NavController, enquiry: Enquiry) {
                 StatusBadge(status = enquiry.status)
             }
 
-            Text(text = enquiry.enquiryText, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp))
+            Text(text = truncatedEnquiryText, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp))
 
             Box(
                 modifier = Modifier.fillMaxWidth().background(Color(0xFFF5F5F5)).padding(horizontal = 16.dp, vertical = 8.dp),

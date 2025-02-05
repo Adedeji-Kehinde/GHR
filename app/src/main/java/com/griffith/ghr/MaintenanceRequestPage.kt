@@ -3,6 +3,7 @@ package com.griffith.ghr
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -14,15 +15,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -41,7 +39,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -66,7 +63,11 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 import java.io.InputStream
 
-// Retrofit API Interface
+// ------------------------- RETROFIT API INTERFACE -------------------------
+
+/**
+ * API interface for submitting Maintenance Requests.
+ */
 interface MaintenanceRequestApi {
     @Multipart
     @POST("api/maintenance/register")
@@ -80,46 +81,27 @@ interface MaintenanceRequestApi {
     ): ResponseBody
 }
 
-// Data class for maintenance request payload
-data class MaintenanceRequestData(
-    val roomNumber: String,
-    val category: String,
-    val description: String,
-    val roomAccess: String,
-    val pictures: List<String> = emptyList()
-)
+// ------------------------- MAINTENANCE REQUEST PAGE -------------------------
 
 @Composable
 fun MaintenanceRequestPage(navController: NavController) {
     val scope = rememberCoroutineScope()
 
-    // State for menu drawer
+    // Drawer States
     val menuDrawerState = rememberDrawerState(DrawerValue.Closed)
-
-    // State for notification drawer
     val isNotificationDrawerOpen = remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
         ModalNavigationDrawer(
             drawerState = menuDrawerState,
-            drawerContent = {
-                ModalDrawerSheet {
-                    MenuDrawerContent(navController = navController)
-                }
-            },
+            drawerContent = { ModalDrawerSheet { MenuDrawerContent(navController = navController) } },
             modifier = Modifier.fillMaxSize()
         ) {
             Scaffold(
                 topBar = {
                     AppHeader(
-                        onMenuClick = {
-                            scope.launch {
-                                menuDrawerState.open()
-                            }
-                        },
-                        onNotificationClick = {
-                            isNotificationDrawerOpen.value = true
-                        },
+                        onMenuClick = { scope.launch { menuDrawerState.open() } },
+                        onNotificationClick = { isNotificationDrawerOpen.value = true },
                         navController = navController,
                         showBackButton = true
                     )
@@ -132,21 +114,7 @@ fun MaintenanceRequestPage(navController: NavController) {
 
         // Notification Drawer Overlay
         if (isNotificationDrawerOpen.value) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f))
-                    .clickable { isNotificationDrawerOpen.value = false }
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width((2 * LocalConfiguration.current.screenWidthDp / 3).dp)
-                    .align(Alignment.TopEnd)
-                    .background(Color.White, shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
-            ) {
-                NotificationDrawerBox()
-            }
+            NotificationDrawerOverlay(isNotificationDrawerOpen)
         }
     }
 }
@@ -155,6 +123,8 @@ fun MaintenanceRequestPage(navController: NavController) {
 fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    // Retrofit setup
     val retrofit = remember {
         Retrofit.Builder()
             .baseUrl("https://ghr-1.onrender.com")
@@ -162,23 +132,21 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
             .build()
     }
     val userProfileApi = retrofit.create(UserProfileApi::class.java)
+    val maintenanceRequestApi = retrofit.create(MaintenanceRequestApi::class.java)
 
-    // State for room number and form inputs
+    // State Variables
     var roomNumber by remember { mutableStateOf("") }
     val category = remember { mutableStateOf("") }
     val description = remember { mutableStateOf("") }
     val roomAccess = remember { mutableStateOf("") }
-    val selectedImages = remember { mutableStateListOf<Uri>() } // Mutable list for selected images
-    val isImageExpanded = remember { mutableStateOf<Uri?>(null) } // Tracks the expanded image
+    val selectedImages = remember { mutableStateListOf<Uri>() }
+    val imageSize = ( LocalConfiguration.current.screenWidthDp.dp - 24.dp) / 2 // Adjust size to fit two images per row with spacing
+    val isImageExpanded = remember { mutableStateOf<Uri?>(null) }
+    val isSubmitting = remember { mutableStateOf(false) }
+
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let { if (selectedImages.size < 5) selectedImages.add(it) }
     }
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val imageSize = (screenWidth - 24.dp) / 2 // Adjust size to fit two images per row with spacing
-    val showMessage = remember { mutableStateOf<String?>(null) }
-    val maintenanceRequestApi = retrofit.create(MaintenanceRequestApi::class.java)
-    val isSubmitting = remember { mutableStateOf(false) }
-
     // Fetch user's room number
     LaunchedEffect(Unit) {
         val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
@@ -195,30 +163,16 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding)
-            .padding(16.dp)
+        modifier = Modifier.fillMaxSize().padding(innerPadding).padding(16.dp)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
         ) {
-            Text(
-                text = "Maintenance Request",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
+            Text(text = "Maintenance Request", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
             Spacer(modifier = Modifier.height(8.dp))
 
             // Placeholder subtitle
-            Text(
-                text = "Our team is available during office hours. For weekend emergencies, please reach out to our hotline. Thank you for your understanding.",
-                fontSize = 16.sp,
-                color = Color.Gray
-            )
+            Text(text = "Our team is available during office hours. For weekend emergencies, please reach out to our hotline. Thank you for your understanding.", fontSize = 14.sp, color = Color.Gray)
             Spacer(modifier = Modifier.height(16.dp))
 
             // Horizontal divider
@@ -226,16 +180,12 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
             Spacer(modifier = Modifier.height(16.dp))
 
             // Display Room Number
-            Text(
-                text = "Room Allocation",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
+            Text(text = "Room Allocation", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
             Spacer(modifier = Modifier.height(8.dp))
+            
             Dropdown(
                 label = "Select Room",
-                options = listOf("$roomNumber"),
+                options = listOf(roomNumber),
                 onOptionSelected = { selectedRoom ->
                     roomNumber = selectedRoom
                 }
@@ -243,13 +193,9 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
             Spacer(modifier = Modifier.height(16.dp))
 
             // Maintenance Category
-            Text(
-                text = "Maintenance Category",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
+            Text(text = "Maintenance Category", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
             Spacer(modifier = Modifier.height(8.dp))
+            
             Dropdown(
                 label = "Select Category",
                 options = listOf(
@@ -268,13 +214,9 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
             Spacer(modifier = Modifier.height(16.dp))
 
             // Description
-            Text(
-                text = "Description",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
+            Text(text = "Description", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
             Spacer(modifier = Modifier.height(8.dp))
+            
             TextBox(
                 label = "Enter a brief description of the issue",
                 onTextChange = { description.value = it }
@@ -282,13 +224,9 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
             Spacer(modifier = Modifier.height(16.dp))
 
             // May we enter your room when you're away?
-            Text(
-                text = "May we enter your room when you're away?",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
+            Text(text = "May we enter your room when you're away?", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
             Spacer(modifier = Modifier.height(8.dp))
+            
             Dropdown(
                 label = "Select Option",
                 options = listOf("Yes", "No"), // Placeholder options
@@ -297,18 +235,10 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
             Spacer(modifier = Modifier.height(16.dp))
 
             // Pictures Section
-            Text(
-                text = "Pictures",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
+            Text(text = "Pictures", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Upload Images (5 Max)",
-                fontSize = 14.sp,
-                color = Color.Gray
-            )
+            
+            Text(text = "Upload Images (5 Max)", fontSize = 14.sp, color = Color.Gray)
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -344,7 +274,7 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp)) // Vertical spacing between rows
+                Spacer(modifier = Modifier.height(8.dp))
             }
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -352,17 +282,13 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
             isImageExpanded.value?.let { expandedUri ->
                 Dialog(onDismissRequest = { isImageExpanded.value = null }) {
                     Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Black)
+                        modifier = Modifier.fillMaxSize().background(Color.Black)
                     ) {
                         Image(
                             painter = rememberAsyncImagePainter(expandedUri),
                             contentDescription = null,
                             contentScale = ContentScale.Fit,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clickable { isImageExpanded.value = null }
+                            modifier = Modifier.fillMaxSize().clickable { isImageExpanded.value = null }
                         )
                     }
                 }
@@ -380,7 +306,7 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
                             val imagesParts = selectedImages.map { uri ->
                                 uriToMultipartBody(context, uri)
                             }
-                            val response = maintenanceRequestApi.createMaintenanceRequest(
+                            maintenanceRequestApi.createMaintenanceRequest(
                                 token = "Bearer $token",
                                 roomNumber = RequestBody.create("text/plain".toMediaTypeOrNull(), roomNumber),
                                 category = RequestBody.create("text/plain".toMediaTypeOrNull(), category.value),
@@ -388,10 +314,11 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
                                 roomAccess = RequestBody.create("text/plain".toMediaTypeOrNull(), roomAccess.value),
                                 images = imagesParts
                             )
-                            showMessage.value = "Success!"
+                            // Show Success Toast
+                            Toast.makeText(context, "Request submitted successfully!", Toast.LENGTH_LONG).show()
                             navController.navigate("MaintenancePage")
                         } catch (e: Exception) {
-                            showMessage.value = "Error: ${e.message}"
+                            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                         } finally {
                             isSubmitting.value = false
                         }
@@ -405,12 +332,6 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
                 } else {
                     Text("Submit Request")
                 }
-            }
-
-            // Show Message
-            showMessage.value?.let { message ->
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(text = message, fontSize = 16.sp, color = if (message.contains("success")) Color.Green else Color.Red)
             }
         }
     }

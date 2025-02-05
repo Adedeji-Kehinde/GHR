@@ -19,11 +19,12 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomePage(navController: NavController) {
     val scope = rememberCoroutineScope()
+
+    // Drawer States
     val menuDrawerState = rememberDrawerState(DrawerValue.Closed)// State for menu drawer
     val isNotificationDrawerOpen = remember { mutableStateOf(false) }// State for notification drawer
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Menu Drawer with Main Content
         ModalNavigationDrawer(
             drawerState = menuDrawerState,
             drawerContent = {
