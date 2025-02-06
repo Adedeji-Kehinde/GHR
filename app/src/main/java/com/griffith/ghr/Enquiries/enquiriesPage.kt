@@ -20,43 +20,15 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
-import retrofit2.http.Header
 
-// ------------------------- API INTERFACE -------------------------
 
-/**
- * Maintenance API interface for fetching maintenance requests.
- */
-interface MaintenanceApi {
-    @GET("api/maintenance/")
-    suspend fun getMaintenanceRequests(@Header("Authorization") token: String): List<MaintenanceRequest>
-}
-
-// ------------------------- DATA MODEL -------------------------
+// ------------------------- ENQUIRIES PAGE -------------------------
 
 /**
- * Data class representing a maintenance request.
- */
-data class MaintenanceRequest(
-    val requestId: String,
-    val roomNumber: String,
-    val category: String,
-    val description: String,
-    val roomAccess: String,
-    val pictures: List<String>,
-    val status: String,
-    val createdAt: String,
-    val completedAt: String?
-)
-
-// ------------------------- MAINTENANCE PAGE -------------------------
-
-/**
- * MaintenancePage - Displays the user's maintenance requests categorized by status.
+ * EnquiriesPage - Displays the user's enquiries categorized by status.
  */
 @Composable
-fun MaintenancePage(navController: NavController) {
+fun EnquiriesPage(navController: NavController) {
     val scope = rememberCoroutineScope()
 
     // Drawer States
@@ -65,7 +37,7 @@ fun MaintenancePage(navController: NavController) {
 
     // Tab Navigation State
     val selectedTabIndex = remember { mutableStateOf(0) }
-    val tabs = listOf("In Progress", "Completed")
+    val tabs = listOf("Pending", "Resolved")
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Menu Drawer with Main Content
@@ -102,7 +74,7 @@ fun MaintenancePage(navController: NavController) {
                     }
                 },
                 content = { innerPadding ->
-                    MaintenancePageContent(
+                    EnquiriesPageContent(
                         navController = navController,
                         innerPadding = innerPadding,
                         selectedTab = selectedTabIndex.value
@@ -111,8 +83,8 @@ fun MaintenancePage(navController: NavController) {
                 bottomBar = {
                     FooterButton(
                         navController = navController,
-                        buttonText = "Create Request",
-                        navigateTo = "MaintenanceRequestPage"
+                        buttonText = "Property Enquiry",
+                        navigateTo = "EnquiriesRequestPage"
                     )
                 }
             )
@@ -125,32 +97,31 @@ fun MaintenancePage(navController: NavController) {
     }
 }
 
-// ------------------------- MAINTENANCE PAGE CONTENT -------------------------
+// ------------------------- ENQUIRIES PAGE CONTENT -------------------------
 
 /**
- * MaintenancePageContent - Displays maintenance requests based on the selected tab.
+ * EnquiriesPageContent - Displays enquiries based on the selected tab.
  */
 @Composable
-fun MaintenancePageContent(
+fun EnquiriesPageContent(
     navController: NavController,
     innerPadding: PaddingValues,
     selectedTab: Int
 ) {
-    val maintenanceRequests = remember { mutableStateListOf<MaintenanceRequest>() }
+    val enquiries = remember { mutableStateListOf<Enquiry>() }
     val context = LocalContext.current
     var userRoomNumber by remember { mutableStateOf<String?>(null) }
 
-    // Retrofit setup
+    // Fetch user room number and enquiries (same as before)
     val retrofit = remember {
         Retrofit.Builder()
             .baseUrl("https://ghr-1.onrender.com")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
-    val maintenanceApi = retrofit.create(MaintenanceApi::class.java)
+    val enquiryApi = retrofit.create(EnquiryApi::class.java)
     val userApi = retrofit.create(UserProfileApi::class.java)
 
-    // Fetch user room number and maintenance requests
     LaunchedEffect(Unit) {
         val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         val token = sharedPreferences.getString("authToken", null)
@@ -160,19 +131,19 @@ fun MaintenancePageContent(
                 val userProfile = userApi.getUserProfile("Bearer $token")
                 userRoomNumber = userProfile.roomNumber
 
-                val allRequests = maintenanceApi.getMaintenanceRequests("Bearer $token")
-                maintenanceRequests.clear()
-                maintenanceRequests.addAll(allRequests)
+                val allEnquiries = enquiryApi.getEnquiries("Bearer $token")
+                enquiries.clear()
+                enquiries.addAll(allEnquiries)
             } catch (e: Exception) {
-                Log.e("MaintenancePageContent", "Error fetching data: ${e.message}")
+                Log.e("EnquiriesPageContent", "Error fetching data: ${e.message}")
             }
         }
     }
 
-    val filteredRequests = maintenanceRequests.filter { request ->
-        request.roomNumber == userRoomNumber && when (selectedTab) {
-            0 -> request.status == "In Process"
-            1 -> request.status == "Completed"
+    val filteredEnquiries = enquiries.filter { enquiry ->
+        enquiry.roomNumber == userRoomNumber && when (selectedTab) {
+            0 -> enquiry.status == "Pending"
+            1 -> enquiry.status == "Resolved"
             else -> false
         }
     }
@@ -182,60 +153,65 @@ fun MaintenancePageContent(
             .fillMaxSize()
             .padding(innerPadding)
     ) {
-        if (filteredRequests.isEmpty()) {
+        if (filteredEnquiries.isEmpty()) {
             EmptyPageMessage(
-                icon = R.drawable.maintenance,
-                message = "No maintenance requests to display"
+                icon = R.drawable.enquiries,
+                message = "No enquiries to display"
             )
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                filteredRequests.forEach { request ->
-                    item { MaintenanceCard(navController, request) }
+                filteredEnquiries.forEach { enquiry ->
+                    item { EnquiriesCard(navController, enquiry) }
                 }
             }
         }
     }
 }
 
-// ------------------------- MAINTENANCE CARD -------------------------
+
+// ------------------------- ENQUIRY CARD -------------------------
 
 /**
- * MaintenanceCard - Displays individual maintenance request details in a card format.
+ * EnquiriesCard - Displays individual enquiry details in a card format.
  */
 @Composable
-fun MaintenanceCard(navController: NavController, request: MaintenanceRequest) {
-    val formattedDateTime = remember(request.createdAt) {
-        formatDateTime(request.createdAt)
+fun EnquiriesCard(navController: NavController, enquiry: Enquiry) {
+    val formattedDateTime = remember(enquiry.createdAt) {
+        formatDateTime(enquiry.createdAt)
+    }
+
+    // Truncate Enquiry Text to 50 characters max
+    val truncatedEnquiryText = if (enquiry.enquiryText.length > 50) {
+        "${enquiry.enquiryText.take(30)}..."
+    } else {
+        enquiry.enquiryText
     }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable { navController.navigate("MaintenanceRequestDetailsPage/${request.requestId}") },
+            .clickable { navController.navigate("EnquiryDetailsPage/${enquiry.requestId}") },
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().background(Color.White)
         ) {
-            // Request ID and Status
             Row(
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Request ID: ${request.requestId}", fontSize = 12.sp, color = Color.Gray)
-                StatusBadge(status = request.status)
+                Text(text = "Request ID: ${enquiry.requestId}", fontSize = 12.sp, color = Color.Gray)
+                StatusBadge(status = enquiry.status)
             }
 
-            // Maintenance Category
-            Text(text = request.category, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp))
+            Text(text = truncatedEnquiryText, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp))
 
-            // Date and Time
             Box(
                 modifier = Modifier.fillMaxWidth().background(Color(0xFFF5F5F5)).padding(horizontal = 16.dp, vertical = 8.dp),
                 contentAlignment = Alignment.CenterStart
@@ -245,4 +221,3 @@ fun MaintenanceCard(navController: NavController, request: MaintenanceRequest) {
         }
     }
 }
-

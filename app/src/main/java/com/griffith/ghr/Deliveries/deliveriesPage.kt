@@ -3,6 +3,7 @@ package com.griffith.ghr
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,40 +21,15 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
-import retrofit2.http.Header
 
-// ------------------------- API INTERFACE -------------------------
 
-/**
- * Enquiry API interface for fetching user enquiries.
- */
-interface EnquiryApi {
-    @GET("api/auth/enquiries")
-    suspend fun getEnquiries(@Header("Authorization") token: String): List<Enquiry>
-}
-
-// ------------------------- DATA MODEL -------------------------
+// ------------------------- DELIVERIES PAGE -------------------------
 
 /**
- * Data class representing an enquiry request.
- */
-data class Enquiry(
-    val requestId: String,
-    val roomNumber: String,
-    val enquiryText: String,
-    val status: String,
-    val createdAt: String,
-    val resolvedAt: String
-)
-
-// ------------------------- ENQUIRIES PAGE -------------------------
-
-/**
- * EnquiriesPage - Displays the user's enquiries categorized by status.
+ * DeliveriesPage - Displays the user's deliveries categorized by status.
  */
 @Composable
-fun EnquiriesPage(navController: NavController) {
+fun DeliveriesPage(navController: NavController) {
     val scope = rememberCoroutineScope()
 
     // Drawer States
@@ -62,7 +38,7 @@ fun EnquiriesPage(navController: NavController) {
 
     // Tab Navigation State
     val selectedTabIndex = remember { mutableStateOf(0) }
-    val tabs = listOf("Pending", "Resolved")
+    val tabs = listOf("To Collect", "Collected", "Cancelled")
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Menu Drawer with Main Content
@@ -99,17 +75,10 @@ fun EnquiriesPage(navController: NavController) {
                     }
                 },
                 content = { innerPadding ->
-                    EnquiriesPageContent(
+                    DeliveriesPageContent(
                         navController = navController,
                         innerPadding = innerPadding,
                         selectedTab = selectedTabIndex.value
-                    )
-                },
-                bottomBar = {
-                    FooterButton(
-                        navController = navController,
-                        buttonText = "Property Enquiry",
-                        navigateTo = "EnquiriesRequestPage"
                     )
                 }
             )
@@ -122,29 +91,29 @@ fun EnquiriesPage(navController: NavController) {
     }
 }
 
-// ------------------------- ENQUIRIES PAGE CONTENT -------------------------
+// ------------------------- DELIVERIES PAGE CONTENT -------------------------
 
 /**
- * EnquiriesPageContent - Displays enquiries based on the selected tab.
+ * DeliveriesPageContent - Displays deliveries based on the selected tab.
  */
 @Composable
-fun EnquiriesPageContent(
+fun DeliveriesPageContent(
     navController: NavController,
     innerPadding: PaddingValues,
     selectedTab: Int
 ) {
-    val enquiries = remember { mutableStateListOf<Enquiry>() }
+    val deliveries = remember { mutableStateListOf<Delivery>() }
     val context = LocalContext.current
     var userRoomNumber by remember { mutableStateOf<String?>(null) }
 
-    // Fetch user room number and enquiries (same as before)
+    // Fetch user room number and deliveries (same as before)
     val retrofit = remember {
         Retrofit.Builder()
             .baseUrl("https://ghr-1.onrender.com")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
-    val enquiryApi = retrofit.create(EnquiryApi::class.java)
+    val deliveryApi = retrofit.create(DeliveryApi::class.java)
     val userApi = retrofit.create(UserProfileApi::class.java)
 
     LaunchedEffect(Unit) {
@@ -156,19 +125,20 @@ fun EnquiriesPageContent(
                 val userProfile = userApi.getUserProfile("Bearer $token")
                 userRoomNumber = userProfile.roomNumber
 
-                val allEnquiries = enquiryApi.getEnquiries("Bearer $token")
-                enquiries.clear()
-                enquiries.addAll(allEnquiries)
+                val allDeliveries = deliveryApi.getDeliveries("Bearer $token")
+                deliveries.clear()
+                deliveries.addAll(allDeliveries)
             } catch (e: Exception) {
-                Log.e("EnquiriesPageContent", "Error fetching data: ${e.message}")
+                Log.e("DeliveriesPageContent", "Error fetching data: ${e.message}")
             }
         }
     }
 
-    val filteredEnquiries = enquiries.filter { enquiry ->
-        enquiry.roomNumber == userRoomNumber && when (selectedTab) {
-            0 -> enquiry.status == "Pending"
-            1 -> enquiry.status == "Resolved"
+    val filteredDeliveries = deliveries.filter { delivery ->
+        delivery.roomNumber == userRoomNumber && when (selectedTab) {
+            0 -> delivery.status == "To Collect"
+            1 -> delivery.status == "Collected"
+            2 -> delivery.status == "Cancelled"
             else -> false
         }
     }
@@ -178,18 +148,18 @@ fun EnquiriesPageContent(
             .fillMaxSize()
             .padding(innerPadding)
     ) {
-        if (filteredEnquiries.isEmpty()) {
+        if (filteredDeliveries.isEmpty()) {
             EmptyPageMessage(
-                icon = R.drawable.enquiries,
-                message = "No enquiries to display"
+                icon = R.drawable.deliveries,
+                message = "No deliveries to display"
             )
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                filteredEnquiries.forEach { enquiry ->
-                    item { EnquiriesCard(navController, enquiry) }
+                filteredDeliveries.forEach { delivery ->
+                    item { DeliveryCard(navController, delivery) }
                 }
             }
         }
@@ -197,52 +167,62 @@ fun EnquiriesPageContent(
 }
 
 
-// ------------------------- ENQUIRY CARD -------------------------
+// ------------------------- DELIVERY CARD -------------------------
 
 /**
- * EnquiriesCard - Displays individual enquiry details in a card format.
+ * DeliveryCard - Displays individual delivery details in a card format.
  */
 @Composable
-fun EnquiriesCard(navController: NavController, enquiry: Enquiry) {
-    val formattedDateTime = remember(enquiry.createdAt) {
-        formatDateTime(enquiry.createdAt)
-    }
-
-    // Truncate Enquiry Text to 50 characters max
-    val truncatedEnquiryText = if (enquiry.enquiryText.length > 50) {
-        "${enquiry.enquiryText.take(30)}..."
-    } else {
-        enquiry.enquiryText
+fun DeliveryCard(navController: NavController, delivery: Delivery) {
+    val formattedDateTime = remember(delivery.arrivedAt) {
+        formatDateTime(delivery.arrivedAt)
     }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable { navController.navigate("EnquiryDetailsPage/${enquiry.requestId}") },
+            .clickable { navController.navigate("DeliveryDetailsPage/${delivery.parcelNumber}") },
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().background(Color.White)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = "Request ID: ${enquiry.requestId}", fontSize = 12.sp, color = Color.Gray)
-                StatusBadge(status = enquiry.status)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = formattedDateTime, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.Black)
+                Text(text = delivery.parcelType, fontSize = 12.sp, color = Color.Gray)
             }
 
-            Text(text = truncatedEnquiryText, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp))
+            Spacer(modifier = Modifier.width(8.dp))
 
+            ParcelNumberBox(delivery.parcelNumber)
+        }
+    }
+}
+
+
+// ------------------------- HELPER COMPOSABLE -------------------------
+
+/**
+ * ParcelNumberBox - Displays the parcel number in a box layout.
+ */
+@Composable
+fun ParcelNumberBox(parcelNumber: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        parcelNumber.chunked(1).forEach { digit ->
             Box(
-                modifier = Modifier.fillMaxWidth().background(Color(0xFFF5F5F5)).padding(horizontal = 16.dp, vertical = 8.dp),
-                contentAlignment = Alignment.CenterStart
+                modifier = Modifier
+                    .width(28.dp)
+                    .height(40.dp)
+                    .background(Color.White, shape = RoundedCornerShape(4.dp))
+                    .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp)),
+                contentAlignment = Alignment.Center
             ) {
-                Text(text = formattedDateTime, fontSize = 14.sp, color = Color.Gray)
+                Text(text = digit, fontSize = 14.sp, color = Color.Black)
             }
+            Spacer(modifier = Modifier.width(4.dp))
         }
     }
 }

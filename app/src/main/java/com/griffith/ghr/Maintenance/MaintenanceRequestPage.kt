@@ -54,32 +54,10 @@ import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import okhttp3.ResponseBody
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Header
-import retrofit2.http.Multipart
-import retrofit2.http.POST
-import retrofit2.http.Part
 import java.io.InputStream
 
-// ------------------------- RETROFIT API INTERFACE -------------------------
-
-/**
- * API interface for submitting Maintenance Requests.
- */
-interface MaintenanceRequestApi {
-    @Multipart
-    @POST("api/maintenance/register")
-    suspend fun createMaintenanceRequest(
-        @Header("Authorization") token: String,
-        @Part("roomNumber") roomNumber: RequestBody,
-        @Part("category") category: RequestBody,
-        @Part("description") description: RequestBody,
-        @Part("roomAccess") roomAccess: RequestBody,
-        @Part images: List<MultipartBody.Part>
-    ): ResponseBody
-}
 
 // ------------------------- MAINTENANCE REQUEST PAGE -------------------------
 

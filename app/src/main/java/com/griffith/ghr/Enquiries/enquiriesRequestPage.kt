@@ -19,41 +19,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Body
-import retrofit2.http.Header
-import retrofit2.http.POST
 
-// ------------------------- RETROFIT API INTERFACE -------------------------
-
-/**
- * API interface for submitting Enquiry Requests.
- */
-interface EnquiryRequestApi {
-    @POST("api/auth/enquiries")
-    suspend fun createEnquiryRequest(
-        @Header("Authorization") token: String,
-        @Body request: EnquiryRequestData
-    ): EnquiryResponse
-}
-
-// ------------------------- DATA CLASSES -------------------------
-
-/**
- * Data class for Enquiry request payload.
- */
-data class EnquiryRequestData(
-    val requestId: Int,
-    val roomNumber: String,
-    val enquiryText: String,
-)
-
-/**
- * Data class for Enquiry response.
- */
-data class EnquiryResponse(
-    val message: String,
-    val request: EnquiryRequestData
-)
 
 // ------------------------- ENQUIRY REQUEST PAGE -------------------------
 

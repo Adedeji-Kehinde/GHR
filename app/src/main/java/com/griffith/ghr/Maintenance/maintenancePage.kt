@@ -3,7 +3,6 @@ package com.griffith.ghr
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,42 +20,15 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
-import retrofit2.http.Header
 
-// ------------------------- API INTERFACE -------------------------
 
-/**
- * Delivery API interface for fetching user deliveries.
- */
-interface DeliveryApi {
-    @GET("api/auth/deliveries")
-    suspend fun getDeliveries(@Header("Authorization") token: String): List<Delivery>
-}
-
-// ------------------------- DATA MODEL -------------------------
+// ------------------------- MAINTENANCE PAGE -------------------------
 
 /**
- * Data class representing a delivery item.
- */
-data class Delivery(
-    val arrivedAt: String,
-    val parcelType: String,
-    val parcelNumber: String,
-    val status: String,
-    val roomNumber: String,
-    val sender: String?,
-    val description: String?,
-    val collectedAt: String?
-)
-
-// ------------------------- DELIVERIES PAGE -------------------------
-
-/**
- * DeliveriesPage - Displays the user's deliveries categorized by status.
+ * MaintenancePage - Displays the user's maintenance requests categorized by status.
  */
 @Composable
-fun DeliveriesPage(navController: NavController) {
+fun MaintenancePage(navController: NavController) {
     val scope = rememberCoroutineScope()
 
     // Drawer States
@@ -65,7 +37,7 @@ fun DeliveriesPage(navController: NavController) {
 
     // Tab Navigation State
     val selectedTabIndex = remember { mutableStateOf(0) }
-    val tabs = listOf("To Collect", "Collected", "Cancelled")
+    val tabs = listOf("In Progress", "Completed")
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Menu Drawer with Main Content
@@ -102,10 +74,17 @@ fun DeliveriesPage(navController: NavController) {
                     }
                 },
                 content = { innerPadding ->
-                    DeliveriesPageContent(
+                    MaintenancePageContent(
                         navController = navController,
                         innerPadding = innerPadding,
                         selectedTab = selectedTabIndex.value
+                    )
+                },
+                bottomBar = {
+                    FooterButton(
+                        navController = navController,
+                        buttonText = "Create Request",
+                        navigateTo = "MaintenanceRequestPage"
                     )
                 }
             )
@@ -118,31 +97,32 @@ fun DeliveriesPage(navController: NavController) {
     }
 }
 
-// ------------------------- DELIVERIES PAGE CONTENT -------------------------
+// ------------------------- MAINTENANCE PAGE CONTENT -------------------------
 
 /**
- * DeliveriesPageContent - Displays deliveries based on the selected tab.
+ * MaintenancePageContent - Displays maintenance requests based on the selected tab.
  */
 @Composable
-fun DeliveriesPageContent(
+fun MaintenancePageContent(
     navController: NavController,
     innerPadding: PaddingValues,
     selectedTab: Int
 ) {
-    val deliveries = remember { mutableStateListOf<Delivery>() }
+    val maintenanceRequests = remember { mutableStateListOf<MaintenanceRequest>() }
     val context = LocalContext.current
     var userRoomNumber by remember { mutableStateOf<String?>(null) }
 
-    // Fetch user room number and deliveries (same as before)
+    // Retrofit setup
     val retrofit = remember {
         Retrofit.Builder()
             .baseUrl("https://ghr-1.onrender.com")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
-    val deliveryApi = retrofit.create(DeliveryApi::class.java)
+    val maintenanceApi = retrofit.create(MaintenanceApi::class.java)
     val userApi = retrofit.create(UserProfileApi::class.java)
 
+    // Fetch user room number and maintenance requests
     LaunchedEffect(Unit) {
         val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         val token = sharedPreferences.getString("authToken", null)
@@ -152,20 +132,19 @@ fun DeliveriesPageContent(
                 val userProfile = userApi.getUserProfile("Bearer $token")
                 userRoomNumber = userProfile.roomNumber
 
-                val allDeliveries = deliveryApi.getDeliveries("Bearer $token")
-                deliveries.clear()
-                deliveries.addAll(allDeliveries)
+                val allRequests = maintenanceApi.getMaintenanceRequests("Bearer $token")
+                maintenanceRequests.clear()
+                maintenanceRequests.addAll(allRequests)
             } catch (e: Exception) {
-                Log.e("DeliveriesPageContent", "Error fetching data: ${e.message}")
+                Log.e("MaintenancePageContent", "Error fetching data: ${e.message}")
             }
         }
     }
 
-    val filteredDeliveries = deliveries.filter { delivery ->
-        delivery.roomNumber == userRoomNumber && when (selectedTab) {
-            0 -> delivery.status == "To Collect"
-            1 -> delivery.status == "Collected"
-            2 -> delivery.status == "Cancelled"
+    val filteredRequests = maintenanceRequests.filter { request ->
+        request.roomNumber == userRoomNumber && when (selectedTab) {
+            0 -> request.status == "In Process"
+            1 -> request.status == "Completed"
             else -> false
         }
     }
@@ -175,81 +154,67 @@ fun DeliveriesPageContent(
             .fillMaxSize()
             .padding(innerPadding)
     ) {
-        if (filteredDeliveries.isEmpty()) {
+        if (filteredRequests.isEmpty()) {
             EmptyPageMessage(
-                icon = R.drawable.deliveries,
-                message = "No deliveries to display"
+                icon = R.drawable.maintenance,
+                message = "No maintenance requests to display"
             )
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                filteredDeliveries.forEach { delivery ->
-                    item { DeliveryCard(navController, delivery) }
+                filteredRequests.forEach { request ->
+                    item { MaintenanceCard(navController, request) }
                 }
             }
         }
     }
 }
 
-
-// ------------------------- DELIVERY CARD -------------------------
+// ------------------------- MAINTENANCE CARD -------------------------
 
 /**
- * DeliveryCard - Displays individual delivery details in a card format.
+ * MaintenanceCard - Displays individual maintenance request details in a card format.
  */
 @Composable
-fun DeliveryCard(navController: NavController, delivery: Delivery) {
-    val formattedDateTime = remember(delivery.arrivedAt) {
-        formatDateTime(delivery.arrivedAt)
+fun MaintenanceCard(navController: NavController, request: MaintenanceRequest) {
+    val formattedDateTime = remember(request.createdAt) {
+        formatDateTime(request.createdAt)
     }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable { navController.navigate("DeliveryDetailsPage/${delivery.parcelNumber}") },
+            .clickable { navController.navigate("MaintenanceRequestDetailsPage/${request.requestId}") },
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier.fillMaxWidth().background(Color.White)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = formattedDateTime, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.Black)
-                Text(text = delivery.parcelType, fontSize = 12.sp, color = Color.Gray)
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            ParcelNumberBox(delivery.parcelNumber)
-        }
-    }
-}
-
-
-// ------------------------- HELPER COMPOSABLE -------------------------
-
-/**
- * ParcelNumberBox - Displays the parcel number in a box layout.
- */
-@Composable
-fun ParcelNumberBox(parcelNumber: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        parcelNumber.chunked(1).forEach { digit ->
-            Box(
-                modifier = Modifier
-                    .width(28.dp)
-                    .height(40.dp)
-                    .background(Color.White, shape = RoundedCornerShape(4.dp))
-                    .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp)),
-                contentAlignment = Alignment.Center
+            // Request ID and Status
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = digit, fontSize = 14.sp, color = Color.Black)
+                Text(text = "Request ID: ${request.requestId}", fontSize = 12.sp, color = Color.Gray)
+                StatusBadge(status = request.status)
             }
-            Spacer(modifier = Modifier.width(4.dp))
+
+            // Maintenance Category
+            Text(text = request.category, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp))
+
+            // Date and Time
+            Box(
+                modifier = Modifier.fillMaxWidth().background(Color(0xFFF5F5F5)).padding(horizontal = 16.dp, vertical = 8.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Text(text = formattedDateTime, fontSize = 14.sp, color = Color.Gray)
+            }
         }
     }
 }
+

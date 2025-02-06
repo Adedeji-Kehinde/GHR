@@ -26,32 +26,6 @@ import coil.request.ImageRequest
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
-import retrofit2.http.Header
-
-// ------------------------- API INTERFACE -------------------------
-/**
- * User Profile API interface for fetching user deliveries.
- */
-interface UserProfileApi {
-    @GET("api/auth/user")
-    suspend fun getUserProfile(@Header("Authorization") token: String): UserProfile
-}
-
-// ------------------------- DATA MODEL -------------------------
-
-/**
- * Data class representing a user Profile item.
- */
-data class UserProfile(
-    val name: String,
-    val lastName: String,
-    val gender: String,
-    val email: String,
-    val phone: String? = null,
-    val roomNumber: String,
-    val profileImageUrl: String?
-)
 
 // ------------------------- USER PROFILE PAGE -------------------------
 

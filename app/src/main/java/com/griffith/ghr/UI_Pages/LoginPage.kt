@@ -20,30 +20,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Body
-import retrofit2.http.POST
 
-// ------------------------- Data Models -------------------------
-
-/**
- * Represents the login request payload.
- */
-data class LoginRequest(val email: String, val password: String)
-
-/**
- * Represents the login response from the server.
- */
-data class LoginResponse(val message: String, val token: String?)
-
-// ------------------------- Retrofit API Service -------------------------
-
-/**
- * Defines authentication API endpoints.
- */
-interface AuthApi {
-    @POST("api/auth/login")
-    suspend fun login(@Body request: LoginRequest): LoginResponse
-}
 
 // ------------------------- Login Page UI -------------------------
 
