@@ -15,9 +15,10 @@ const Register = () => {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false); // Loading state
   const navigate = useNavigate();
 
-  const API_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "https://your-backend-url.onrender.com";
 
   const handleChange = (e) => {
     setFormData({
@@ -30,6 +31,7 @@ const Register = () => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setLoading(true); // Start loading
 
     try {
       const response = await axios.post(`${API_URL}/api/auth/register`, formData);
@@ -38,6 +40,8 @@ const Register = () => {
       setTimeout(() => navigate("/login"), 2000); // Redirect after 2 seconds
     } catch (err) {
       setError(err.response?.data?.error || "Registration failed");
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -48,6 +52,7 @@ const Register = () => {
 
         {error && <p className="error">{error}</p>}
         {success && <p className="success">{success}</p>}
+        {loading && <p className="loading">Creating account...</p>} {/* Show loading text */}
 
         <form onSubmit={handleRegister}>
 
@@ -101,17 +106,9 @@ const Register = () => {
             value={formData.gender}
             onChange={handleChange}
           >
-            <option value="Male">
-              Male
-            </option>
-
-            <option value="Female">
-              Female
-            </option>
-
-            <option value="Other">
-              Other
-            </option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
           </select>
 
           <input
@@ -123,8 +120,8 @@ const Register = () => {
             required
           />
 
-          <button type="submit">
-            Register
+          <button type="submit" disabled={loading}> {/* Disable button when loading */}
+            {loading ? "Creating Account..." : "Register"}
           </button>
 
         </form>

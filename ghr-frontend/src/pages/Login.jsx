@@ -6,13 +6,15 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // Loading state
   const navigate = useNavigate();
 
-  const API_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "https://your-backend-url.onrender.com";
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true); // Start loading
 
     try {
       const response = await axios.post(`${API_URL}/api/auth/login`, {
@@ -24,6 +26,8 @@ const Login = () => {
       navigate("/home"); // Redirect after successful login
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -33,6 +37,7 @@ const Login = () => {
         <h2>Login</h2>
 
         {error && <p className="error">{error}</p>}
+        {loading && <p className="loading">Logging in...</p>} {/* Show loading text */}
 
         <form onSubmit={handleLogin}>
 
@@ -52,8 +57,8 @@ const Login = () => {
             required
           />
 
-          <button type="submit">
-            Login
+          <button type="submit" disabled={loading}> {/* Disable button when loading */}
+            {loading ? "Logging in..." : "Login"}
           </button>
 
         </form>
