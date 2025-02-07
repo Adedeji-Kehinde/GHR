@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
 const Login = () => {
@@ -28,31 +28,41 @@ const Login = () => {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="p-6 bg-white shadow-lg rounded-lg">
-        <h2 className="text-xl font-bold mb-4">Login</h2>
-        {error && <p className="text-red-500">{error}</p>}
+    <div className="container">
+      <div className="box">
+        <h2>Login</h2>
+
+        {error && <p className="error">{error}</p>}
+
         <form onSubmit={handleLogin}>
+
           <input
             type="email"
             placeholder="Email"
-            className="border p-2 w-full mb-3"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
+
           <input
             type="password"
             placeholder="Password"
-            className="border p-2 w-full mb-3"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          <button type="submit" className="bg-blue-500 text-white px-4 py-2 w-full">
+
+          <button type="submit">
             Login
           </button>
+
         </form>
+
+        <p>
+          Don't have an account?
+          <Link to="/register"> Create Account </Link>
+        </p>
+
       </div>
     </div>
   );
