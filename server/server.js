@@ -31,6 +31,14 @@ const imageRoutes = require("./routes/image"); // Import image routes
 app.use("/api/image", imageRoutes); // Mount image routes under "/api/image"
 const maintenanceRoutes = require("./routes/maintenance"); // Import maintenance routes
 app.use("/api/maintenance", maintenanceRoutes); // Mount maintenance routes under "/api/maintenance"
+const bookingRoutes = require("./routes/bookingRoute"); // Import booking routes
+app.use("/api/booking", bookingRoutes); // Mount booking routes under "/api/booking"
+
+// const generateBuildingsAndRooms = require('./utils/generateRooms');
+
+// mongoose.connection.once('open', async () => {
+//   await generateBuildingsAndRooms(); // Run once on server startup
+// });
 
 // Base Route
 app.get("/", (req, res) => {
