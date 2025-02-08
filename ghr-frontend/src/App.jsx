@@ -4,6 +4,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
+import Booking from "./pages/Booking";
+import SelectBed from "./pages/SelectBed";
 import "./styles.css"; // Import the styles
 
 function App() {
@@ -31,6 +33,17 @@ function App() {
           path="/home"
           element={<Home />}
         />
+        
+        <Route 
+          path="/booking" 
+          element={<Booking />} 
+        />
+
+        <Route 
+          path="/selectBed" 
+          element={<SelectBed />} 
+        />
+
       </Routes>
     </Router>
     </>

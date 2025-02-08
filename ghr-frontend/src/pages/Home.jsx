@@ -35,6 +35,11 @@ const Home = () => {
     fetchUser();
   }, [navigate]);
 
+  const handleBookRoom = () => {
+    // Navigate to the booking page
+    navigate("/booking");
+  };
+
   return (
     <div className="container">
       <div className="box">
@@ -45,7 +50,9 @@ const Home = () => {
         ) : user ? (
           <>
             <h2>Hello, {user.name}!</h2> {/* Display user's name */}
-            <button className="book-room-btn">Book Room</button>
+            <button className="book-room-btn" onClick={handleBookRoom}>
+              Book Room
+            </button>
           </>
         ) : (
           <p className="error">Failed to load user details.</p>
