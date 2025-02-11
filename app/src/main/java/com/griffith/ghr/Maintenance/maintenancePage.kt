@@ -192,7 +192,7 @@ fun MaintenanceCard(navController: NavController, request: MaintenanceRequest) {
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().background(Color.White)
+            modifier = Modifier.fillMaxWidth()
         ) {
             // Request ID and Status
             Row(
@@ -209,7 +209,7 @@ fun MaintenanceCard(navController: NavController, request: MaintenanceRequest) {
 
             // Date and Time
             Box(
-                modifier = Modifier.fillMaxWidth().background(Color(0xFFF5F5F5)).padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.onBackground).padding(horizontal = 16.dp, vertical = 8.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text(text = formattedDateTime, fontSize = 14.sp, color = Color.Gray)

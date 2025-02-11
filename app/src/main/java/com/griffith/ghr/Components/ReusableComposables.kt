@@ -42,7 +42,7 @@ fun NotificationDrawerOverlay(isNotificationDrawerOpen: MutableState<Boolean>) {
                 .fillMaxHeight()
                 .width((2 * LocalConfiguration.current.screenWidthDp / 3).dp) // 2/3 screen width
                 .align(Alignment.TopEnd)
-                .background(Color.White, shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)) // Rounded corners on the left
+                .background(MaterialTheme.colorScheme.onBackground, shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)) // Rounded corners on the left
         ) {
             NotificationDrawerBox()
         }
@@ -246,7 +246,7 @@ fun Dropdown(label: String, options: List<String>, onOptionSelected: (String) ->
     ) {
         Text(
             text = selectedOption.value.ifEmpty { label },
-            color = if (selectedOption.value.isEmpty()) Color.Gray else Color.Black,
+            color = if (selectedOption.value.isEmpty()) Color.Gray else MaterialTheme.colorScheme.onBackground,
             fontSize = 16.sp
         )
     }
@@ -287,7 +287,7 @@ fun TextBox(label: String, onTextChange: (String) -> Unit) {
     val maxLength = 100
 
     Column {
-        Text(text = label, fontSize = 16.sp, color = Color.Black)
+        Text(text = label, fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
         OutlinedTextField(
             value = text.value,
             onValueChange = {

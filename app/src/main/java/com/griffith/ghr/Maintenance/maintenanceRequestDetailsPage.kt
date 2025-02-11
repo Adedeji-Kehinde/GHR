@@ -222,7 +222,7 @@ fun MaintenanceDetailRow(label: String, value: String?) {
         Text(text = label, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color.Gray, modifier = Modifier.weight(1f)
         )
         Box(modifier = Modifier.fillMaxWidth(0.5f)) {
-            Text(text = value?: "-", fontSize = 16.sp, fontWeight = FontWeight.Normal, color = Color.Black)
+            Text(text = value?: "-", fontSize = 16.sp, fontWeight = FontWeight.Normal, color = MaterialTheme.colorScheme.onBackground)
         }
     }
 }

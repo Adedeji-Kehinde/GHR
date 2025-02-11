@@ -143,7 +143,7 @@ fun ProfileSection(userName: String, userEmail: String, profileImageUrl: String,
         Spacer(modifier = Modifier.width(16.dp))
 
         Column {
-            Text(text = userName, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(text = userName, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Text(text = userEmail, fontSize = 14.sp, color = Color.Gray)
         }
     }
@@ -160,9 +160,9 @@ fun MenuItem(navController: NavController, icon: Painter, title: String, route: 
         modifier = Modifier.fillMaxWidth().clickable { navController.navigate(route) }.padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(painter = icon, contentDescription = title, tint = Color.Black, modifier = Modifier.size(24.dp))
+        Icon(painter = icon, contentDescription = title, tint =MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(16.dp))
-        Text(text = title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+        Text(text = title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
     }
 }
 

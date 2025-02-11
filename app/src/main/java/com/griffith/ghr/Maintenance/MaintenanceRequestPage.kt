@@ -26,6 +26,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -146,7 +147,7 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
         Column(
             modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
         ) {
-            Text(text = "Maintenance Request", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(text = "Maintenance Request", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(8.dp))
 
             // Placeholder subtitle
@@ -158,7 +159,7 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
             Spacer(modifier = Modifier.height(16.dp))
 
             // Display Room Number
-            Text(text = "Room Allocation", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(text = "Room Allocation", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(8.dp))
             
             Dropdown(
@@ -171,7 +172,7 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
             Spacer(modifier = Modifier.height(16.dp))
 
             // Maintenance Category
-            Text(text = "Maintenance Category", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(text = "Maintenance Category", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(8.dp))
             
             Dropdown(
@@ -192,7 +193,7 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
             Spacer(modifier = Modifier.height(16.dp))
 
             // Description
-            Text(text = "Description", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(text = "Description", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(8.dp))
             
             TextBox(
@@ -202,7 +203,7 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
             Spacer(modifier = Modifier.height(16.dp))
 
             // May we enter your room when you're away?
-            Text(text = "May we enter your room when you're away?", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(text = "May we enter your room when you're away?", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(8.dp))
             
             Dropdown(
@@ -213,7 +214,7 @@ fun MaintenanceRequestContent(innerPadding: PaddingValues, navController: NavCon
             Spacer(modifier = Modifier.height(16.dp))
 
             // Pictures Section
-            Text(text = "Pictures", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(text = "Pictures", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(8.dp))
             
             Text(text = "Upload Images (5 Max)", fontSize = 14.sp, color = Color.Gray)

@@ -166,7 +166,7 @@ fun UserDetailsSection(gender: String, email: String, phone: String) {
                 color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(16.dp)
             )
-            .border(1.dp, Color.Black, RoundedCornerShape(16.dp))
+            .border(1.dp, color = MaterialTheme.colorScheme.onBackground, RoundedCornerShape(16.dp))
             .padding(16.dp)
     ) {
         Column {

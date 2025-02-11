@@ -104,7 +104,7 @@ fun EnquiriesRequestContent(innerPadding: PaddingValues, navController: NavContr
             modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
         ) {
             // Title
-            Text(text = "Property Enquiry", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(text = "Property Enquiry", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
@@ -118,7 +118,7 @@ fun EnquiriesRequestContent(innerPadding: PaddingValues, navController: NavContr
             Spacer(modifier = Modifier.height(16.dp))
 
             // Room Number Dropdown
-            Text(text = "Room Allocation", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(text = "Room Allocation", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(8.dp))
 
             Dropdown(
@@ -130,7 +130,7 @@ fun EnquiriesRequestContent(innerPadding: PaddingValues, navController: NavContr
             Spacer(modifier = Modifier.height(16.dp))
 
             // Enquiry Details
-            Text(text = "Your Enquiry", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(text = "Your Enquiry", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(8.dp))
 
             TextBox(

@@ -199,7 +199,7 @@ fun EnquiriesCard(navController: NavController, enquiry: Enquiry) {
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().background(Color.White)
+            modifier = Modifier.fillMaxWidth()
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -213,7 +213,7 @@ fun EnquiriesCard(navController: NavController, enquiry: Enquiry) {
             Text(text = truncatedEnquiryText, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp))
 
             Box(
-                modifier = Modifier.fillMaxWidth().background(Color(0xFFF5F5F5)).padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.onBackground).padding(horizontal = 16.dp, vertical = 8.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text(text = formattedDateTime, fontSize = 14.sp, color = Color.Gray)

@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -16,7 +15,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -37,6 +35,7 @@ import java.io.FileOutputStream
 fun UsefulInfoPage(navController: NavController) {
     val scope = rememberCoroutineScope()
     val menuDrawerState = rememberDrawerState(DrawerValue.Closed)
+    val isNotificationDrawerOpen = remember { mutableStateOf(false) }
 
     // State for tracking selected PDF section
     var selectedSection by remember { mutableStateOf<Pair<String, String>?>(null) }
@@ -60,7 +59,7 @@ fun UsefulInfoPage(navController: NavController) {
                     topBar = {
                         AppHeader(
                             onMenuClick = { scope.launch { menuDrawerState.open() } },
-                            onNotificationClick = { /* Handle notifications */ },
+                            onNotificationClick = {isNotificationDrawerOpen.value = true  },
                             navController = navController,
                             showBackButton = true
                         )
@@ -73,6 +72,9 @@ fun UsefulInfoPage(navController: NavController) {
                     }
                 )
             }
+        }
+        if (isNotificationDrawerOpen.value) {
+            NotificationDrawerOverlay(isNotificationDrawerOpen)
         }
     }
 }
@@ -95,22 +97,21 @@ fun UsefulInfoPageContent(
     )
 
     Column(
-        modifier = Modifier.fillMaxSize().background(Color.White).padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxSize().padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         sections.forEach { (title, fileName) ->
             Card(
                 modifier = Modifier.fillMaxWidth().clickable { onOpenPdf(title, fileName) },
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(painter = painterResource(id = R.drawable.info), contentDescription = null, tint = Color.Red, modifier = Modifier.size(24.dp))
+                    Icon(painter = painterResource(id = R.drawable.info), contentDescription = null, modifier = Modifier.size(24.dp))
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text(text = title, fontWeight = FontWeight.Medium, color = Color.Black)
+                    Text(text = title, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onBackground)
                 }
             }
         }
