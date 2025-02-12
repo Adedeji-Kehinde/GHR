@@ -3,7 +3,6 @@ import axios from 'axios';
 
 const DeliveryManagement = () => {
   const [deliveries, setDeliveries] = useState([]);
-  const [users, setUsers] = useState([]); // store all users
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: "", direction: "ascending" });
   const [loading, setLoading] = useState(true);
@@ -16,14 +15,11 @@ const DeliveryManagement = () => {
   // Add Delivery form state
   const [newDelivery, setNewDelivery] = useState({
     sender: "",
-    parcelType: "Package", // default value
+    parcelType: "Package",
     description: "",
     roomNumber: ""
   });
 
-  // For the add form: state for searching users (by name or roomNumber)
-  const [userSearchQuery, setUserSearchQuery] = useState("");
-  
   // Update Delivery form state
   const [selectedDeliveryId, setSelectedDeliveryId] = useState("");
   const [updateDelivery, setUpdateDelivery] = useState({
@@ -34,10 +30,16 @@ const DeliveryManagement = () => {
     status: ""
   });
 
+  // For searching users when adding a delivery
+  const [userSearchQuery, setUserSearchQuery] = useState("");
+  const [users, setUsers] = useState([]);
+
+  // For update form search
+  const [updateSearchQuery, setUpdateSearchQuery] = useState("");
+
   const API_URL = import.meta.env.VITE_API_BASE_URL;
   const token = localStorage.getItem("token");
 
-  // Fetch deliveries and users (and join recipientName)
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -45,7 +47,7 @@ const DeliveryManagement = () => {
       const deliveryRes = await axios.get(`${API_URL}/api/auth/deliveries`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // Fetch users and store them for both the table and the add form
+      // Fetch users (to join recipient name)
       const usersRes = await axios.get(`${API_URL}/api/auth/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -54,7 +56,7 @@ const DeliveryManagement = () => {
       const usersData = usersRes.data;
       setUsers(usersData);
       
-      // Join each delivery with the matching user's name based on roomNumber
+      // Join each delivery with matching user's name based on roomNumber
       const joinedData = deliveriesData.map((delivery) => {
         const matchingUser = usersData.find(user => user.roomNumber === delivery.roomNumber);
         return {
@@ -77,7 +79,7 @@ const DeliveryManagement = () => {
     fetchData();
   }, [API_URL, token]);
 
-  // Filter deliveries for the main table based on search query
+  // Filter for main table search
   const filteredDeliveries = deliveries.filter((delivery) => {
     const query = searchQuery.toLowerCase();
     return (
@@ -91,11 +93,11 @@ const DeliveryManagement = () => {
     );
   });
 
-  // Sorting logic for the main table
+  // Sorting logic
   const sortedDeliveries = useMemo(() => {
-    let sortableDeliveries = [...filteredDeliveries];
+    let sortable = [...filteredDeliveries];
     if (sortConfig.key) {
-      sortableDeliveries.sort((a, b) => {
+      sortable.sort((a, b) => {
         const aValue = a[sortConfig.key] ? a[sortConfig.key].toString().toLowerCase() : "";
         const bValue = b[sortConfig.key] ? b[sortConfig.key].toString().toLowerCase() : "";
         if (aValue < bValue) return sortConfig.direction === "ascending" ? -1 : 1;
@@ -103,7 +105,7 @@ const DeliveryManagement = () => {
         return 0;
       });
     }
-    return sortableDeliveries;
+    return sortable;
   }, [filteredDeliveries, sortConfig]);
 
   const handleSort = (columnKey) => {
@@ -115,31 +117,28 @@ const DeliveryManagement = () => {
   };
 
   // --------------------
-  // Handlers for Add Delivery form
+  // Add Delivery Handlers
   // --------------------
   const handleNewDeliveryChange = (e) => {
     setNewDelivery({ ...newDelivery, [e.target.name]: e.target.value });
   };
 
-  // For the room number search, update userSearchQuery and clear roomNumber in form
+  // User search for add delivery
   const handleUserSearchChange = (e) => {
     setUserSearchQuery(e.target.value);
     setNewDelivery({ ...newDelivery, roomNumber: "" });
   };
 
-  // Filter users for the add form; only show users with a non-null roomNumber
   const filteredUsers = useMemo(() => {
     const query = userSearchQuery.toLowerCase();
-    return users.filter((user) => 
-      user.roomNumber && (
-        (user.name && user.name.toLowerCase().includes(query)) ||
-        (user.lastName && user.lastName.toLowerCase().includes(query)) ||
-        (user.roomNumber && user.roomNumber.toLowerCase().includes(query))
-      )
+    return users.filter((user) =>
+      user.roomNumber &&
+      ((user.name && user.name.toLowerCase().includes(query)) ||
+       (user.lastName && user.lastName.toLowerCase().includes(query)) ||
+       (user.roomNumber && user.roomNumber.toLowerCase().includes(query)))
     );
   }, [users, userSearchQuery]);
 
-  // When an admin selects a user from the suggestion list, set the newDelivery.roomNumber and clear the search query.
   const handleSelectUser = (user) => {
     setNewDelivery({ ...newDelivery, roomNumber: user.roomNumber });
     setUserSearchQuery(`${user.name} ${user.lastName} (${user.roomNumber})`);
@@ -162,13 +161,14 @@ const DeliveryManagement = () => {
   };
 
   // --------------------
-  // Handlers for Update Delivery form
+  // Update Delivery Handlers
   // --------------------
-  const [updateSearchQuery, setUpdateSearchQuery] = useState("");
+  const [selectedDelivery, setSelectedDelivery] = useState(null);
 
   const handleSelectDeliveryById = (id) => {
     setSelectedDeliveryId(id);
     const deliveryToEdit = deliveries.find((d) => d._id === id);
+    setSelectedDelivery(deliveryToEdit);
     if (deliveryToEdit) {
       setUpdateDelivery({
         sender: deliveryToEdit.sender,
@@ -205,6 +205,7 @@ const DeliveryManagement = () => {
       await fetchData();
       setShowUpdateForm(false);
       setSelectedDeliveryId("");
+      setSelectedDelivery(null);
     } catch (err) {
       console.error("Error updating delivery:", err.response || err);
       setError(err.response?.data?.message || "Error updating delivery");
@@ -223,6 +224,7 @@ const DeliveryManagement = () => {
       await fetchData();
       setShowUpdateForm(false);
       setSelectedDeliveryId("");
+      setSelectedDelivery(null);
     } catch (err) {
       console.error("Error deleting delivery:", err.response || err);
       setError(err.response?.data?.message || "Error deleting delivery");
@@ -236,7 +238,7 @@ const DeliveryManagement = () => {
     <div className="delivery-management" style={{ padding: "1rem" }}>
       <h1>Delivery Management</h1>
       
-      {/* Buttons to toggle the forms */}
+      {/* Add and Update buttons above table */}
       <div style={{ marginBottom: "1rem" }}>
         <button onClick={() => { setShowAddForm(!showAddForm); setShowUpdateForm(false); }}>
           {showAddForm ? "Hide Add Delivery" : "Add New Delivery"}
@@ -275,7 +277,7 @@ const DeliveryManagement = () => {
             onChange={handleNewDeliveryChange}
             required
           />
-          {/* Instead of a plain room number input, add a search field */}
+          {/* Search for a user with a valid room number */}
           <input
             type="text"
             placeholder="Search user by name or room number..."
@@ -313,7 +315,7 @@ const DeliveryManagement = () => {
             onChange={(e) => setUpdateSearchQuery(e.target.value)}
             style={{ marginBottom: "0.5rem", padding: "0.5rem", width: "100%" }}
           />
-          <ul style={{ maxHeight: "150px", overflowY: "auto", border: "1px solid #ccc", padding: "0.5rem" }}>
+          <ul style={{ maxHeight: "150px", overflowY: "auto", border: "1px solid #ccc", padding: "0.5rem", listStyle: "none" }}>
             {deliveries.filter((delivery) => {
               const query = updateSearchQuery.toLowerCase();
               return (
@@ -418,6 +420,8 @@ const DeliveryManagement = () => {
             <th onClick={() => handleSort("status")} style={{cursor: 'pointer'}}>Status</th>
             <th onClick={() => handleSort("roomNumber")} style={{cursor: 'pointer'}}>Room Number</th>
             <th onClick={() => handleSort("recipientName")} style={{cursor: 'pointer'}}>Recipient Name</th>
+            <th onClick={() => handleSort("arrivedAt")} style={{cursor: 'pointer'}}>Created At</th>
+            <th onClick={() => handleSort("collectedAt")} style={{cursor: 'pointer'}}>Collected At</th>
           </tr>
         </thead>
         <tbody>
@@ -430,6 +434,8 @@ const DeliveryManagement = () => {
               <td>{delivery.status}</td>
               <td>{delivery.roomNumber}</td>
               <td>{delivery.recipientName}</td>
+              <td>{new Date(delivery.arrivedAt).toLocaleString()}</td>
+              <td>{delivery.collectedAt ? new Date(delivery.collectedAt).toLocaleString() : "N/A"}</td>
             </tr>
           ))}
         </tbody>

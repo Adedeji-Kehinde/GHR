@@ -8,6 +8,7 @@ import Booking from "./pages/Booking";
 import SelectBed from "./pages/SelectBed";
 import AdminDashboard from "./admin/AdminDashboard";
 import Deliveries from "./admin/Deliveries";
+import Enquiry from "./admin/Enquiry";
 import "./styles.css"; // Import the styles
 
 function App() {
@@ -54,6 +55,11 @@ function App() {
         <Route 
           path="/deliveries" 
           element={<Deliveries />} 
+        />
+
+        <Route 
+          path="/enquiries" 
+          element={<Enquiry />} 
         />
       </Routes>
     </Router>

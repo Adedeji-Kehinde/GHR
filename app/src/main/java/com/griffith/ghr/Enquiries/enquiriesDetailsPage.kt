@@ -132,6 +132,7 @@ fun EnquiryDetailsContent(requestId: String, enquiryDetails: Enquiry?, innerPadd
         // Enquiry Details
         EnquiryDetailRow(label = "Room Number", value = enquiryDetails?.roomNumber)
         EnquiryDetailRow(label = "Enquiry Text", value = enquiryDetails?.enquiryText)
+        EnquiryDetailRow(label = "Response ", value = enquiryDetails?.response)
         EnquiryDetailRow(label = "Created At", value = enquiryDetails?.createdAt?.let { formatDateTime(it) })
         EnquiryDetailRow(label = "Resolved At", value = enquiryDetails?.resolvedAt?.let { formatDateTime(it) })
     }

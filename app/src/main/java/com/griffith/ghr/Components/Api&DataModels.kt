@@ -132,6 +132,7 @@ data class Enquiry(
     val roomNumber: String,
     val enquiryText: String,
     val status: String,
+    val response: String,
     val createdAt: String,
     val resolvedAt: String
 )

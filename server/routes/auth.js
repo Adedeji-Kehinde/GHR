@@ -241,16 +241,14 @@ router.put('/deliveries/:id', authenticateToken, async (req, res) => {
         return res.status(400).json({ message: 'Invalid status' });
       }
   
-      if (!roomNumber) {
-        return res.status(400).json({ message: 'Room number is required' });
+      const updateFields = { sender, parcelType, description, roomNumber, status };
+      if (status === 'Collected') {
+        updateFields.collectedAt = new Date();
+      } else {
+        updateFields.collectedAt = null;
       }
   
-      const updatedDelivery = await Delivery.findByIdAndUpdate(
-        id,
-        { sender, parcelType, description, roomNumber, status },
-        { new: true }
-      );
-  
+      const updatedDelivery = await Delivery.findByIdAndUpdate(id, updateFields, { new: true });
       if (!updatedDelivery) {
         return res.status(404).json({ message: 'Delivery not found' });
       }
@@ -261,6 +259,7 @@ router.put('/deliveries/:id', authenticateToken, async (req, res) => {
       return res.status(500).json({ message: 'Server error', error: error.message });
     }
   });
+  
   
   router.delete('/deliveries/:id', authenticateToken, async (req, res) => {
     try {
@@ -319,36 +318,50 @@ router.get('/enquiries', authenticateToken, async (req, res) => {
     }
 });
 
-router.put('/enquiries/:requestId/status', authenticateToken, async (req, res) => {
+// PUT /api/auth/enquiries/:id - Update an enquiry (status and response)
+router.put('/enquiries/:id', authenticateToken, async (req, res) => {
     try {
-        const { requestId } = req.params;
-        const { status } = req.body;
-
-        const validStatuses = ['Pending', 'Resolved'];
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({ message: 'Invalid status' });
-        }
-
-        const update = { status };
-        if (status === 'Resolved') {
-            update.resolvedAt = new Date();
-        }
-
-        const updatedEnquiry = await Enquiry.findOneAndUpdate(
-            { requestId },
-            update,
-            { new: true }
-        );
-
-        if (!updatedEnquiry) {
-            return res.status(404).json({ message: 'Enquiry not found' });
-        }
-
-        res.status(200).json({ message: 'Enquiry status updated', enquiry: updatedEnquiry });
+      const { id } = req.params;
+      const { status, response } = req.body;
+  
+      const validStatuses = ['Pending', 'Resolved'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ message: 'Invalid status' });
+      }
+  
+      const updateFields = { status, response };
+      // If status is resolved, set resolvedAt timestamp
+      if (status === 'Resolved') {
+        updateFields.resolvedAt = new Date();
+      } else {
+        updateFields.resolvedAt = null;
+      }
+  
+      const updatedEnquiry = await Enquiry.findByIdAndUpdate(id, updateFields, { new: true });
+      if (!updatedEnquiry) {
+        return res.status(404).json({ message: 'Enquiry not found' });
+      }
+      res.json({ message: 'Enquiry updated successfully', enquiry: updatedEnquiry });
     } catch (error) {
-        console.error('Error updating enquiry status:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+      console.error('Error updating enquiry:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
     }
-});
+  });
+  
+  // DELETE /api/auth/enquiries/:id - Delete an enquiry
+  router.delete('/enquiries/:id', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deletedEnquiry = await Enquiry.findByIdAndDelete(id);
+      if (!deletedEnquiry) {
+        return res.status(404).json({ message: 'Enquiry not found' });
+      }
+      res.json({ message: 'Enquiry deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting enquiry:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  });
+  
 
 module.exports = router;
