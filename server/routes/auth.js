@@ -15,7 +15,7 @@ const router = express.Router();
 
 router.post("/register", upload.single("image"), async (req, res) => {
     try {
-        const { email, password, name, lastName, roomNumber, gender, phone } = req.body;
+        const { email, password, name, lastName, roomNumber, gender, phone, role } = req.body;
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
@@ -50,6 +50,7 @@ router.post("/register", upload.single("image"), async (req, res) => {
             gender,
             phone,
             profileImageUrl,
+            role
         });
 
         await newUser.save();
@@ -142,6 +143,7 @@ router.put("/update-image", authenticateToken, upload.single("image"), async (re
     }
 });
 
+//fetch user
 router.get('/user', authenticateToken, async (req, res) => {
     try {
         const user = await User.findById(req.user.id).select('-password');
@@ -152,6 +154,18 @@ router.get('/user', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+
+//fetch all users
+router.get('/users', authenticateToken, async (req, res) => {
+    try {
+      // Fetch all users, excluding the password field
+      const users = await User.find().select('-password');
+      res.json(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  });
 
 router.post('/deliveries', authenticateToken, async (req, res) => {
     try {
@@ -212,37 +226,58 @@ router.get('/deliveries', authenticateToken, async (req, res) => {
     }
 });
 
-router.put('/deliveries/:parcelNumber/status', authenticateToken, async (req, res) => {
+router.put('/deliveries/:id', authenticateToken, async (req, res) => {
     try {
-        const { parcelNumber } = req.params;
-        const { status } = req.body;
-
-        const validStatuses = ['To Collect', 'Collected', 'Cancelled'];
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({ message: 'Invalid status' });
-        }
-
-        const update = { status };
-        if (status === 'Collected') {
-            update.collectedAt = new Date();
-        }
-
-        const updatedDelivery = await Delivery.findOneAndUpdate(
-            { parcelNumber },
-            update,
-            { new: true }
-        );
-
-        if (!updatedDelivery) {
-            return res.status(404).json({ message: 'Parcel not found' });
-        }
-
-        res.status(200).json({ message: 'Parcel status updated', delivery: updatedDelivery });
+      const { id } = req.params;
+      const { sender, parcelType, description, roomNumber, status } = req.body;
+  
+      const validParcelTypes = ['Letter', 'Package'];
+      if (!validParcelTypes.includes(parcelType)) {
+        return res.status(400).json({ message: 'Invalid parcel type' });
+      }
+  
+      const validStatuses = ['To Collect', 'Collected', 'Cancelled'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ message: 'Invalid status' });
+      }
+  
+      if (!roomNumber) {
+        return res.status(400).json({ message: 'Room number is required' });
+      }
+  
+      const updatedDelivery = await Delivery.findByIdAndUpdate(
+        id,
+        { sender, parcelType, description, roomNumber, status },
+        { new: true }
+      );
+  
+      if (!updatedDelivery) {
+        return res.status(404).json({ message: 'Delivery not found' });
+      }
+  
+      return res.json({ message: 'Delivery updated successfully', delivery: updatedDelivery });
     } catch (error) {
-        console.error('Error updating status:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+      console.error('Delivery update error:', error);
+      return res.status(500).json({ message: 'Server error', error: error.message });
     }
-});
+  });
+  
+  router.delete('/deliveries/:id', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+  
+      const deletedDelivery = await Delivery.findByIdAndDelete(id);
+      if (!deletedDelivery) {
+        return res.status(404).json({ message: 'Delivery not found' });
+      }
+  
+      return res.json({ message: 'Delivery deleted successfully' });
+    } catch (error) {
+      console.error('Delivery deletion error:', error);
+      return res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  });
+  
 
 router.post('/enquiries', authenticateToken, async (req, res) => {
     try {

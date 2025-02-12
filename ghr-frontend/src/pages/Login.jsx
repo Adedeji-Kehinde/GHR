@@ -17,13 +17,25 @@ const Login = () => {
     setLoading(true); // Start loading
 
     try {
-      const response = await axios.post(`${API_URL}/api/auth/login`, {
+      const loginRes = await axios.post(`${API_URL}/api/auth/login`, {
         email,
         password,
       });
 
-      localStorage.setItem("token", response.data.token);
-      navigate("/home"); // Redirect after successful login
+      const { token } = loginRes.data;
+      localStorage.setItem("token", token);
+       // 2) Then fetch user details
+       const userRes = await axios.get(`${API_URL}/api/auth/user`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // user object has role
+      const user = userRes.data;
+      if (user.role === "admin") {
+        navigate("/admin-dashboard");
+      } else {
+        navigate("/home");
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     } finally {

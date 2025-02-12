@@ -6,6 +6,8 @@ import Register from "./pages/Register";
 import Home from "./pages/Home";
 import Booking from "./pages/Booking";
 import SelectBed from "./pages/SelectBed";
+import AdminDashboard from "./admin/AdminDashboard";
+import Deliveries from "./admin/Deliveries";
 import "./styles.css"; // Import the styles
 
 function App() {
@@ -43,7 +45,16 @@ function App() {
           path="/selectBed" 
           element={<SelectBed />} 
         />
+      
+        <Route 
+          path="/admin-dashboard" 
+          element={<AdminDashboard />} 
+        />
 
+        <Route 
+          path="/deliveries" 
+          element={<Deliveries />} 
+        />
       </Routes>
     </Router>
     </>

@@ -6,8 +6,8 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   name: { type: String, required: true },
   lastName: { type: String, required: true },
-  roomNumber: { type: String, Unique: true },
-  gender: { type: String, required: true, enum: ['Male', 'Female', 'Other'] },
+  roomNumber: { type: String, default: null, sparse: true },
+  gender: { type: String, enum: ['Male', 'Female', 'Other'], default: 'Male' },
   phone: { type: String, required: true },
   profileImageUrl: { 
     type: String, 
@@ -15,6 +15,13 @@ const UserSchema = new mongoose.Schema({
   },
   profileImageId: { type: String, default: "" },
   createdAt: { type: Date, default: Date.now },
+
+  // New field for user role
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
+  },
 });
 
 // Compare Password Method
