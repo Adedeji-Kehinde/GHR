@@ -11,7 +11,7 @@ const UserSchema = new mongoose.Schema({
   phone: { type: String, required: true },
   profileImageUrl: { 
     type: String, 
-    default: "https://res.cloudinary.com/dxlrv28eb/user_profiles/default_Image.JPG" 
+    default: "https://res.cloudinary.com/dxlrv28eb/user_photos/default_Image.JPG" 
   },
   profileImageId: { type: String, default: "" },
   createdAt: { type: Date, default: Date.now },

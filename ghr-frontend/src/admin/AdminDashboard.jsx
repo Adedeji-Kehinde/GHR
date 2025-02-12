@@ -1,27 +1,51 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import AdminHeader from "./AdminHeader";
+import AdminTabs from "./AdminTabs";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const API_URL =  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/api/auth/user`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUser(res.data);
+      } catch (err) {
+        console.error("Error fetching user:", err);
+      }
+    };
+    fetchUser();
+  }, [API_URL, token]);
+
+  if (!user) return <p>Loading...</p>;
+
+  const adminName = `${user.name} ${user.lastName}`;
+  const profilePicture = user.profileImageUrl;
+  const pageTitle = "Dashboard";
+
+  // Content area style to push content below the fixed header and to the right of the sidebar
+  const contentStyle = {
+    marginTop: "70px", // header height
+    marginLeft: "80px", // sidebar width (AdminTabs)
+    padding: "2rem",
+    textAlign: "center",
+  };
 
   return (
-    <div className="admin-dashboard-container" style={{ padding: '2rem', textAlign: 'center' }}>
-      <h1>Admin Dashboard</h1>
-      <div className="dashboard-buttons" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '300px', margin: '2rem auto' }}>
-        <button onClick={() => navigate("/deliveries")}>
-          Delivery Management
-        </button>
-        <button onClick={() => navigate("/enquiries")}>
-          Enquiry Management
-        </button>
-        <button onClick={() => navigate("/maintenance")}>
-          Maintenance Management
-        </button>
-        <button onClick={() => navigate("/bookings")}>
-          Booking Management
-        </button>
+    <>
+      <AdminHeader title={pageTitle} adminName={adminName} profilePicture={profilePicture} />
+      <AdminTabs />
+      <div className="admin-dashboard-container" style={contentStyle}>
+        <h2>Welcome to the Admin Dashboard</h2>
       </div>
-    </div>
+    </>
   );
 };
 

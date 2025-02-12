@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import AdminHeader from './AdminHeader';
+import AdminTabs from './AdminTabs';
 
 const MaintenanceManagement = () => {
+  // State for admin details
+  const [admin, setAdmin] = useState(null);
+
+  // Maintenance/Users state
   const [maintenanceRequests, setMaintenanceRequests] = useState([]);
   const [users, setUsers] = useState([]); // all users for searching
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,8 +41,23 @@ const MaintenanceManagement = () => {
   // For update search
   const [updateSearchQuery, setUpdateSearchQuery] = useState("");
 
-  const API_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_URL =  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
   const token = localStorage.getItem("token");
+
+  // Fetch admin details
+  useEffect(() => {
+    const fetchAdmin = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/api/auth/user`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setAdmin(res.data);
+      } catch (err) {
+        console.error("Error fetching admin details:", err.response || err);
+      }
+    };
+    fetchAdmin();
+  }, [API_URL, token]);
 
   // Fetch maintenance requests and users, and join enquirer name
   const fetchData = async () => {
@@ -229,207 +250,221 @@ const MaintenanceManagement = () => {
     }
   };
 
+  // Define content style to offset fixed header and sidebar
+  const contentStyle = {
+    marginTop: "70px", // header height
+    marginLeft: "80px", // sidebar width
+    padding: "2rem",
+  };
+
+  // Handle loading and error states
   if (loading) return <p>Loading maintenance requests...</p>;
   if (error) return <p className="error">{error}</p>;
+  if (!admin) return <p>Loading admin details...</p>;
+
+  // Compute admin name and profile image from admin details
+  const adminName = `${admin.name} ${admin.lastName}`;
+  const profilePicture = admin.profileImageUrl;
 
   return (
-    <div className="maintenance-management" style={{ padding: "1rem" }}>
-      <h1>Maintenance Management</h1>
-      
-      {/* Buttons to toggle Add/Update forms */}
-      <div style={{ marginBottom: "1rem" }}>
-        <button onClick={() => { setShowAddForm(!showAddForm); setShowUpdateForm(false); }}>
-          {showAddForm ? "Hide Add Maintenance" : "Add Maintenance Request"}
-        </button>
-        <button onClick={() => { setShowUpdateForm(!showUpdateForm); setShowAddForm(false); }}>
-          {showUpdateForm ? "Hide Update Maintenance" : "Update/Delete Maintenance Request"}
-        </button>
-      </div>
+    <>
+      <AdminHeader title="Maintenance Management" adminName={adminName} profilePicture={profilePicture} />
+      <AdminTabs />
+      <div className="maintenance-management" style={contentStyle}>
+        <h1>Maintenance Management</h1>
+        
+        {/* Buttons to toggle Add/Update forms */}
+        <div style={{ marginBottom: "1rem" }}>
+          <button onClick={() => { setShowAddForm(!showAddForm); setShowUpdateForm(false); }}>
+            {showAddForm ? "Hide Add Maintenance" : "Add Maintenance Request"}
+          </button>
+          <button onClick={() => { setShowUpdateForm(!showUpdateForm); setShowAddForm(false); }}>
+            {showUpdateForm ? "Hide Update Maintenance" : "Update/Delete Maintenance Request"}
+          </button>
+        </div>
 
-      {/* Add Maintenance Form (above table) */}
-      {showAddForm && (
-        <form onSubmit={handleAddMaintenance} style={{ marginBottom: "1rem", border: "1px solid #ccc", padding: "1rem" }}>
-          <h2>Add Maintenance Request</h2>
-          {/* Instead of entering roomNumber manually, search for a user */}
-          <input
-            type="text"
-            placeholder="Search user by name or room number..."
-            value={userSearchQuery}
-            onChange={handleUserSearchChange}
-            required
-          />
-          {userSearchQuery && (
-            <ul style={{ border: "1px solid #ccc", maxHeight: "100px", overflowY: "auto", margin: "0.5rem 0", padding: "0.5rem", listStyle: "none" }}>
-              {filteredUsers.map((user) => (
+        {/* Add Maintenance Form (above table) */}
+        {showAddForm && (
+          <form onSubmit={handleAddMaintenance} style={{ marginBottom: "1rem", border: "1px solid #ccc", padding: "1rem" }}>
+            <h2>Add Maintenance Request</h2>
+            <input
+              type="text"
+              placeholder="Search user by name or room number..."
+              value={userSearchQuery}
+              onChange={handleUserSearchChange}
+              required
+            />
+            {userSearchQuery && (
+              <ul style={{ border: "1px solid #ccc", maxHeight: "100px", overflowY: "auto", margin: "0.5rem 0", padding: "0.5rem", listStyle: "none" }}>
+                {filteredUsers.map((user) => (
+                  <li
+                    key={user._id}
+                    style={{ cursor: "pointer", padding: "0.25rem" }}
+                    onClick={() => handleSelectUser(user)}
+                  >
+                    {user.name} {user.lastName} ({user.roomNumber})
+                  </li>
+                ))}
+              </ul>
+            )}
+            <select
+              name="category"
+              value={newMaintenance.category}
+              onChange={handleNewMaintenanceChange}
+              required
+            >
+              <option value="Appliances">Appliances</option>
+              <option value="Cleaning">Cleaning</option>
+              <option value="Plumbing & Leaking">Plumbing & Leaking</option>
+              <option value="Heating">Heating</option>
+              <option value="Lighting">Lighting</option>
+              <option value="Windows & Doors">Windows & Doors</option>
+              <option value="Furniture & Fitting">Furniture & Fitting</option>
+              <option value="Flooring">Flooring</option>
+              <option value="Other">Other</option>
+            </select>
+            <input
+              type="text"
+              name="description"
+              placeholder="Description"
+              value={newMaintenance.description}
+              onChange={handleNewMaintenanceChange}
+            />
+            <select
+              name="roomAccess"
+              value={newMaintenance.roomAccess}
+              onChange={handleNewMaintenanceChange}
+              required
+            >
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+            <button type="submit" disabled={loading}>
+              {loading ? "Adding..." : "Add Maintenance Request"}
+            </button>
+          </form>
+        )}
+
+        {/* Update Maintenance Form (above table) */}
+        {showUpdateForm && (
+          <div style={{ marginBottom: "1rem", border: "1px solid #ccc", padding: "1rem" }}>
+            <h2>Update/Delete Maintenance Request</h2>
+            <input
+              type="text"
+              placeholder="Search maintenance request..."
+              value={updateSearchQuery}
+              onChange={(e) => setUpdateSearchQuery(e.target.value)}
+              style={{ marginBottom: "0.5rem", padding: "0.5rem", width: "100%" }}
+            />
+            <ul style={{ maxHeight: "150px", overflowY: "auto", border: "1px solid #ccc", padding: "0.5rem", listStyle: "none" }}>
+              {maintenanceRequests.filter((maintenance) => {
+                const query = updateSearchQuery.toLowerCase();
+                return (
+                  maintenance.requestId.toString().includes(query) ||
+                  (maintenance.roomNumber && maintenance.roomNumber.toLowerCase().includes(query)) ||
+                  (maintenance.category && maintenance.category.toLowerCase().includes(query)) ||
+                  (maintenance.description && maintenance.description.toLowerCase().includes(query)) ||
+                  (maintenance.status && maintenance.status.toLowerCase().includes(query))
+                );
+              }).map((maintenance) => (
                 <li
-                  key={user._id}
+                  key={maintenance._id}
                   style={{ cursor: "pointer", padding: "0.25rem" }}
-                  onClick={() => handleSelectUser(user)}
+                  onClick={() => handleSelectMaintenance(maintenance._id)}
                 >
-                  {user.name} {user.lastName} ({user.roomNumber})
+                  {maintenance.requestId} - {maintenance.roomNumber} - {maintenance.status}
                 </li>
               ))}
             </ul>
-          )}
-          {/* The roomNumber field will be auto-filled and is hidden */}
-          {/* <input type="hidden" name="roomNumber" value={newMaintenance.roomNumber} /> */}
-          <select
-            name="category"
-            value={newMaintenance.category}
-            onChange={handleNewMaintenanceChange}
-            required
-          >
-            <option value="Appliances">Appliances</option>
-            <option value="Cleaning">Cleaning</option>
-            <option value="Plumbing & Leaking">Plumbing & Leaking</option>
-            <option value="Heating">Heating</option>
-            <option value="Lighting">Lighting</option>
-            <option value="Windows & Doors">Windows & Doors</option>
-            <option value="Furniture & Fitting">Furniture & Fitting</option>
-            <option value="Flooring">Flooring</option>
-            <option value="Other">Other</option>
-          </select>
-          <input
-            type="text"
-            name="description"
-            placeholder="Description"
-            value={newMaintenance.description}
-            onChange={handleNewMaintenanceChange}
-          />
-          <select
-            name="roomAccess"
-            value={newMaintenance.roomAccess}
-            onChange={handleNewMaintenanceChange}
-            required
-          >
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-          </select>
-          <button type="submit" disabled={loading}>
-            {loading ? "Adding..." : "Add Maintenance Request"}
-          </button>
-        </form>
-      )}
+            {selectedRequestId && (
+              <form onSubmit={handleUpdateMaintenance}>
+                <select name="category" value={updateMaintenance.category} onChange={handleUpdateMaintenanceChange} required>
+                  <option value="Appliances">Appliances</option>
+                  <option value="Cleaning">Cleaning</option>
+                  <option value="Plumbing & Leaking">Plumbing & Leaking</option>
+                  <option value="Heating">Heating</option>
+                  <option value="Lighting">Lighting</option>
+                  <option value="Windows & Doors">Windows & Doors</option>
+                  <option value="Furniture & Fitting">Furniture & Fitting</option>
+                  <option value="Flooring">Flooring</option>
+                  <option value="Other">Other</option>
+                </select>
+                <input
+                  type="text"
+                  name="description"
+                  placeholder="Description"
+                  value={updateMaintenance.description}
+                  onChange={handleUpdateMaintenanceChange}
+                  required
+                />
+                <select name="roomAccess" value={updateMaintenance.roomAccess} onChange={handleUpdateMaintenanceChange} required>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+                <select name="status" value={updateMaintenance.status} onChange={handleUpdateMaintenanceChange} required>
+                  <option value="In Process">In Process</option>
+                  <option value="Completed">Completed</option>
+                </select>
+                <div style={{ marginTop: "1rem" }}>
+                  <button type="submit" disabled={loading}>
+                    {loading ? "Updating..." : "Update Request"}
+                  </button>
+                  <button type="button" onClick={handleDeleteMaintenance} disabled={loading} style={{ marginLeft: "1rem" }}>
+                    {loading ? "Deleting..." : "Delete Request"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
 
-      {/* Update Maintenance Form (above table) */}
-      {showUpdateForm && (
-        <div style={{ marginBottom: "1rem", border: "1px solid #ccc", padding: "1rem" }}>
-          <h2>Update/Delete Maintenance Request</h2>
-          <input
-            type="text"
-            placeholder="Search maintenance request..."
-            value={updateSearchQuery}
-            onChange={(e) => setUpdateSearchQuery(e.target.value)}
-            style={{ marginBottom: "0.5rem", padding: "0.5rem", width: "100%" }}
-          />
-          <ul style={{ maxHeight: "150px", overflowY: "auto", border: "1px solid #ccc", padding: "0.5rem", listStyle: "none" }}>
-            {maintenanceRequests.filter((maintenance) => {
-              const query = updateSearchQuery.toLowerCase();
-              return (
-                maintenance.requestId.toString().includes(query) ||
-                (maintenance.roomNumber && maintenance.roomNumber.toLowerCase().includes(query)) ||
-                (maintenance.category && maintenance.category.toLowerCase().includes(query)) ||
-                (maintenance.description && maintenance.description.toLowerCase().includes(query)) ||
-                (maintenance.status && maintenance.status.toLowerCase().includes(query))
-              );
-            }).map((maintenance) => (
-              <li
-                key={maintenance._id}
-                style={{ cursor: "pointer", padding: "0.25rem" }}
-                onClick={() => handleSelectMaintenance(maintenance._id)}
-              >
-                {maintenance.requestId} - {maintenance.roomNumber} - {maintenance.status}
-              </li>
-            ))}
-          </ul>
-          {selectedRequestId && (
-            <form onSubmit={handleUpdateMaintenance}>
-              <select name="category" value={updateMaintenance.category} onChange={handleUpdateMaintenanceChange} required>
-                <option value="Appliances">Appliances</option>
-                <option value="Cleaning">Cleaning</option>
-                <option value="Plumbing & Leaking">Plumbing & Leaking</option>
-                <option value="Heating">Heating</option>
-                <option value="Lighting">Lighting</option>
-                <option value="Windows & Doors">Windows & Doors</option>
-                <option value="Furniture & Fitting">Furniture & Fitting</option>
-                <option value="Flooring">Flooring</option>
-                <option value="Other">Other</option>
-              </select>
-              <input
-                type="text"
-                name="description"
-                placeholder="Description"
-                value={updateMaintenance.description}
-                onChange={handleUpdateMaintenanceChange}
-                required
-              />
-              <select name="roomAccess" value={updateMaintenance.roomAccess} onChange={handleUpdateMaintenanceChange} required>
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
-              </select>
-              <select name="status" value={updateMaintenance.status} onChange={handleUpdateMaintenanceChange} required>
-                <option value="In Process">In Process</option>
-                <option value="Completed">Completed</option>
-              </select>
-              <div style={{ marginTop: "1rem" }}>
-                <button type="submit" disabled={loading}>
-                  {loading ? "Updating..." : "Update Request"}
-                </button>
-                <button type="button" onClick={handleDeleteMaintenance} disabled={loading} style={{ marginLeft: "1rem" }}>
-                  {loading ? "Deleting..." : "Delete Request"}
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-      )}
+        {/* Main Search Input for Table */}
+        <input
+          type="text"
+          placeholder="Search maintenance requests..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ marginBottom: "1rem", padding: "0.5rem", width: "100%" }}
+        />
 
-      {/* Main Search Input for Table */}
-      <input
-        type="text"
-        placeholder="Search maintenance requests..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        style={{ marginBottom: "1rem", padding: "0.5rem", width: "100%" }}
-      />
-
-      {/* Maintenance Requests Table */}
-      <table 
-        border="1" 
-        cellPadding="10" 
-        cellSpacing="0" 
-        style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}
-      >
-        <thead>
-          <tr>
-            <th onClick={() => handleSort("requestId")} style={{cursor: 'pointer'}}>Request ID</th>
-            <th onClick={() => handleSort("roomNumber")} style={{cursor: 'pointer'}}>Room Number</th>
-            <th onClick={() => handleSort("category")} style={{cursor: 'pointer'}}>Category</th>
-            <th onClick={() => handleSort("description")} style={{cursor: 'pointer'}}>Description</th>
-            <th onClick={() => handleSort("roomAccess")} style={{cursor: 'pointer'}}>Room Access</th>
-            <th onClick={() => handleSort("status")} style={{cursor: 'pointer'}}>Status</th>
-            <th onClick={() => handleSort("enquirerName")} style={{cursor: 'pointer'}}>Enquirer Name</th>
-            <th onClick={() => handleSort("createdAt")} style={{cursor: 'pointer'}}>Created At</th>
-            <th onClick={() => handleSort("completedAt")} style={{cursor: 'pointer'}}>Completed At</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedMaintenance.map((maintenance) => (
-            <tr key={maintenance._id}>
-              <td>{maintenance.requestId}</td>
-              <td>{maintenance.roomNumber}</td>
-              <td>{maintenance.category}</td>
-              <td>{maintenance.description}</td>
-              <td>{maintenance.roomAccess}</td>
-              <td>{maintenance.status}</td>
-              <td>{maintenance.enquirerName}</td>
-              <td>{new Date(maintenance.createdAt).toLocaleString()}</td>
-              <td>{maintenance.completedAt ? new Date(maintenance.completedAt).toLocaleString() : "N/A"}</td>
+        {/* Maintenance Requests Table */}
+        <table 
+          border="1" 
+          cellPadding="10" 
+          cellSpacing="0" 
+          style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}
+        >
+          <thead>
+            <tr>
+              <th onClick={() => handleSort("requestId")} style={{ cursor: 'pointer' }}>Request ID</th>
+              <th onClick={() => handleSort("roomNumber")} style={{ cursor: 'pointer' }}>Room Number</th>
+              <th onClick={() => handleSort("category")} style={{ cursor: 'pointer' }}>Category</th>
+              <th onClick={() => handleSort("description")} style={{ cursor: 'pointer' }}>Description</th>
+              <th onClick={() => handleSort("roomAccess")} style={{ cursor: 'pointer' }}>Room Access</th>
+              <th onClick={() => handleSort("status")} style={{ cursor: 'pointer' }}>Status</th>
+              <th onClick={() => handleSort("enquirerName")} style={{ cursor: 'pointer' }}>Enquirer Name</th>
+              <th onClick={() => handleSort("createdAt")} style={{ cursor: 'pointer' }}>Created At</th>
+              <th onClick={() => handleSort("completedAt")} style={{ cursor: 'pointer' }}>Completed At</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {sortedMaintenance.map((maintenance) => (
+              <tr key={maintenance._id}>
+                <td>{maintenance.requestId}</td>
+                <td>{maintenance.roomNumber}</td>
+                <td>{maintenance.category}</td>
+                <td>{maintenance.description}</td>
+                <td>{maintenance.roomAccess}</td>
+                <td>{maintenance.status}</td>
+                <td>{maintenance.enquirerName}</td>
+                <td>{new Date(maintenance.createdAt).toLocaleString()}</td>
+                <td>{maintenance.completedAt ? new Date(maintenance.completedAt).toLocaleString() : "N/A"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 };
 
