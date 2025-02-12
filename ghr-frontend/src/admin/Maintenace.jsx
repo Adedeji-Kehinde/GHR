@@ -35,7 +35,7 @@ const MaintenanceManagement = () => {
   // For update search
   const [updateSearchQuery, setUpdateSearchQuery] = useState("");
 
-  const API_URL =  "http://localhost:8000";
+  const API_URL = import.meta.env.VITE_API_BASE_URL;
   const token = localStorage.getItem("token");
 
   // Fetch maintenance requests and users, and join enquirer name
