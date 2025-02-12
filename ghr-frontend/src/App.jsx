@@ -9,6 +9,7 @@ import SelectBed from "./pages/SelectBed";
 import AdminDashboard from "./admin/AdminDashboard";
 import Deliveries from "./admin/Deliveries";
 import Enquiry from "./admin/Enquiry";
+import Maintenance from "./admin/Maintenace";
 import "./styles.css"; // Import the styles
 
 function App() {
@@ -60,6 +61,11 @@ function App() {
         <Route 
           path="/enquiries" 
           element={<Enquiry />} 
+        />
+
+        <Route 
+          path="/maintenance" 
+          element={<Maintenance />} 
         />
       </Routes>
     </Router>

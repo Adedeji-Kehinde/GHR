@@ -80,39 +80,58 @@ router.get("/", authenticateToken, async (req, res) => {
     }
 });
 
-// 📌 **Update Maintenance Status**
-router.put("/:requestId/status", authenticateToken, async (req, res) => {
+// PUT: Update a maintenance request
+router.put('/:id', authenticateToken, async (req, res) => {
     try {
-        const { requestId } = req.params;
-        const { status } = req.body;
-
-        // ✅ Validate the status
-        const validStatuses = ["In Process", "Completed"];
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({ message: "Invalid status" });
-        }
-
-        // ✅ If marking as completed, set `completedAt`
-        const update = { status };
-        if (status === "Completed") {
-            update.completedAt = new Date();
-        }
-
-        const updatedMaintenance = await Maintenance.findOneAndUpdate(
-            { requestId },
-            update,
-            { new: true }
-        );
-
-        if (!updatedMaintenance) {
-            return res.status(404).json({ message: "Maintenance request not found" });
-        }
-
-        res.status(200).json({ message: "Maintenance status updated", maintenance: updatedMaintenance });
+      const { id } = req.params;
+      const { category, description, roomAccess, status } = req.body;
+  
+      // Validate category, roomAccess, and status against allowed values
+      const validCategories = ["Appliances", "Cleaning", "Plumbing & Leaking", "Heating", "Lighting", "Windows & Doors", "Furniture & Fitting", "Flooring", "Other"];
+      if (!validCategories.includes(category)) {
+        return res.status(400).json({ message: "Invalid maintenance category" });
+      }
+  
+      const validRoomAccess = ["Yes", "No"];
+      if (!validRoomAccess.includes(roomAccess)) {
+        return res.status(400).json({ message: "Invalid room access value" });
+      }
+  
+      const validStatuses = ["In Process", "Completed"];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+  
+      const updateFields = { category, description, roomAccess, status };
+      if (status === "Completed") {
+        updateFields.completedAt = new Date();
+      } else {
+        updateFields.completedAt = null;
+      }
+  
+      const updatedMaintenance = await Maintenance.findByIdAndUpdate(id, updateFields, { new: true });
+      if (!updatedMaintenance) {
+        return res.status(404).json({ message: "Maintenance request not found" });
+      }
+      res.json({ message: "Maintenance request updated successfully", maintenance: updatedMaintenance });
     } catch (error) {
-        console.error("❌ Error updating maintenance status:", error);
-        res.status(500).json({ message: "Server error", error: error.message });
+      console.error("Error updating maintenance request:", error);
+      res.status(500).json({ message: "Server error", error: error.message });
     }
-});
-
+  });
+  
+  // DELETE: Delete a maintenance request
+  router.delete('/:id', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deletedMaintenance = await Maintenance.findByIdAndDelete(id);
+      if (!deletedMaintenance) {
+        return res.status(404).json({ message: "Maintenance request not found" });
+      }
+      res.json({ message: "Maintenance request deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting maintenance request:", error);
+      res.status(500).json({ message: "Server error", error: error.message });
+    }
+  });
 module.exports = router;
