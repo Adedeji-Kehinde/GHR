@@ -8,6 +8,7 @@ import Booking from "./pages/Booking";
 import SelectBed from "./pages/SelectBed";
 import AdminDashboard from "./admin/AdminDashboard";
 import Deliveries from "./admin/Deliveries";
+import AddDelivery from "./admin/AddDelivery";
 import Enquiry from "./admin/Enquiry";
 import Maintenance from "./admin/Maintenace";
 import "./styles.css"; // Import the styles
@@ -56,6 +57,11 @@ function App() {
         <Route 
           path="/deliveries" 
           element={<Deliveries />} 
+        />
+
+        <Route 
+          path="/add-delivery" 
+          element={<AddDelivery />} 
         />
 
         <Route 
