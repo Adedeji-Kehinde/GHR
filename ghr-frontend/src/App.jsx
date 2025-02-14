@@ -12,6 +12,7 @@ import AddDelivery from "./admin/AddDelivery";
 import Enquiry from "./admin/Enquiry";
 import EnquiryDetails from './admin/EnquiryDetails';
 import Maintenance from "./admin/Maintenace";
+import AddMaintenance from './admin/AddMaintenance';
 import "./styles.css"; // Import the styles
 
 function App() {
@@ -78,6 +79,11 @@ function App() {
         <Route 
           path="/maintenance" 
           element={<Maintenance />} 
+        />
+
+        <Route 
+          path="/add-maintenance" 
+          element={<AddMaintenance />} 
         />
       </Routes>
     </Router>

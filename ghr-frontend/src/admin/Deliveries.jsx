@@ -4,14 +4,14 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import AdminHeader from "./AdminHeader";
 import AdminTabs from "./AdminTabs";
-// Import plusImage (adjust the path as needed)
+import DeliveryDetails from './DeliveryDetails'; // Modal component
 import plusImage from '/images/plusImage.png';
-import DeliveryDetails from './DeliveryDetails'; // New modal component
+import deleteImage from '/images/deleteImage.png'; // Bulk delete image
 
 const DeliveryManagement = () => {
   // Admin details state
   const [admin, setAdmin] = useState(null);
-  const API_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
@@ -21,6 +21,9 @@ const DeliveryManagement = () => {
   // For viewing delivery details in a modal:
   const [viewDelivery, setViewDelivery] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+  // Bulk selection state for deletion
+  const [selectedDeliveryIds, setSelectedDeliveryIds] = useState([]);
 
   // Fetch admin details
   useEffect(() => {
@@ -37,23 +40,19 @@ const DeliveryManagement = () => {
     fetchAdmin();
   }, [API_URL, token]);
 
-  // Delivery states and toggles
+  // Delivery states
   const [deliveries, setDeliveries] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: "", direction: "ascending" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // (Update form states for update/delete on main page are now removed)
-
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch deliveries
       const deliveryRes = await axios.get(`${API_URL}/api/auth/deliveries`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // Fetch users (to join recipient name)
       const usersRes = await axios.get(`${API_URL}/api/auth/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -72,6 +71,7 @@ const DeliveryManagement = () => {
 
       setDeliveries(joinedData);
       setError("");
+      setSelectedDeliveryIds([]); // Clear selections after refresh
     } catch (err) {
       console.error("Error fetching data:", err.response || err);
       setError(err.response?.data?.message || "Error fetching data");
@@ -84,14 +84,8 @@ const DeliveryManagement = () => {
     fetchData();
   }, [API_URL, token]);
 
-  // -----------------------
-  // Computations for counts
-  // -----------------------
   const availableCount = deliveries.filter(delivery => delivery.status === "To Collect").length;
 
-  // -----------------------
-  // Filtering & Sorting for Table
-  // -----------------------
   const filteredDeliveries = deliveries.filter((delivery) => {
     const query = searchQuery.toLowerCase();
     const searchMatches = (
@@ -131,71 +125,83 @@ const DeliveryManagement = () => {
     setSortConfig({ key: columnKey, direction });
   };
 
-  // Content style to offset fixed header and sidebar
+  // Bulk selection handlers
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedDeliveryIds(sortedDeliveries.map(delivery => delivery._id));
+    } else {
+      setSelectedDeliveryIds([]);
+    }
+  };
+
+  const handleRowSelect = (e, id) => {
+    e.stopPropagation();
+    if (e.target.checked) {
+      setSelectedDeliveryIds(prev => [...prev, id]);
+    } else {
+      setSelectedDeliveryIds(prev => prev.filter(item => item !== id));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedDeliveryIds.length === 0) {
+      alert("No rows selected");
+      return;
+    }
+    if (window.confirm("Are you sure you want to delete the selected deliveries?")) {
+      try {
+        setLoading(true);
+        await Promise.all(selectedDeliveryIds.map(id =>
+          axios.delete(`${API_URL}/api/auth/deliveries/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        ));
+        setSelectedDeliveryIds([]);
+        fetchData();
+      } catch (err) {
+        console.error("Error deleting deliveries:", err.response || err);
+        alert("Error deleting deliveries");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   const contentStyle = {
-    marginTop: "70px", // header height
-    marginLeft: "80px", // sidebar width
+    marginTop: "70px",
+    marginLeft: "80px",
+    padding: "2rem",
   };
 
   if (loading) return <p>Loading deliveries...</p>;
-  if (error) return <p className="error">{error}</p>;
+  if (error) return <p style={{ color: 'red' }}>{error}</p>;
   if (!admin) return <p>Loading admin details...</p>;
 
-  const adminName = `${admin.name} ${admin.lastName}`;
-  const profilePicture = admin.profileImageUrl;
+  const adminNameDisplay = `${admin.name} ${admin.lastName}`;
+  const profilePictureDisplay = admin.profileImageUrl;
 
   return (
     <>
-      <AdminHeader title="Delivery Management" adminName={adminName} profilePicture={profilePicture} />
+      <AdminHeader title="Delivery Management" adminName={adminNameDisplay} profilePicture={profilePictureDisplay} />
       <AdminTabs />
       <div className="delivery-management" style={contentStyle}>
-        {/* --- New Boxes Section --- */}
-        <div 
-          className="summary-boxes" 
-          style={{ 
-            display: "flex", 
-            justifyContent: "space-between", 
-            marginBottom: "1rem", 
-            gap: "1rem" 
-          }}
-        >
-          {/* Box 1: Available Parcels */}
-          <div 
-            className="box available-parcels" 
-            onClick={() => setViewStatus("toCollect")}
-            style={{ border: "1px solid #ccc", padding: "1rem", flex: 1, cursor: "pointer" }}
-          >
+        {/* Summary Boxes */}
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", marginBottom: "1rem" }}>
+          <div onClick={() => setViewStatus("toCollect")} style={{ border: "1px solid #ccc", padding: "1rem", flex: 1, cursor: "pointer" }}>
             <h3>Parcels Available to Collect</h3>
             <p style={{ fontSize: "1.5rem", fontWeight: "bold" }}>{availableCount}</p>
           </div>
-
-          {/* Box 2: Collected Parcels */}
-          <div 
-            className="box collected-parcels" 
-            onClick={() => setViewStatus("collected")}
-            style={{ border: "1px solid #ccc", padding: "1rem", flex: 1, cursor: "pointer", textAlign: "center" }}
-          >
+          <div onClick={() => setViewStatus("collected")} style={{ border: "1px solid #ccc", padding: "1rem", flex: 1, cursor: "pointer", textAlign: "center" }}>
             <h3>Collected Parcels</h3>
             <p style={{ fontSize: "1.5rem", fontWeight: "bold" }}>View Collected</p>
           </div>
-
-          {/* Box 3: Add New Parcel */}
-          <div 
-            className="box add-parcel" 
-            onClick={() => navigate('/add-delivery')}
-            style={{ border: "1px solid #ccc", padding: "1rem", flex: 1, textAlign: "center", cursor: "pointer" }}
-          >
+          <div onClick={() => navigate('/add-delivery')} style={{ border: "1px solid #ccc", padding: "1rem", flex: 1, cursor: "pointer", textAlign: "center" }}>
             <h3>Add New Parcel</h3>
-            <img 
-              src={plusImage} 
-              alt="Add New Parcel" 
-              style={{ marginTop: "0.3rem", width: "50px", height: "50px" }} 
-            />
+            <img src={plusImage} alt="Add New Parcel" style={{ marginTop: "0.3rem", width: "50px", height: "50px" }} />
           </div>
         </div>
-        {/* --- End New Boxes Section --- */}
 
-        {/* Main Search Input for Table */}
+        {/* Main Search Input */}
         <input
           type="text"
           placeholder="Search deliveries..."
@@ -203,16 +209,31 @@ const DeliveryManagement = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
           style={{ marginBottom: "1rem", padding: "0.5rem", width: "100%" }}
         />
+        
+        {/* Bulk Delete Image placed just below the search bar, aligned left */}
+        {selectedDeliveryIds.length > 0 && (
+          <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: "1rem" }}>
+            <img 
+              src={deleteImage} 
+              alt="Delete Selected" 
+              onClick={handleBulkDelete}
+              style={{ cursor: "pointer", width: "25px", height: "25px" }}
+              title="Delete Selected Deliveries"
+            />
+          </div>
+        )}
 
         {/* Deliveries Table */}
-        <table 
-          border="1" 
-          cellPadding="10" 
-          cellSpacing="0" 
-          style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}
-        >
+        <table border="1" cellPadding="10" cellSpacing="0" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
+              <th>
+                <input 
+                  type="checkbox" 
+                  onChange={handleSelectAll}
+                  checked={sortedDeliveries.length > 0 && selectedDeliveryIds.length === sortedDeliveries.length}
+                />
+              </th>
               <th onClick={() => handleSort("parcelNumber")} style={{cursor: 'pointer'}}>Parcel Number</th>
               <th onClick={() => handleSort("sender")} style={{cursor: 'pointer'}}>Sender</th>
               <th onClick={() => handleSort("parcelType")} style={{cursor: 'pointer'}}>Parcel Type</th>
@@ -228,12 +249,16 @@ const DeliveryManagement = () => {
             {sortedDeliveries.map((delivery) => (
               <tr 
                 key={delivery._id}
-                onClick={() => {
-                  setViewDelivery(delivery);
-                  setShowDetailsModal(true);
-                }}
+                onClick={() => { setViewDelivery(delivery); setShowDetailsModal(true); }}
                 style={{ cursor: "pointer" }}
               >
+                <td onClick={e => e.stopPropagation()}>
+                  <input 
+                    type="checkbox" 
+                    checked={selectedDeliveryIds.includes(delivery._id)}
+                    onChange={(e) => handleRowSelect(e, delivery._id)}
+                  />
+                </td>
                 <td>{delivery.parcelNumber}</td>
                 <td>{delivery.sender}</td>
                 <td>{delivery.parcelType}</td>
@@ -248,12 +273,11 @@ const DeliveryManagement = () => {
           </tbody>
         </table>
 
-        {/* Delivery Details Modal */}
         {showDetailsModal && viewDelivery && (
           <DeliveryDetails 
             delivery={viewDelivery} 
             onClose={() => setShowDetailsModal(false)} 
-            onUpdateDeleted={fetchData}  // Optional callback to refresh the list
+            onUpdateDeleted={fetchData}
           />
         )}
       </div>

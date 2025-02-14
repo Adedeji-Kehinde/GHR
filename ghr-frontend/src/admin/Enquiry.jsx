@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import AdminHeader from './AdminHeader';
 import AdminTabs from './AdminTabs';
+import deleteImage from '/images/deleteImage.png'; // Bulk delete image
 
 const EnquiryManagement = () => {
   const [enquiries, setEnquiries] = useState([]);
@@ -11,12 +12,16 @@ const EnquiryManagement = () => {
   const [sortConfig, setSortConfig] = useState({ key: "", direction: "ascending" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+  
   // State to control which enquiries are shown ("pending" or "resolved")
   const [filterStatus, setFilterStatus] = useState("pending");
-
+  
   // State for admin details
   const [admin, setAdmin] = useState(null);
+
+  // New state for multiple selection
+  const [selectedEnquiries, setSelectedEnquiries] = useState([]);
+  
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
   const token = localStorage.getItem("token");
 
@@ -47,11 +52,9 @@ const EnquiryManagement = () => {
       const usersRes = await axios.get(`${API_URL}/api/auth/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       const enquiriesData = enquiriesRes.data;
       const usersData = usersRes.data;
       setUsers(usersData);
-
       // Join each enquiry with the enquirer's full name based on roomNumber
       const joinedData = enquiriesData.map((enquiry) => {
         const matchingUser = usersData.find(user => user.roomNumber === enquiry.roomNumber);
@@ -62,6 +65,8 @@ const EnquiryManagement = () => {
       });
       setEnquiries(joinedData);
       setError("");
+      // Clear any selected enquiries after refresh
+      setSelectedEnquiries([]);
     } catch (err) {
       console.error("Error fetching enquiries:", err.response || err);
       setError(err.response?.data?.message || "Error fetching enquiries");
@@ -78,7 +83,6 @@ const EnquiryManagement = () => {
   const filteredEnquiries = enquiries.filter((enquiry) => {
     if (filterStatus === "pending" && enquiry.status.toLowerCase() !== "pending") return false;
     if (filterStatus === "resolved" && enquiry.status.toLowerCase() !== "resolved") return false;
-
     const query = searchQuery.toLowerCase();
     return (
       enquiry.requestId.toString().includes(query) ||
@@ -113,7 +117,57 @@ const EnquiryManagement = () => {
     setSortConfig({ key: columnKey, direction });
   };
 
-  // Clicking a row navigates to the enquiry details page with the full enquiry object
+  // Handle individual row selection
+  const toggleSelectRow = (id) => {
+    setSelectedEnquiries((prevSelected) =>
+      prevSelected.includes(id)
+        ? prevSelected.filter((selectedId) => selectedId !== id)
+        : [...prevSelected, id]
+    );
+  };
+
+  // Handle "select all" for visible rows
+  const toggleSelectAll = () => {
+    const visibleIds = sortedEnquiries.map((e) => e._id);
+    const allSelected = visibleIds.every((id) => selectedEnquiries.includes(id));
+    if (allSelected) {
+      // Deselect all visible rows
+      setSelectedEnquiries((prevSelected) =>
+        prevSelected.filter((id) => !visibleIds.includes(id))
+      );
+    } else {
+      // Select all visible rows (union with already selected ones)
+      const newSelected = Array.from(new Set([...selectedEnquiries, ...visibleIds]));
+      setSelectedEnquiries(newSelected);
+    }
+  };
+
+  // Handle deleting all selected enquiries
+  const handleDeleteSelected = async () => {
+    if (selectedEnquiries.length === 0) {
+      alert("No enquiries selected.");
+      return;
+    }
+    if (!window.confirm("Are you sure you want to delete all selected enquiries?")) {
+      return;
+    }
+    try {
+      await Promise.all(
+        selectedEnquiries.map((id) =>
+          axios.delete(`${API_URL}/api/auth/enquiries/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        )
+      );
+      alert("Selected enquiries deleted successfully!");
+      fetchData();
+    } catch (err) {
+      console.error("Error deleting selected enquiries:", err.response || err);
+      alert("Error deleting selected enquiries");
+    }
+  };
+
+  // Handle row click to navigate to the enquiry details page with the full enquiry object
   const handleRowClick = (enquiry) => {
     navigate("/enquiry-details", { state: { enquiry } });
   };
@@ -123,6 +177,7 @@ const EnquiryManagement = () => {
     marginTop: "70px", // header height
     marginLeft: "80px", // sidebar width
     padding: "2rem",
+    position: "relative",
   };
 
   if (loading) return <p>Loading enquiries...</p>;
@@ -180,6 +235,18 @@ const EnquiryManagement = () => {
           style={{ marginBottom: "1rem", padding: "0.5rem", width: "100%" }}
         />
 
+        {/* Delete icon appears above top left of the table if any rows are selected */}
+        {selectedEnquiries.length > 0 && (
+          <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: "1rem"  }}>
+            <img
+              src="/images/deleteImage.png" // Replace with your icon path
+              alt="Delete Selected"
+              style={{ cursor: "pointer", width: "25px", height: "25px" }}
+              onClick={handleDeleteSelected}
+            />
+          </div>
+        )}
+
         {/* Enquiries Table */}
         <table 
           border="1" 
@@ -189,6 +256,17 @@ const EnquiryManagement = () => {
         >
           <thead>
             <tr>
+              {/* Checkbox for "select all" */}
+              <th>
+                <input
+                  type="checkbox"
+                  onChange={toggleSelectAll}
+                  checked={
+                    sortedEnquiries.length > 0 &&
+                    sortedEnquiries.every((e) => selectedEnquiries.includes(e._id))
+                  }
+                />
+              </th>
               <th onClick={() => handleSort("requestId")} style={{cursor: 'pointer'}}>Request ID</th>
               <th onClick={() => handleSort("roomNumber")} style={{cursor: 'pointer'}}>Room Number</th>
               <th onClick={() => handleSort("enquiryText")} style={{cursor: 'pointer'}}>Enquiry Text</th>
@@ -202,10 +280,19 @@ const EnquiryManagement = () => {
           <tbody>
             {sortedEnquiries.map((enquiry) => (
               <tr 
-                key={enquiry._id} 
+                key={enquiry._id}
                 onClick={() => handleRowClick(enquiry)}
                 style={{ cursor: 'pointer' }}
               >
+                {/* Checkbox cell */}
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={selectedEnquiries.includes(enquiry._id)}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={() => toggleSelectRow(enquiry._id)}
+                  />
+                </td>
                 <td>{enquiry.requestId}</td>
                 <td>{enquiry.roomNumber}</td>
                 <td>{enquiry.enquiryText}</td>
