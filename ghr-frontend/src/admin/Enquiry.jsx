@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import AdminHeader from './AdminHeader';
 import AdminTabs from './AdminTabs';
 
@@ -7,28 +8,21 @@ const EnquiryManagement = () => {
   const [enquiries, setEnquiries] = useState([]);
   const [users, setUsers] = useState([]); // for joining enquirer name
   const [searchQuery, setSearchQuery] = useState("");
-  const [updateSearchQuery, setUpdateSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: "", direction: "ascending" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Toggle update form visibility
-  const [showUpdateForm, setShowUpdateForm] = useState(false);
-
-  // Update Enquiry form state
-  const [selectedEnquiryId, setSelectedEnquiryId] = useState("");
-  const [updateEnquiry, setUpdateEnquiry] = useState({
-    status: "",
-    response: "",
-  });
+  // State to control which enquiries are shown ("pending" or "resolved")
+  const [filterStatus, setFilterStatus] = useState("pending");
 
   // State for admin details
   const [admin, setAdmin] = useState(null);
-
-  const API_URL =  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
   const token = localStorage.getItem("token");
 
-  // Fetch logged-in admin's details
+  const navigate = useNavigate();
+
+  // Fetch admin details so we can pass them to the AdminHeader
   useEffect(() => {
     const fetchAdmin = async () => {
       try {
@@ -80,8 +74,11 @@ const EnquiryManagement = () => {
     fetchData();
   }, [API_URL, token]);
 
-  // Filter enquiries for the main table based on searchQuery (case-insensitive)
+  // Filter enquiries based on search query and active status filter
   const filteredEnquiries = enquiries.filter((enquiry) => {
+    if (filterStatus === "pending" && enquiry.status.toLowerCase() !== "pending") return false;
+    if (filterStatus === "resolved" && enquiry.status.toLowerCase() !== "resolved") return false;
+
     const query = searchQuery.toLowerCase();
     return (
       enquiry.requestId.toString().includes(query) ||
@@ -116,72 +113,12 @@ const EnquiryManagement = () => {
     setSortConfig({ key: columnKey, direction });
   };
 
-  // Update Enquiry section – filter for update based on updateSearchQuery
-  const filteredForUpdate = enquiries.filter((enquiry) => {
-    const query = updateSearchQuery.toLowerCase();
-    return (
-      enquiry.requestId.toString().includes(query) ||
-      (enquiry.roomNumber && enquiry.roomNumber.toLowerCase().includes(query)) ||
-      (enquiry.enquiryText && enquiry.enquiryText.toLowerCase().includes(query)) ||
-      (enquiry.status && enquiry.status.toLowerCase().includes(query))
-    );
-  });
-
-  const handleSelectEnquiry = (id) => {
-    setSelectedEnquiryId(id);
-    const enquiry = enquiries.find(e => e._id === id);
-    if (enquiry) {
-      setUpdateEnquiry({
-        status: enquiry.status,
-        response: enquiry.response || "",
-      });
-    } else {
-      setUpdateEnquiry({ status: "", response: "" });
-    }
+  // Clicking a row navigates to the enquiry details page with the full enquiry object
+  const handleRowClick = (enquiry) => {
+    navigate("/enquiry-details", { state: { enquiry } });
   };
 
-  const handleUpdateChange = (e) => {
-    setUpdateEnquiry({ ...updateEnquiry, [e.target.name]: e.target.value });
-  };
-
-  const handleUpdateSubmit = async (e) => {
-    e.preventDefault();
-    if (!selectedEnquiryId) {
-      setError("Please select an enquiry to update.");
-      return;
-    }
-    try {
-      await axios.put(`${API_URL}/api/auth/enquiries/${selectedEnquiryId}`, updateEnquiry, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      await fetchData();
-      setShowUpdateForm(false);
-      setSelectedEnquiryId("");
-    } catch (err) {
-      console.error("Error updating enquiry:", err.response || err);
-      setError(err.response?.data?.message || "Error updating enquiry");
-    }
-  };
-
-  const handleDeleteEnquiry = async () => {
-    if (!selectedEnquiryId) {
-      setError("Please select an enquiry to delete.");
-      return;
-    }
-    try {
-      await axios.delete(`${API_URL}/api/auth/enquiries/${selectedEnquiryId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      await fetchData();
-      setShowUpdateForm(false);
-      setSelectedEnquiryId("");
-    } catch (err) {
-      console.error("Error deleting enquiry:", err.response || err);
-      setError(err.response?.data?.message || "Error deleting enquiry");
-    }
-  };
-
-  // Define content style to offset fixed header and sidebar
+  // Basic content styling to account for fixed header/sidebar
   const contentStyle = {
     marginTop: "70px", // header height
     marginLeft: "80px", // sidebar width
@@ -191,64 +128,50 @@ const EnquiryManagement = () => {
   if (loading) return <p>Loading enquiries...</p>;
   if (error) return <p className="error">{error}</p>;
 
-  // If admin details haven't loaded yet, you can render a loading indicator
-  if (!admin) return <p>Loading admin details...</p>;
+  // Count pending enquiries for the box display
+  const pendingCount = enquiries.filter(e => e.status.toLowerCase() === "pending").length;
 
-  const adminName = `${admin.name} ${admin.lastName}`;
-  const profilePicture = admin.profileImageUrl;
+  // Derive adminName and profilePicture if admin is loaded
+  const adminName = admin ? `${admin.name} ${admin.lastName}` : "Admin";
+  const profilePicture = admin ? admin.profileImageUrl : "";
 
   return (
     <>
       <AdminHeader title="Enquiry Management" adminName={adminName} profilePicture={profilePicture} />
       <AdminTabs />
       <div className="enquiry-management" style={contentStyle}>
-        {/* Update Enquiry Section */}
-        <div style={{ marginBottom: "1rem", border: "1px solid #ccc", padding: "1rem" }}>
-          <h2>Update/Delete Enquiry</h2>
-          <input
-            type="text"
-            placeholder="Search enquiry..."
-            value={updateSearchQuery}
-            onChange={(e) => setUpdateSearchQuery(e.target.value)}
-            style={{ marginBottom: "0.5rem", padding: "0.5rem", width: "100%" }}
-          />
-          <ul style={{ maxHeight: "150px", overflowY: "auto", border: "1px solid #ccc", padding: "0.5rem", listStyle: "none" }}>
-            {filteredForUpdate.map((enquiry) => (
-              <li
-                key={enquiry._id}
-                style={{ cursor: "pointer", padding: "0.25rem" }}
-                onClick={() => handleSelectEnquiry(enquiry._id)}
-              >
-                {enquiry.requestId} - {enquiry.roomNumber} - {enquiry.status}
-              </li>
-            ))}
-          </ul>
-          {selectedEnquiryId && (
-            <form onSubmit={handleUpdateSubmit}>
-              <select name="status" value={updateEnquiry.status} onChange={handleUpdateChange} required>
-                <option value="Pending">Pending</option>
-                <option value="Resolved">Resolved</option>
-              </select>
-              <textarea
-                name="response"
-                placeholder="Write response here..."
-                value={updateEnquiry.response}
-                onChange={handleUpdateChange}
-                style={{ width: "100%", minHeight: "80px", marginTop: "0.5rem" }}
-              />
-              <div style={{ marginTop: "1rem" }}>
-                <button type="submit" disabled={loading}>
-                  {loading ? "Updating..." : "Update Enquiry"}
-                </button>
-                <button type="button" onClick={handleDeleteEnquiry} disabled={loading} style={{ marginLeft: "1rem" }}>
-                  {loading ? "Deleting..." : "Delete Enquiry"}
-                </button>
-              </div>
-            </form>
-          )}
+        {/* Two Clickable Boxes to Filter Enquiries */}
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+          <div
+            onClick={() => setFilterStatus("pending")}
+            style={{
+              padding: "1rem",
+              border: filterStatus === "pending" ? "2px solid blue" : "1px solid #ccc",
+              borderRadius: "5px",
+              cursor: "pointer",
+              flex: 1,
+              textAlign: "center",
+            }}
+          >
+            <h3>Pending Enquiries</h3>
+            <p>{pendingCount}</p>
+          </div>
+          <div
+            onClick={() => setFilterStatus("resolved")}
+            style={{
+              padding: "1rem",
+              border: filterStatus === "resolved" ? "2px solid blue" : "1px solid #ccc",
+              borderRadius: "5px",
+              cursor: "pointer",
+              flex: 1,
+              textAlign: "center",
+            }}
+          >
+            <h3>Resolved Enquiries</h3>
+          </div>
         </div>
 
-        {/* Main Search Input for Table */}
+        {/* Main Search Input */}
         <input
           type="text"
           placeholder="Search enquiries..."
@@ -278,7 +201,11 @@ const EnquiryManagement = () => {
           </thead>
           <tbody>
             {sortedEnquiries.map((enquiry) => (
-              <tr key={enquiry._id}>
+              <tr 
+                key={enquiry._id} 
+                onClick={() => handleRowClick(enquiry)}
+                style={{ cursor: 'pointer' }}
+              >
                 <td>{enquiry.requestId}</td>
                 <td>{enquiry.roomNumber}</td>
                 <td>{enquiry.enquiryText}</td>
