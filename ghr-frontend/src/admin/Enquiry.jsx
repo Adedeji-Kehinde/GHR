@@ -1,3 +1,4 @@
+// EnquiryManagement.jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -19,10 +20,10 @@ const EnquiryManagement = () => {
   // State for admin details
   const [admin, setAdmin] = useState(null);
 
-  // New state for multiple selection
+  // New state for multiple selection using radio buttons
   const [selectedEnquiries, setSelectedEnquiries] = useState([]);
   
-  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  const API_URL =  "http://localhost:8000";
   const token = localStorage.getItem("token");
 
   const navigate = useNavigate();
@@ -117,7 +118,7 @@ const EnquiryManagement = () => {
     setSortConfig({ key: columnKey, direction });
   };
 
-  // Handle individual row selection
+  // Handle individual row selection using radio buttons that act as toggles
   const toggleSelectRow = (id) => {
     setSelectedEnquiries((prevSelected) =>
       prevSelected.includes(id)
@@ -126,7 +127,7 @@ const EnquiryManagement = () => {
     );
   };
 
-  // Handle "select all" for visible rows
+  // Handle "select all" for visible rows using a header radio button
   const toggleSelectAll = () => {
     const visibleIds = sortedEnquiries.map((e) => e._id);
     const allSelected = visibleIds.every((id) => selectedEnquiries.includes(id));
@@ -237,9 +238,9 @@ const EnquiryManagement = () => {
 
         {/* Delete icon appears above top left of the table if any rows are selected */}
         {selectedEnquiries.length > 0 && (
-          <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: "1rem"  }}>
+          <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: "1rem" }}>
             <img
-              src="/images/deleteImage.png" // Replace with your icon path
+              src={deleteImage}
               alt="Delete Selected"
               style={{ cursor: "pointer", width: "25px", height: "25px" }}
               onClick={handleDeleteSelected}
@@ -256,25 +257,27 @@ const EnquiryManagement = () => {
         >
           <thead>
             <tr>
-              {/* Checkbox for "select all" */}
+              {/* Header radio for "Select All" */}
               <th>
-                <input
-                  type="checkbox"
-                  onChange={toggleSelectAll}
-                  checked={
-                    sortedEnquiries.length > 0 &&
-                    sortedEnquiries.every((e) => selectedEnquiries.includes(e._id))
-                  }
-                />
+                <label style={{ cursor: 'pointer' }}>
+                  <th
+                    onClick={toggleSelectAll}
+                    checked={
+                      sortedEnquiries.length > 0 &&
+                      sortedEnquiries.every((e) => selectedEnquiries.includes(e._id))
+                    }
+                    readOnly
+                  />
+                </label>
               </th>
-              <th onClick={() => handleSort("requestId")} style={{cursor: 'pointer'}}>Request ID</th>
-              <th onClick={() => handleSort("roomNumber")} style={{cursor: 'pointer'}}>Room Number</th>
-              <th onClick={() => handleSort("enquiryText")} style={{cursor: 'pointer'}}>Enquiry Text</th>
-              <th onClick={() => handleSort("enquirerName")} style={{cursor: 'pointer'}}>Enquirer Name</th>
-              <th onClick={() => handleSort("status")} style={{cursor: 'pointer'}}>Status</th>
-              <th onClick={() => handleSort("response")} style={{cursor: 'pointer'}}>Response</th>
-              <th onClick={() => handleSort("createdAt")} style={{cursor: 'pointer'}}>Created At</th>
-              <th onClick={() => handleSort("resolvedAt")} style={{cursor: 'pointer'}}>Resolved At</th>
+              <th onClick={() => handleSort("requestId")} style={{ cursor: 'pointer' }}>Request ID</th>
+              <th onClick={() => handleSort("roomNumber")} style={{ cursor: 'pointer' }}>Room Number</th>
+              <th onClick={() => handleSort("enquiryText")} style={{ cursor: 'pointer' }}>Enquiry Text</th>
+              <th onClick={() => handleSort("enquirerName")} style={{ cursor: 'pointer' }}>Enquirer Name</th>
+              <th onClick={() => handleSort("status")} style={{ cursor: 'pointer' }}>Status</th>
+              <th onClick={() => handleSort("response")} style={{ cursor: 'pointer' }}>Response</th>
+              <th onClick={() => handleSort("createdAt")} style={{ cursor: 'pointer' }}>Created At</th>
+              <th onClick={() => handleSort("resolvedAt")} style={{ cursor: 'pointer' }}>Resolved At</th>
             </tr>
           </thead>
           <tbody>
@@ -284,13 +287,13 @@ const EnquiryManagement = () => {
                 onClick={() => handleRowClick(enquiry)}
                 style={{ cursor: 'pointer' }}
               >
-                {/* Checkbox cell */}
-                <td>
+                {/* Row radio button */}
+                <td onClick={(e) => e.stopPropagation()}>
                   <input
-                    type="checkbox"
+                    type="radio"
                     checked={selectedEnquiries.includes(enquiry._id)}
-                    onClick={(e) => e.stopPropagation()}
-                    onChange={() => toggleSelectRow(enquiry._id)}
+                    onClick={() => toggleSelectRow(enquiry._id)}
+                    readOnly
                   />
                 </td>
                 <td>{enquiry.requestId}</td>

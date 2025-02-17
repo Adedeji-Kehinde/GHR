@@ -14,6 +14,8 @@ import EnquiryDetails from './admin/EnquiryDetails';
 import Maintenance from "./admin/Maintenace";
 import AddMaintenance from './admin/AddMaintenance';
 import "./styles.css"; // Import the styles
+import "./login.css"; // Import the styles
+import "./Register.css"; // Import the styles
 
 function App() {
   return (

@@ -6,15 +6,15 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // Loading state
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const API_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
-    setLoading(true); // Start loading
+    setLoading(true);
 
     try {
       const loginRes = await axios.post(`${API_URL}/api/auth/login`, {
@@ -24,12 +24,12 @@ const Login = () => {
 
       const { token } = loginRes.data;
       localStorage.setItem("token", token);
-       // 2) Then fetch user details
-       const userRes = await axios.get(`${API_URL}/api/auth/user`, {
+
+      // Fetch user details
+      const userRes = await axios.get(`${API_URL}/api/auth/user`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // user object has role
       const user = userRes.data;
       if (user.role === "admin") {
         navigate("/admin-dashboard");
@@ -39,47 +39,60 @@ const Login = () => {
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
   return (
-    <div className="container">
-      <div className="box">
-        <h2>Login</h2>
+    <div className="login-page">
+      {/* Left side: Fixed sidebar with background image */}
+      <div className="login-left">
+        <div className="text-container">
+          <h1>Welcome Home</h1>
+          <p>Login to access your account and more at Griffith Halls</p>
+        </div>
+        <div className="logo-container">
+          <img src="/images/logo.png" alt="Griffith Halls Logo" />
+        </div>
+      </div>
 
-        {error && <p className="error">{error}</p>}
-        {loading && <p className="loading">Logging in...</p>} {/* Show loading text */}
+      {/* Right side: Login form */}
+      <div className="login-right">
+        <div className="login-form-wrapper">
+          <div className="login-form-container">
+            <h2>Login</h2>
+            {error && <p className="error">{error}</p>}
+            {loading && <p className="loading">Logging in...</p>}
+            <form onSubmit={handleLogin}>
+              <label htmlFor="login-email">Email</label>
+              <input
+                id="login-email"
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
 
-        <form onSubmit={handleLogin}>
+              <label htmlFor="login-password">Password</label>
+              <input
+                id="login-password"
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
 
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-          <button type="submit" disabled={loading}> {/* Disable button when loading */}
-            {loading ? "Logging in..." : "Login"}
-          </button>
-
-        </form>
-
-        <p>
-          Don't have an account?
-          <Link to="/register"> Create Account </Link>
-        </p>
-
+              <button type="submit" disabled={loading}>
+                {loading ? "Logging in..." : "Login"}
+              </button>
+            </form>
+            <p>
+              Don't have an account? <Link to="/register">Create Account</Link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

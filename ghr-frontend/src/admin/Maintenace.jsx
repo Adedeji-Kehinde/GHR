@@ -20,7 +20,7 @@ const MaintenanceManagement = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedMaintenanceIds, setSelectedMaintenanceIds] = useState([]);
 
-  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  const API_URL = "http://localhost:8000";
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
@@ -110,21 +110,26 @@ const MaintenanceManagement = () => {
     setSortConfig({ key: columnKey, direction });
   };
 
-  // Bulk selection handlers
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedMaintenanceIds(sortedMaintenance.map(request => request._id));
-    } else {
-      setSelectedMaintenanceIds([]);
-    }
+  // Toggle individual row selection using radio buttons that act as toggles
+  const toggleSelectRow = (id) => {
+    setSelectedMaintenanceIds(prev =>
+      prev.includes(id)
+        ? prev.filter(selectedId => selectedId !== id)
+        : [...prev, id]
+    );
   };
 
-  const handleRowSelect = (e, id) => {
-    e.stopPropagation();
-    if (e.target.checked) {
-      setSelectedMaintenanceIds(prev => [...prev, id]);
+  // Toggle "Select All" for visible rows using the header radio button
+  const toggleSelectAll = () => {
+    const visibleIds = sortedMaintenance.map(request => request._id);
+    const allSelected = visibleIds.every(id => selectedMaintenanceIds.includes(id));
+    if (allSelected) {
+      // Deselect all visible rows
+      setSelectedMaintenanceIds(prev => prev.filter(id => !visibleIds.includes(id)));
     } else {
-      setSelectedMaintenanceIds(prev => prev.filter(item => item !== id));
+      // Select all visible rows (union with already selected ones)
+      const newSelected = Array.from(new Set([...selectedMaintenanceIds, ...visibleIds]));
+      setSelectedMaintenanceIds(newSelected);
     }
   };
 
@@ -164,18 +169,22 @@ const MaintenanceManagement = () => {
 
   return (
     <>
-      <AdminHeader title="Maintenance Management" adminName={`${admin.name} ${admin.lastName}`} profilePicture={admin.profileImageUrl} />
+      <AdminHeader
+        title="Maintenance Management"
+        adminName={`${admin.name} ${admin.lastName}`}
+        profilePicture={admin.profileImageUrl}
+      />
       <AdminTabs />
       <div className="maintenance-management" style={contentStyle}>
         {/* Summary Boxes */}
         <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", marginBottom: "1rem" }}>
-          <div onClick={() => setViewStatus("open")} style={{ border: "1px solid #ccc", padding: "1rem", flex: 1, cursor: "pointer" }}>
+          <div onClick={() => setViewMaintenance("open")} style={{ border: "1px solid #ccc", padding: "1rem", flex: 1, cursor: "pointer" }}>
             <h3>Open Requests</h3>
             <p style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
               {maintenanceRequests.filter(request => request.status === "In Process").length}
             </p>
           </div>
-          <div onClick={() => setViewStatus("completed")} style={{ border: "1px solid #ccc", padding: "1rem", flex: 1, cursor: "pointer", textAlign: "center" }}>
+          <div onClick={() => setViewMaintenance("completed")} style={{ border: "1px solid #ccc", padding: "1rem", flex: 1, cursor: "pointer", textAlign: "center" }}>
             <h3>Completed Requests</h3>
             <p style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
               {maintenanceRequests.filter(request => request.status === "Completed").length}
@@ -196,7 +205,7 @@ const MaintenanceManagement = () => {
           style={{ marginBottom: "1rem", padding: "0.5rem", width: "100%" }}
         />
 
-        {/* Bulk Delete Image: Appears just below the search bar on the left */}
+        {/* Bulk Delete Image */}
         {selectedMaintenanceIds.length > 0 && (
           <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: "1rem" }}>
             <img 
@@ -214,11 +223,13 @@ const MaintenanceManagement = () => {
           <thead>
             <tr>
               <th>
-                <input 
-                  type="checkbox" 
-                  onChange={handleSelectAll}
-                  checked={sortedMaintenance.length > 0 && selectedMaintenanceIds.length === sortedMaintenance.length}
-                />
+                <label style={{ cursor: 'pointer' }}>
+                  <th 
+                    onClick={toggleSelectAll}
+                    checked={sortedMaintenance.length > 0 && sortedMaintenance.every(request => selectedMaintenanceIds.includes(request._id))}
+                    readOnly
+                  />
+                </label>
               </th>
               <th onClick={() => handleSort("requestId")} style={{ cursor: 'pointer' }}>Request ID</th>
               <th onClick={() => handleSort("roomNumber")} style={{ cursor: 'pointer' }}>Room Number</th>
@@ -233,12 +244,17 @@ const MaintenanceManagement = () => {
           </thead>
           <tbody>
             {sortedMaintenance.map((request) => (
-              <tr key={request._id} onClick={() => { setViewMaintenance(request); setShowDetailsModal(true); }} style={{ cursor: "pointer" }}>
-                <td onClick={e => e.stopPropagation()}>
+              <tr
+                key={request._id}
+                onClick={() => { setViewMaintenance(request); setShowDetailsModal(true); }}
+                style={{ cursor: "pointer" }}
+              >
+                <td onClick={(e) => e.stopPropagation()}>
                   <input 
-                    type="checkbox"
+                    type="radio"
                     checked={selectedMaintenanceIds.includes(request._id)}
-                    onChange={(e) => handleRowSelect(e, request._id)}
+                    onClick={() => toggleSelectRow(request._id)}
+                    readOnly
                   />
                 </td>
                 <td>{request.requestId}</td>

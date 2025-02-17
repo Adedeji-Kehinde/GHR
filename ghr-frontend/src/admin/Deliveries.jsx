@@ -22,7 +22,7 @@ const DeliveryManagement = () => {
   const [viewDelivery, setViewDelivery] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
-  // Bulk selection state for deletion
+  // Multi-selection state for deletion (using “radio buttons” that we control manually)
   const [selectedDeliveryIds, setSelectedDeliveryIds] = useState([]);
 
   // Fetch admin details
@@ -125,24 +125,29 @@ const DeliveryManagement = () => {
     setSortConfig({ key: columnKey, direction });
   };
 
-  // Bulk selection handlers
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedDeliveryIds(sortedDeliveries.map(delivery => delivery._id));
-    } else {
-      setSelectedDeliveryIds([]);
-    }
-  };
-
+  // When a row’s radio “button” is clicked, toggle its selection
   const handleRowSelect = (e, id) => {
     e.stopPropagation();
-    if (e.target.checked) {
-      setSelectedDeliveryIds(prev => [...prev, id]);
+    setSelectedDeliveryIds(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(item => item !== id);
+      }
+      return [...prev, id];
+    });
+  };
+
+  // Handler for the header "Select All" radio button
+  const handleSelectAll = () => {
+    if (selectedDeliveryIds.length === sortedDeliveries.length) {
+      // If already all selected, unselect all
+      setSelectedDeliveryIds([]);
     } else {
-      setSelectedDeliveryIds(prev => prev.filter(item => item !== id));
+      // Otherwise, select all
+      setSelectedDeliveryIds(sortedDeliveries.map(delivery => delivery._id));
     }
   };
 
+  // Bulk deletion handler using the selected deliveries
   const handleBulkDelete = async () => {
     if (selectedDeliveryIds.length === 0) {
       alert("No rows selected");
@@ -210,7 +215,7 @@ const DeliveryManagement = () => {
           style={{ marginBottom: "1rem", padding: "0.5rem", width: "100%" }}
         />
         
-        {/* Bulk Delete Image placed just below the search bar, aligned left */}
+        {/* Bulk Delete Icon (for selected deliveries) */}
         {selectedDeliveryIds.length > 0 && (
           <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: "1rem" }}>
             <img 
@@ -228,11 +233,14 @@ const DeliveryManagement = () => {
           <thead>
             <tr>
               <th>
-                <input 
-                  type="checkbox" 
-                  onChange={handleSelectAll}
-                  checked={sortedDeliveries.length > 0 && selectedDeliveryIds.length === sortedDeliveries.length}
-                />
+                <label style={{ cursor: 'pointer' }}>
+                  <th 
+                    // No 'name' attribute so it won’t be grouped with row radios
+                    onClick={handleSelectAll}
+                    checked={sortedDeliveries.length > 0 && selectedDeliveryIds.length === sortedDeliveries.length}
+                    readOnly
+                  />
+                </label>
               </th>
               <th onClick={() => handleSort("parcelNumber")} style={{cursor: 'pointer'}}>Parcel Number</th>
               <th onClick={() => handleSort("sender")} style={{cursor: 'pointer'}}>Sender</th>
@@ -254,9 +262,11 @@ const DeliveryManagement = () => {
               >
                 <td onClick={e => e.stopPropagation()}>
                   <input 
-                    type="checkbox" 
+                    type="radio"
+                    // Omit the common 'name' attribute so each acts independently
                     checked={selectedDeliveryIds.includes(delivery._id)}
-                    onChange={(e) => handleRowSelect(e, delivery._id)}
+                    onClick={(e) => handleRowSelect(e, delivery._id)}
+                    readOnly
                   />
                 </td>
                 <td>{delivery.parcelNumber}</td>

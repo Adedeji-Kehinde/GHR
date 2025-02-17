@@ -1,0 +1,153 @@
+/* Prevent default margins/padding and disable scrolling */
+html, body {
+    overflow: hidden;
+    height: 100%;
+}
+  
+/* Overall container spans the full viewport */
+.register-page {
+    display: flex;
+    min-height: 100vh;
+}
+  
+/* Left side: occupies 40% of the screen with a stretched background image */
+.register-left {
+    background-image: url('/images/register.jpg'); /* Use your desired image */
+    background-size: 100% 100%;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 40%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+  
+/* Text container on the left side, aligned to the top */
+.text-container {
+    align-self: flex-start;
+    margin: 20px;
+    text-align: left;
+    color: #fff;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+}
+  
+/* Logo container at the bottom of the left side */
+.logo-container {
+    margin-bottom: 20px;
+}
+  
+/* Right side: occupies the remaining area; placed to the right of the fixed sidebar */
+.register-right {
+    margin-left: 400px;
+    width: 80%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+}
+  
+/* Container for the registration form and choices */
+.register-form-container {
+    max-width: 500px; 
+    width: 100%;
+}
+  
+.register-form-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+  
+/* Two-column grid for form fields with extra gap */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px; 
+    margin-bottom: 20px;
+}
+  
+.register-form-container form {
+    display: flex;
+    flex-direction: column;
+}
+  
+.register-form-container input,
+.register-form-container select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+  
+.register-form-container button {
+    padding: 10px;
+    background: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+  
+.register-form-container button:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+.register-form-container label {
+    font-size: 0.8rem; /* Reduced font size */
+    color: #333;
+    text-align: left;
+    display: block;
+  }
+  
+  
+.error {
+    color: red;
+    text-align: center;
+    margin-bottom: 15px;
+}
+  
+.success {
+    color: green;
+    text-align: center;
+    margin-bottom: 15px;
+}
+  
+.loading {
+    text-align: center;
+    margin-bottom: 15px;
+}
+  
+/* Buttons for the choice step */
+.choice-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+  
+.choice-buttons button {
+    flex: 1;
+    margin: 0 10px;
+    padding: 10px;
+    background: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+  
+/* Optional: styling for the admin role read-only field */
+.role-field {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+  
+.role-field label {
+    margin-right: 10px;
+    font-weight: bold;
+}
+
