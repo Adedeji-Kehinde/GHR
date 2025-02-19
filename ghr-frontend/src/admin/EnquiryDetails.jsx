@@ -110,7 +110,7 @@ const EnquiryDetails = () => {
     <>
       <AdminHeader title="Enquiry Details" adminName={adminName} profilePicture={profilePicture} />
       <AdminTabs />
-      <div style={{ margin: '2rem' }}>
+      <div style={{  margin: '3rem', paddingLeft: '2rem',}}>
         {/* Top Grid: 6 fields in 3 columns x 2 rows */}
         <div style={topGridStyle}>
           {/* Request ID */}

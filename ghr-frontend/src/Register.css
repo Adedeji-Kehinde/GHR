@@ -1,9 +1,4 @@
-/* Prevent default margins/padding and disable scrolling */
-html, body {
-    overflow: hidden;
-    height: 100%;
-}
-  
+
 /* Overall container spans the full viewport */
 .register-page {
     display: flex;

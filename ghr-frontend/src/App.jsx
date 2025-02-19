@@ -16,6 +16,8 @@ import AddMaintenance from './admin/AddMaintenance';
 import "./styles.css"; // Import the styles
 import "./login.css"; // Import the styles
 import "./Register.css"; // Import the styles
+import BookingManagement from './admin/BookingManagement';
+import BookingDetails from './admin/BookingDetails';
 
 function App() {
   return (
@@ -56,6 +58,16 @@ function App() {
         <Route 
           path="/admin-dashboard" 
           element={<AdminDashboard />} 
+        />
+
+        <Route 
+          path="/booking-management" 
+          element={<BookingManagement />} 
+        />
+
+        <Route 
+          path="/booking-details" 
+          element={<BookingDetails />} 
         />
 
         <Route 

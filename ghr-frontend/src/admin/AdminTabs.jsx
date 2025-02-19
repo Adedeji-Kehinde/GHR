@@ -46,7 +46,7 @@ const AdminTabs = () => {
       <div style={tabStyle} onClick={() => navigate("/deliveries")}>
         <img src={deliveriesIcon} alt="Deliveries" style={{ height: "40px" }} title="Deliveries" />
       </div>
-      <div style={tabStyle} onClick={() => navigate("/bookings")}>
+      <div style={tabStyle} onClick={() => navigate("/booking-management")}>
         <img src={bookingsIcon} alt="Bookings" style={{ height: "40px" }} title="Bookings" />
       </div>
     </div>
