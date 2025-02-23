@@ -58,7 +58,7 @@ const AdminHeader = ({ title, adminName, profilePicture }) => {
           style={{
             height: "40px",
             width: "40px",
-            borderRadius: "50%",
+            // Removed borderRadius for square image
             marginRight: "0.5rem",
           }}
         />

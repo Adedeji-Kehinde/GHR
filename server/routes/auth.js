@@ -24,7 +24,7 @@ router.post("/register", upload.single("image"), async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        let profileImageUrl = "https://res.cloudinary.com/dxlrv28eb/user_photos/default_Image.JPG";
+        let profileImageUrl = "https://res.cloudinary.com/dxlrv28eb/user_photos/default_Image.png";
 
         if (req.file) {
             try {
