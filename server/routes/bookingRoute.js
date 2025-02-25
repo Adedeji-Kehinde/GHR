@@ -266,8 +266,21 @@ router.delete('/bookings/:bookingId', authenticateToken, async (req, res) => {
   }
 });
 
-// GET all rooms with aggregated availability 
+// Get all rooms
 router.get('/rooms', authenticateToken, async (req, res) => {
+  try {
+    const allRooms = await Room.find();
+    if (!allRooms.length) {
+      return res.status(404).json({ message: 'No rooms found' });
+    }
+    res.json(allRooms);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching rooms', error: error.message });
+  }
+});
+
+// GET all rooms with aggregated availability 
+router.get('/rooms-available', authenticateToken, async (req, res) => {
   try {
     const allRooms = await Room.find();
     if (!allRooms.length) {

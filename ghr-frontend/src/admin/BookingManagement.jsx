@@ -89,7 +89,7 @@ const BookingManagement = () => {
   // Fetch availability data and transform it for the folder view.
   const fetchAvailability = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/booking/rooms`, {
+      const res = await axios.get(`${API_URL}/api/booking/rooms-available`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const availData = res.data.availability;

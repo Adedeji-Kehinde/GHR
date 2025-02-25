@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-const UserHeader = ({ user }) => {
+const UserHeader = ({ user, hideBookRoom }) => {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [learnMoreDropdownOpen, setLearnMoreDropdownOpen] = useState(false);
@@ -165,7 +165,6 @@ const UserHeader = ({ user }) => {
           <img src="/images/logo.png" alt="Logo" style={logoStyle} />
         </div>
         {user ? (
-          // Logged in: Profile picture, clickable greeting (dropdown), and Book Room button.
           <div style={userInfoStyle}>
             <img
               src={userProfilePicture}
@@ -210,15 +209,16 @@ const UserHeader = ({ user }) => {
                 </div>
               )}
             </div>
-            <button
-              style={bookRoomButtonStyle}
-              onClick={() => navigate("/booking")}
-            >
-              Book Room
-            </button>
+            {!hideBookRoom && (
+              <button
+                style={bookRoomButtonStyle}
+                onClick={() => navigate("/booking")}
+              >
+                Book Room
+              </button>
+            )}
           </div>
         ) : (
-          // Non-logged in: Navigation container with left and right groups.
           <div style={navContainerStyle}>
             <div style={leftNavGroupStyle}>
               <span style={navItemStyle} onClick={() => navigate("/about")}>
@@ -230,9 +230,7 @@ const UserHeader = ({ user }) => {
               <div ref={learnMoreDropdownRef} style={{ position: "relative" }}>
                 <span
                   style={navItemStyle}
-                  onClick={() =>
-                    setLearnMoreDropdownOpen((prev) => !prev)
-                  }
+                  onClick={() => setLearnMoreDropdownOpen((prev) => !prev)}
                 >
                   Learn more
                 </span>
@@ -284,9 +282,6 @@ const UserHeader = ({ user }) => {
               </span>
               <span style={navItemStyle} onClick={() => navigate("/register")}>
                 Register
-              </span>
-              <span style={navItemStyle} onClick={() => navigate("/booking")}>
-                Book Room
               </span>
             </div>
           </div>
