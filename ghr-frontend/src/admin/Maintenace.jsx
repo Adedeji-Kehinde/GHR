@@ -4,7 +4,6 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import AdminHeader from './AdminHeader';
 import AdminTabs from './AdminTabs';
-import MaintenanceDetails from './MaintenanceDetails';
 import plusImage from '/images/plusImage.png';
 import deleteImage from '/images/deleteImage.png';
 
@@ -16,9 +15,9 @@ const MaintenanceManagement = () => {
   const [sortConfig, setSortConfig] = useState({ key: "", direction: "ascending" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [viewMaintenance, setViewMaintenance] = useState(null);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedMaintenanceIds, setSelectedMaintenanceIds] = useState([]);
+  // New state to control which requests to show
+  const [currentFilter, setCurrentFilter] = useState("In Process");
 
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
   const token = localStorage.getItem("token");
@@ -75,6 +74,7 @@ const MaintenanceManagement = () => {
     fetchData();
   }, [API_URL, token]);
 
+  // Filter based on search query
   const filteredMaintenance = maintenanceRequests.filter((request) => {
     const query = searchQuery.toLowerCase();
     return (
@@ -88,8 +88,11 @@ const MaintenanceManagement = () => {
     );
   });
 
+  // Further filter by currentFilter (either "In Process" or "Completed")
+  const filteredByStatus = filteredMaintenance.filter(request => request.status === currentFilter);
+
   const sortedMaintenance = useMemo(() => {
-    let sortable = [...filteredMaintenance];
+    let sortable = [...filteredByStatus];
     if (sortConfig.key) {
       sortable.sort((a, b) => {
         const aValue = a[sortConfig.key] ? a[sortConfig.key].toString().toLowerCase() : "";
@@ -100,7 +103,7 @@ const MaintenanceManagement = () => {
       });
     }
     return sortable;
-  }, [filteredMaintenance, sortConfig]);
+  }, [filteredByStatus, sortConfig]);
 
   const handleSort = (columnKey) => {
     let direction = "ascending";
@@ -110,7 +113,7 @@ const MaintenanceManagement = () => {
     setSortConfig({ key: columnKey, direction });
   };
 
-  // Toggle individual row selection using radio buttons that act as toggles
+  // Toggle individual row selection using radio buttons
   const toggleSelectRow = (id) => {
     setSelectedMaintenanceIds(prev =>
       prev.includes(id)
@@ -119,15 +122,13 @@ const MaintenanceManagement = () => {
     );
   };
 
-  // Toggle "Select All" for visible rows using the header radio button
+  // Toggle "Select All" for visible rows
   const toggleSelectAll = () => {
     const visibleIds = sortedMaintenance.map(request => request._id);
     const allSelected = visibleIds.every(id => selectedMaintenanceIds.includes(id));
     if (allSelected) {
-      // Deselect all visible rows
       setSelectedMaintenanceIds(prev => prev.filter(id => !visibleIds.includes(id)));
     } else {
-      // Select all visible rows (union with already selected ones)
       const newSelected = Array.from(new Set([...selectedMaintenanceIds, ...visibleIds]));
       setSelectedMaintenanceIds(newSelected);
     }
@@ -178,19 +179,27 @@ const MaintenanceManagement = () => {
       <div className="maintenance-management" style={contentStyle}>
         {/* Summary Boxes */}
         <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", marginBottom: "1rem" }}>
-          <div onClick={() => setViewMaintenance("open")} style={{ border: "1px solid #ccc", padding: "1rem", flex: 1, cursor: "pointer" }}>
+          {/* Open Requests card displays count */}
+          <div
+            onClick={() => setCurrentFilter("In Process")}
+            style={{ border: "1px solid #ccc", padding: "1rem", flex: 1, cursor: "pointer" }}
+          >
             <h3>Open Requests</h3>
             <p style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
               {maintenanceRequests.filter(request => request.status === "In Process").length}
             </p>
           </div>
-          <div onClick={() => setViewMaintenance("completed")} style={{ border: "1px solid #ccc", padding: "1rem", flex: 1, cursor: "pointer", textAlign: "center" }}>
+          {/* Completed Requests card (no count displayed) */}
+          <div
+            onClick={() => setCurrentFilter("Completed")}
+            style={{ border: "1px solid #ccc", padding: "1rem", flex: 1, cursor: "pointer", textAlign: "center" }}
+          >
             <h3>Completed Requests</h3>
-            <p style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
-              {maintenanceRequests.filter(request => request.status === "Completed").length}
-            </p>
           </div>
-          <div onClick={() => navigate('/add-maintenance')} style={{ border: "1px solid #ccc", padding: "1rem", flex: 1, cursor: "pointer", textAlign: "center" }}>
+          <div
+            onClick={() => navigate('/add-maintenance')}
+            style={{ border: "1px solid #ccc", padding: "1rem", flex: 1, cursor: "pointer", textAlign: "center" }}
+          >
             <h3>Add New Request</h3>
             <img src={plusImage} alt="Add New Request" style={{ marginTop: "0.3rem", width: "50px", height: "50px" }} />
           </div>
@@ -246,7 +255,7 @@ const MaintenanceManagement = () => {
             {sortedMaintenance.map((request) => (
               <tr
                 key={request._id}
-                onClick={() => { setViewMaintenance(request); setShowDetailsModal(true); }}
+                onClick={() => navigate('/maintenance-details', { state: { maintenance: request } })}
                 style={{ cursor: "pointer" }}
               >
                 <td onClick={(e) => e.stopPropagation()}>
@@ -270,14 +279,6 @@ const MaintenanceManagement = () => {
             ))}
           </tbody>
         </table>
-
-        {showDetailsModal && viewMaintenance && (
-          <MaintenanceDetails 
-            maintenance={viewMaintenance}
-            onClose={() => setShowDetailsModal(false)}
-            onUpdateDeleted={fetchData}
-          />
-        )}
       </div>
     </>
   );

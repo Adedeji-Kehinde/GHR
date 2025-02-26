@@ -16,6 +16,7 @@ import AddDelivery from "./admin/AddDelivery";
 import Enquiry from "./admin/Enquiry";
 import EnquiryDetails from "./admin/EnquiryDetails";
 import Maintenance from "./admin/Maintenace";
+import MaintenanceDetailsPage from "./admin/MaintenanceDetails";
 import AddMaintenance from "./admin/AddMaintenance";
 import BookingManagement from "./admin/BookingManagement";
 import BookingDetails from "./admin/BookingDetails";
@@ -52,6 +53,7 @@ function App() {
         <Route path="/enquiries" element={<Enquiry />} />
         <Route path="/enquiry-details" element={<EnquiryDetails />} />
         <Route path="/maintenance" element={<Maintenance />} />
+        <Route path="/maintenance-details" element={<MaintenanceDetailsPage />} />
         <Route path="/add-maintenance" element={<AddMaintenance />} />
       </Routes>
     </Router>
