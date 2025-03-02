@@ -8,9 +8,7 @@ const authenticateToken = require('../middleware/authMiddleware.js');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
-
 const upload = multer({ storage: multer.memoryStorage() });
-
 const router = express.Router();
 
 router.post("/register", upload.single("image"), async (req, res) => {
@@ -166,7 +164,80 @@ router.get('/users', authenticateToken, async (req, res) => {
       res.status(500).json({ message: 'Server error', error: error.message });
     }
   });
+// Update personal information (including greeting fields)
+router.put('/updatePersonal', authenticateToken, async (req, res) => {
+  try {
+    const {
+      name,
+      lastName,
+      phone,
+      dob,
+      gender,
+      address,
+      nationality,
+      university,
+      yearOfStudy,
+      course,
+      degree,
+    } = req.body;
 
+    const updateData = {
+      name,
+      lastName,
+      phone,
+      dob,
+      gender,
+      address,
+      nationality,
+      university,
+      yearOfStudy,
+      course,
+      degree,
+    };
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      updateData,
+      { new: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    return res.status(200).json({ message: 'Personal information updated', user: updatedUser });
+  } catch (error) {
+    console.error("Error updating personal info:", error);
+    return res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Update emergency contacts 
+router.put('/updateEmergency', authenticateToken, async (req, res) => {
+  try {
+    const { emergencyContacts } = req.body; // Expecting an array
+    if (!emergencyContacts || !Array.isArray(emergencyContacts)) {
+      return res.status(400).json({ message: 'Emergency contacts must be provided as an array' });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      { emergencyContacts },
+      { new: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    return res.status(200).json({ message: 'Emergency contacts updated', user: updatedUser });
+  } catch (error) {
+    console.error("Error updating emergency contacts:", error);
+    return res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+  
+  
 router.post('/deliveries', authenticateToken, async (req, res) => {
     try {
         const { sender, parcelType, description, roomNumber } = req.body;

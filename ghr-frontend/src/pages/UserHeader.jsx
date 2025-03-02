@@ -11,16 +11,10 @@ const UserHeader = ({ user, hideBookRoom }) => {
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (
-        userDropdownRef.current &&
-        !userDropdownRef.current.contains(e.target)
-      ) {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
       }
-      if (
-        learnMoreDropdownRef.current &&
-        !learnMoreDropdownRef.current.contains(e.target)
-      ) {
+      if (learnMoreDropdownRef.current && !learnMoreDropdownRef.current.contains(e.target)) {
         setLearnMoreDropdownOpen(false);
       }
     };
@@ -39,7 +33,12 @@ const UserHeader = ({ user, hideBookRoom }) => {
   };
 
   const handleProfile = () => {
-    navigate("/profile");
+    navigate("/user-profile");
+  };
+
+  // "My Bookings" routes to "/home"
+  const handleMyBookings = () => {
+    navigate("/home");
   };
 
   // Styles
@@ -49,9 +48,9 @@ const UserHeader = ({ user, hideBookRoom }) => {
     left: 0,
     width: "100%",
     zIndex: 1000,
-    padding: "0.5rem 0",
+    padding: "0.25rem 0",
     boxSizing: "border-box",
-    height: "100px",
+    height: "80px",
     backgroundColor: "#fff",
   };
 
@@ -76,21 +75,31 @@ const UserHeader = ({ user, hideBookRoom }) => {
     cursor: "pointer",
   };
 
+  // Overall user info container
   const userInfoStyle = {
     display: "flex",
     alignItems: "center",
-    position: "relative",
     gap: "1rem",
     marginRight: "80px",
   };
 
+  // Group container for greeting text and profile image with minimal gap.
+  const greetingGroupStyle = {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.25rem", // minimal gap between text and image
+  };
+
+  // Profile image (smaller than logo)
   const profilePicStyle = {
     height: "40px",
     width: "40px",
+    borderRadius: "50%",
     objectFit: "cover",
-    marginRight: "0.75rem",
+    cursor: "pointer",
   };
 
+  // Text style for greeting and "My Bookings"
   const userNameStyle = {
     fontWeight: "bold",
     whiteSpace: "nowrap",
@@ -166,11 +175,22 @@ const UserHeader = ({ user, hideBookRoom }) => {
         </div>
         {user ? (
           <div style={userInfoStyle}>
-            <img
-              src={userProfilePicture}
-              alt="Profile"
-              style={profilePicStyle}
-            />
+            {/* "My Bookings" text */}
+            <span style={userNameStyle} onClick={handleMyBookings}>
+              My Bookings
+            </span>
+            {/* Group for greeting text and profile image with minimal spacing */}
+            <div style={greetingGroupStyle}>
+              <span style={userNameStyle} onClick={() => setDropdownOpen((prev) => !prev)}>
+                Hello, {userName}
+              </span>
+              <img
+                src={userProfilePicture}
+                alt="Profile"
+                style={profilePicStyle}
+                onClick={() => setDropdownOpen((prev) => !prev)}
+              />
+            </div>
             <div
               ref={userDropdownRef}
               style={{
@@ -180,12 +200,6 @@ const UserHeader = ({ user, hideBookRoom }) => {
                 gap: "0.5rem",
               }}
             >
-              <span
-                style={userNameStyle}
-                onClick={() => setDropdownOpen((prev) => !prev)}
-              >
-                Hello, {userName}
-              </span>
               {dropdownOpen && (
                 <div style={dropdownStyle}>
                   <div

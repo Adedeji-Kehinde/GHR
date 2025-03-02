@@ -26,7 +26,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
   // Step Handlers
   const handleRegisterAsUser = () => {
