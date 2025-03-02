@@ -24,7 +24,7 @@ const AdminHeader = ({ title, adminName, profilePicture }) => {
   };
 
   const handleProfile = () => {
-    navigate("/profile");
+    navigate("/admin-dashboard");
   };
 
   // Define image path from the "images" folder

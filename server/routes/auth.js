@@ -167,39 +167,20 @@ router.get('/users', authenticateToken, async (req, res) => {
 // Update personal information (including greeting fields)
 router.put('/updatePersonal', authenticateToken, async (req, res) => {
   try {
-    const {
-      name,
-      lastName,
-      phone,
-      dob,
-      gender,
-      address,
-      nationality,
-      university,
-      yearOfStudy,
-      course,
-      degree,
-    } = req.body;
-
-    const updateData = {
-      name,
-      lastName,
-      phone,
-      dob,
-      gender,
-      address,
-      nationality,
-      university,
-      yearOfStudy,
-      course,
-      degree,
-    };
+    // Build an update object with only the defined fields from the request
+    const updateData = {};
+    Object.keys(req.body).forEach((key) => {
+      // If the value is not undefined, update it.
+      if (req.body[key] !== undefined) {
+        updateData[key] = req.body[key];
+      }
+    });
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
-      updateData,
+      { $set: updateData },
       { new: true }
-    ).select('-password');
+    ).select('-password'); // Exclude the password field
 
     if (!updatedUser) {
       return res.status(404).json({ message: 'User not found' });
