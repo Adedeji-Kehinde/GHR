@@ -83,7 +83,7 @@ const Footer = () => {
         <div style={leftSectionStyle}>
           <button
             style={contactButtonStyle}
-            onClick={() => navigate("/contact")}
+            onClick={() => navigate("/contact-us")}
           >
             Contact Us
           </button>

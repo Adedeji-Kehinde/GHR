@@ -1,3 +1,4 @@
+// AdminTabs.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -23,12 +24,12 @@ const containerStyle = {
   paddingTop: "1rem",
 };
 
-// Define image constants from the "images" folder
 const dashboardIcon = "/images/dashboard.png";
 const maintenanceIcon = "/images/maintenance.png";
 const enquiriesIcon = "/images/enquiries.png";
 const deliveriesIcon = "/images/deliveries.png";
 const bookingsIcon = "/images/bookings.png";
+const contactIcon = "/images/contact.png"; // New icon for Contact Us
 
 const AdminTabs = () => {
   const navigate = useNavigate();
@@ -48,6 +49,9 @@ const AdminTabs = () => {
       </div>
       <div style={tabStyle} onClick={() => navigate("/booking-management")}>
         <img src={bookingsIcon} alt="Bookings" style={{ height: "40px" }} title="Bookings" />
+      </div>
+      <div style={tabStyle} onClick={() => navigate("/contactus-management")}>
+        <img src={contactIcon} alt="Contact Us" style={{ height: "40px" }} title="Contact Us" />
       </div>
     </div>
   );

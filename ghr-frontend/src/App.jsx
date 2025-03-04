@@ -9,6 +9,9 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import CancellationPolicy from "./pages/CancellationPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import FAQs from "./pages/FAQs";
+import ContactUs from "./pages/ContactUs";
+import ContactUsManagement from "./admin/ContactUsManagement";
+import ContactUsDetails from "./admin/ContactUsDetails";
 import Booking from "./pages/Booking";
 import SelectBed from "./pages/SelectBed";
 import AdminDashboard from "./admin/AdminDashboard";
@@ -45,6 +48,9 @@ function App() {
         <Route path="/cancellation-policy" element={<CancellationPolicy />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="/faqs" element={<FAQs />} />
+        <Route path="/contact-us" element={<ContactUs />} />
+        <Route path="/contactus-management" element={<ContactUsManagement />} />
+        <Route path="/contactus-details" element={<ContactUsDetails />} />
         <Route path="/booking" element={<Booking />} />
         <Route path="/selectBed" element={<SelectBed />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />

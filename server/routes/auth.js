@@ -2,6 +2,7 @@ const express = require('express');
 const User = require('../models/User');
 const Delivery = require('../models/deliveries');
 const Enquiry = require('../models/enquiries');
+const ContactUs = require("../models/contactus");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const authenticateToken = require('../middleware/authMiddleware.js');
@@ -10,6 +11,7 @@ const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 const upload = multer({ storage: multer.memoryStorage() });
 const router = express.Router();
+const nodemailer = require('nodemailer');
 
 router.post("/register", upload.single("image"), async (req, res) => {
     try {
@@ -415,5 +417,128 @@ router.put('/enquiries/:id', authenticateToken, async (req, res) => {
     }
   });
   
+
+  // GET all Contact Us submissions
+router.get("/contactus", async (req, res) => {
+  try {
+    const submissions = await ContactUs.find();
+    res.status(200).json(submissions);
+  } catch (error) {
+    console.error("Error fetching submissions:", error);
+    res.status(500).json({ message: "Server error while fetching submissions." });
+  }
+});
+
+router.post('/contactus', async (req, res) => {
+  try {
+    const { firstName, lastName, email, phone, message } = req.body;
+    // Create and save the new submission
+    const newSubmission = new ContactUs({ firstName, lastName, email, phone, message });
+    await newSubmission.save();
+
+    // Set up nodemailer transporter using SendGrid SMTP
+    let transporter = nodemailer.createTransport({
+      host: 'smtp.sendgrid.net',
+      port: 587,
+      secure: false, // TLS
+      auth: {
+        user: 'apikey', // This literal string "apikey" must be used for SendGrid
+        pass: process.env.SENDGRID_API_KEY, // Your SendGrid API key
+      },
+    });
+
+    // Use your single verified sender email
+    const verifiedSender = 'adedejikehinde2004@gmail.com';
+
+    // Define email options for the admin
+    const mailOptionsAdmin = {
+      from: `"Griffith Halls Contact Us" <${verifiedSender}>`, // Use verified sender email
+      to: 'adedejikehinde2004@gmail.com',
+      subject: 'New Contact Us Submission',
+      text: `You have a new submission from ${firstName} ${lastName}.
+      
+Email: ${email}
+Phone: ${phone}
+
+Message:
+${message}`,
+    };
+
+    // Define email options for the user
+    const mailOptionsUser = {
+      from: `"GHR Contact Us" <${verifiedSender}>`, // Use verified sender email
+      to: email,
+      subject: 'Thank you for contacting us',
+      text: `Hi ${firstName},
+
+Thank you for reaching out to us. We have received your message:
+
+"${message}"
+
+We will get back to you soon.
+
+Best regards,
+Your Team`,
+    };
+
+    // Send both emails in parallel
+    const [adminInfo, userInfo] = await Promise.all([
+      transporter.sendMail(mailOptionsAdmin),
+      transporter.sendMail(mailOptionsUser),
+    ]);
+
+    console.log("Admin email sent: %s", adminInfo.messageId);
+    console.log("User email sent: %s", userInfo.messageId);
+
+    res.status(201).json(newSubmission);
+  } catch (error) {
+    console.error("Error saving submission or sending emails:", error);
+    res.status(500).json({ message: "Server error while saving submission and sending emails." });
+  }
+});
+
+// DELETE a Contact Us submission by ID
+router.delete("/contactus/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedSubmission = await ContactUs.findByIdAndDelete(id);
+    if (!deletedSubmission) {
+      return res.status(404).json({ message: "Submission not found." });
+    }
+    res.status(200).json({ message: "Submission deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting submission:", error);
+    res.status(500).json({ message: "Server error while deleting submission." });
+  }
+});
+
+// PUT route to update a Contact Us submission
+router.put('/contactus/:id', async (req, res) => {
+  try {
+    const { status, actionTaken } = req.body;
+    // Build update payload
+    const updateData = { status, actionTaken };
+
+    // If status is changed to completed, set completedAt if not already set
+    if (status.toLowerCase() === "completed") {
+      updateData.completedAt = Date.now();
+    }
+
+    const updatedSubmission = await ContactUs.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    );
+
+    if (!updatedSubmission) {
+      return res.status(404).json({ message: "Submission not found." });
+    }
+
+    res.status(200).json(updatedSubmission);
+  } catch (error) {
+    console.error("Error updating submission:", error);
+    res.status(500).json({ message: "Server error while updating submission." });
+  }
+});
 
 module.exports = router;
