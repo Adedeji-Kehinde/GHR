@@ -231,14 +231,13 @@ const MaintenanceManagement = () => {
         <table border="1" cellPadding="10" cellSpacing="0" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
-              <th>
-                <label style={{ cursor: 'pointer' }}>
-                  <th 
-                    onClick={toggleSelectAll}
-                    checked={sortedMaintenance.length > 0 && sortedMaintenance.every(request => selectedMaintenanceIds.includes(request._id))}
-                    readOnly
-                  />
-                </label>
+              <th 
+                style={{ cursor: 'pointer' }}
+                onClick={toggleSelectAll}
+                checked={sortedMaintenance.length > 0 && sortedMaintenance.every(request => selectedMaintenanceIds.includes(request._id))}
+                readOnly
+              >
+                Select All
               </th>
               <th onClick={() => handleSort("requestId")} style={{ cursor: 'pointer' }}>Request ID</th>
               <th onClick={() => handleSort("roomNumber")} style={{ cursor: 'pointer' }}>Room Number</th>

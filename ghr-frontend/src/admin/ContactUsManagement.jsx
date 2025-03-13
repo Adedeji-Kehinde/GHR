@@ -211,17 +211,16 @@ const ContactUsManagement = () => {
         <table border="1" cellPadding="10" cellSpacing="0" style={{ width: "100%", textAlign: "left", borderCollapse: "collapse" }}>
           <thead>
             <tr>
-            <th>
-                <label style={{ cursor: 'pointer' }}>
-                  <th
-                    onClick={toggleSelectAll}
-                    checked={
-                      sortedSubmissions.length > 0 &&
-                      sortedSubmissions.every((s) => selectedSubmissions.includes(s._id))
-                    }
-                    readOnly
-                  />
-                </label>
+              <th
+                onClick={toggleSelectAll}
+                checked={
+                  sortedSubmissions.length > 0 &&
+                  sortedSubmissions.every((s) => selectedSubmissions.includes(s._id))
+                }
+                style={{ cursor: 'pointer' }}
+                readOnly
+              >
+                Select All
               </th>
               <th onClick={() => handleSort("contactName")} style={{ cursor: "pointer" }}>Contact Name</th>
               <th onClick={() => handleSort("email")} style={{ cursor: "pointer" }}>Email</th>

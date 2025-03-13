@@ -257,18 +257,16 @@ const EnquiryManagement = () => {
         >
           <thead>
             <tr>
-              {/* Header radio for "Select All" */}
-              <th>
-                <label style={{ cursor: 'pointer' }}>
-                  <th
-                    onClick={toggleSelectAll}
-                    checked={
-                      sortedEnquiries.length > 0 &&
-                      sortedEnquiries.every((e) => selectedEnquiries.includes(e._id))
-                    }
-                    readOnly
-                  />
-                </label>
+              <th
+              style={{ cursor: 'pointer' }}
+                onClick={toggleSelectAll}
+                checked={
+                  sortedEnquiries.length > 0 &&
+                  sortedEnquiries.every((e) => selectedEnquiries.includes(e._id))
+                }
+                readOnly
+              >
+                Select All
               </th>
               <th onClick={() => handleSort("requestId")} style={{ cursor: 'pointer' }}>Request ID</th>
               <th onClick={() => handleSort("roomNumber")} style={{ cursor: 'pointer' }}>Room Number</th>

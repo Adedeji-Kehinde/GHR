@@ -4,6 +4,8 @@ import Register from "./pages/Register";
 import UserProfilePage from "./pages/UserProfilePage";
 import Home from "./pages/Home";
 import AboutUs from "./pages/AboutUs";
+import TestimonialPage from "./pages/TestimonialPage";
+import TestimonialsManagement from "./admin/TestimonialManagement";
 import LifeAtGHR from "./pages/LifeAtGHR";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import CancellationPolicy from "./pages/CancellationPolicy";
@@ -35,7 +37,6 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Default route now points to MainPage */}
         <Route path="/" element={<MainPage />} />
 
         <Route path="/login" element={<Login />} />
@@ -43,6 +44,8 @@ function App() {
         <Route path="/user-profile" element={<UserProfilePage />} />
         <Route path="/home" element={<Home />} />
         <Route path="/about" element={<AboutUs />} />
+        <Route path="/testimonials" element={<TestimonialPage />} />
+        <Route path="/testimonials-management" element={<TestimonialsManagement />} />
         <Route path="/life-ghr" element={<LifeAtGHR />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/cancellation-policy" element={<CancellationPolicy />} />

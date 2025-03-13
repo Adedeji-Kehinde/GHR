@@ -241,6 +241,9 @@ const UserHeader = ({ user, hideBookRoom }) => {
               <span style={navItemStyle} onClick={() => navigate("/life-ghr")}>
                 Life@GHR
               </span>
+              <span style={navItemStyle} onClick={() => navigate("/testimonials")}>
+                Testimonials
+              </span>
               <div ref={learnMoreDropdownRef} style={{ position: "relative" }}>
                 <span
                   style={navItemStyle}

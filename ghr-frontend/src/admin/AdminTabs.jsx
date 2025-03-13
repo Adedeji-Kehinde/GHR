@@ -1,4 +1,3 @@
-// AdminTabs.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -29,7 +28,8 @@ const maintenanceIcon = "/images/maintenance.png";
 const enquiriesIcon = "/images/enquiries.png";
 const deliveriesIcon = "/images/deliveries.png";
 const bookingsIcon = "/images/bookings.png";
-const contactIcon = "/images/contact.png"; // New icon for Contact Us
+const contactIcon = "/images/contact.png";
+const testimonialsIcon = "/images/testimonials.png"; // New icon for Testimonials Management
 
 const AdminTabs = () => {
   const navigate = useNavigate();
@@ -52,6 +52,9 @@ const AdminTabs = () => {
       </div>
       <div style={tabStyle} onClick={() => navigate("/contactus-management")}>
         <img src={contactIcon} alt="Contact Us" style={{ height: "40px" }} title="Contact Us" />
+      </div>
+      <div style={tabStyle} onClick={() => navigate("/testimonials-management")}>
+        <img src={testimonialsIcon} alt="Testimonials" style={{ height: "40px" }} title="Testimonials" />
       </div>
     </div>
   );

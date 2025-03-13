@@ -232,15 +232,13 @@ const DeliveryManagement = () => {
         <table border="1" cellPadding="10" cellSpacing="0" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
-              <th>
-                <label style={{ cursor: 'pointer' }}>
-                  <th 
-                    // No 'name' attribute so it won’t be grouped with row radios
-                    onClick={handleSelectAll}
-                    checked={sortedDeliveries.length > 0 && selectedDeliveryIds.length === sortedDeliveries.length}
-                    readOnly
-                  />
-                </label>
+              <th
+                style={{ cursor: 'pointer' }}
+                onClick={handleSelectAll}
+                checked={sortedDeliveries.length > 0 && selectedDeliveryIds.length === sortedDeliveries.length}
+                readOnly
+                >
+                  Select All
               </th>
               <th onClick={() => handleSort("parcelNumber")} style={{cursor: 'pointer'}}>Parcel Number</th>
               <th onClick={() => handleSort("sender")} style={{cursor: 'pointer'}}>Sender</th>

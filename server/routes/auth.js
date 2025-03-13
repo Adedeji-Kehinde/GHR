@@ -3,6 +3,7 @@ const User = require('../models/User');
 const Delivery = require('../models/deliveries');
 const Enquiry = require('../models/enquiries');
 const ContactUs = require("../models/contactus");
+const Testimonial = require("../models/testimonials");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const authenticateToken = require('../middleware/authMiddleware.js');
@@ -540,5 +541,73 @@ router.put('/contactus/:id', async (req, res) => {
     res.status(500).json({ message: "Server error while updating submission." });
   }
 });
+
+// POST /api/auth/testimonials
+// Creates a new testimonial from the request body
+router.post("/testimonials", async (req, res) => {
+  try {
+    const { name, message, rating } = req.body;
+    if (!name || !message || !rating) {
+      return res.status(400).json({ error: "Please provide name, message, and rating." });
+    }
+    const testimonial = new Testimonial({ name, message, rating });
+    await testimonial.save();
+    res.status(201).json(testimonial);
+  } catch (error) {
+    console.error("Error creating testimonial:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// GET /api/auth/testimonials
+// Returns all testimonials (optionally, you might filter only approved ones)
+router.get("/testimonials", async (req, res) => {
+  try {
+    // To only return approved testimonials, you can use:
+    // const testimonials = await Testimonial.find({ approved: true }).sort({ date: -1 });
+    const testimonials = await Testimonial.find().sort({ date: -1 });
+    res.json(testimonials);
+  } catch (error) {
+    console.error("Error fetching testimonials:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// DELETE /api/auth/testimonials/:id
+// Deletes a testimonial based on its id. Typically, this route should be protected.
+router.delete("/testimonials/:id", async (req, res) => {
+  try {
+    const testimonial = await Testimonial.findById(req.params.id);
+    if (!testimonial) {
+      return res.status(404).json({ error: "Testimonial not found" });
+    }
+    await testimonial.remove();
+    res.json({ message: "Testimonial deleted" });
+  } catch (error) {
+    console.error("Error deleting testimonial:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// PUT /api/auth/testimonials/:id
+router.put("/testimonials/:id", async (req, res) => {
+  try {
+    const { approved } = req.body;
+    if (approved === undefined) {
+      return res.status(400).json({ error: "Approved field is required" });
+    }
+    const testimonial = await Testimonial.findById(req.params.id);
+    if (!testimonial) {
+      return res.status(404).json({ error: "Testimonial not found" });
+    }
+    testimonial.approved = approved;
+    await testimonial.save();
+    res.json({ message: "Testimonial approval status updated", testimonial });
+  } catch (error) {
+    console.error("Error updating testimonial:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 
 module.exports = router;

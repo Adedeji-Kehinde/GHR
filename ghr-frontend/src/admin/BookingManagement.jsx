@@ -316,17 +316,16 @@ const BookingManagement = () => {
             >
               <thead>
                 <tr>
-                  <th>
-                    <label style={{ cursor: 'pointer' }}>
-                      <th
-                        onClick={toggleSelectAll}
-                        checked={
-                          sortedBookings.length > 0 &&
-                          sortedBookings.every((b) => selectedBookings.includes(b._id))
-                        }
-                        readOnly
-                      />
-                    </label>
+                  <th
+                    style={{ cursor: "pointer" }}
+                    onClick={toggleSelectAll}
+                    checked={
+                      sortedBookings.length > 0 &&
+                      sortedBookings.every((b) => selectedBookings.includes(b._id))
+                    }
+                    readOnly
+                  >
+                    Select All
                   </th>
                   <th onClick={() => handleSort("userName")} style={{ cursor: "pointer" }}>Occupant Name</th>
                   <th onClick={() => handleSort("userRoom")} style={{ cursor: "pointer" }}>Room Number</th>
