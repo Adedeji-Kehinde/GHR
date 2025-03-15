@@ -94,6 +94,29 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+// Update FCM token for a user
+router.put('/updateToken', authenticateToken, async (req, res) => {
+  try {
+    const { fcmToken } = req.body;
+    if (!fcmToken) {
+      return res.status(400).json({ message: "FCM token is required" });
+    }
+    // Update the user's fcmToken field
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      { fcmToken },
+      { new: true }
+    ).select('-password'); // Exclude the password field
+
+    res.status(200).json({
+      message: "FCM token updated successfully",
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error("Error updating FCM token:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
 
 router.put("/update-image", authenticateToken, upload.single("image"), async (req, res) => {
     try {

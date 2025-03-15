@@ -36,6 +36,7 @@ const UserSchema = new mongoose.Schema({
   emergencyContacts: { type: [EmergencyContactSchema], default: [] },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   createdAt: { type: Date, default: Date.now },
+  fcmToken: { type: String, default: "" }
 });
 
 UserSchema.methods.comparePassword = async function(candidatePassword) {
