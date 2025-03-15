@@ -5,3 +5,4 @@ dist/
 coverage/
 *.log
 .DS_Store
+ghr-sdp-firebase-adminsdk-fbsvc-a21b2baa2d.json
