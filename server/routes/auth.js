@@ -13,6 +13,7 @@ const fs = require('fs');
 const upload = multer({ storage: multer.memoryStorage() });
 const router = express.Router();
 const nodemailer = require('nodemailer');
+const admin = require('../utils/notificationService');
 
 router.post("/register", upload.single("image"), async (req, res) => {
     try {
@@ -331,6 +332,27 @@ router.put('/deliveries/:id', authenticateToken, async (req, res) => {
         return res.status(404).json({ message: 'Delivery not found' });
       }
   
+      // Send a push notification to the user
+      // (Make sure to retrieve the user's FCM token from your user model)
+      const user = await User.findOne({ roomNumber: updatedDelivery.roomNumber });
+      if (user && user.fcmToken) {
+        const message = {
+          notification: {
+            title: "Delivery Updated",
+            body: `Your delivery ${updatedDelivery.parcelNumber} status is now ${updatedDelivery.status}.`,
+          },
+          token: user.fcmToken,
+        };
+
+        admin.messaging().send(message)
+          .then(response => {
+            console.log("Notification sent successfully:", response);
+          })
+          .catch(error => {
+            console.error("Error sending notification:", error);
+          });
+      }
+
       return res.json({ message: 'Delivery updated successfully', delivery: updatedDelivery });
     } catch (error) {
       console.error('Delivery update error:', error);
