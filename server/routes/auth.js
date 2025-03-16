@@ -351,6 +351,8 @@ router.put('/deliveries/:id', authenticateToken, async (req, res) => {
           .catch(error => {
             console.error("Error sending notification:", error);
           });
+      }else {
+        console.log("User does not have an FCM token registered.");
       }
 
       return res.json({ message: 'Delivery updated successfully', delivery: updatedDelivery });
