@@ -469,7 +469,7 @@ router.put('/enquiries/:id', authenticateToken, async (req, res) => {
       const notificationMessage = {
         notification: {
           title: "Enquiry Update",
-          body: `Your enquiry (ID: ${updatedEnquiry.requestId}) has been updated to ${updatedEnquiry.status}.`,
+          body: `Your enquiry has been updated to ${updatedEnquiry.status}.`,
         },
         token: user.fcmToken,
       };
