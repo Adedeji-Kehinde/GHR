@@ -284,6 +284,26 @@ router.post('/deliveries', authenticateToken, async (req, res) => {
         });
 
         await newDelivery.save();
+        const user = await User.findOne({ roomNumber });
+        if (user && user.fcmToken) {
+          const message = {
+            notification: {
+              title: "New Delivery Arrived",
+              body: `Your parcel ${newDelivery.parcelNumber} is ready for collection.`,
+            },
+            token: user.fcmToken
+          };
+
+          admin.messaging().send(message)
+            .then(response => {
+              console.log("Push notification sent successfully:", response);
+            })
+            .catch(error => {
+              console.error("Error sending push notification:", error);
+            });
+        } else {
+          console.log("User does not have an FCM token registered.");
+        }
         res.status(201).json({ message: 'Parcel added successfully', delivery: newDelivery });
     } catch (error) {
         console.error('Parcel creation error:', error);
