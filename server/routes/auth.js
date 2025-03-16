@@ -463,6 +463,29 @@ router.put('/enquiries/:id', authenticateToken, async (req, res) => {
       if (!updatedEnquiry) {
         return res.status(404).json({ message: 'Enquiry not found' });
       }
+      const user = await User.findOne({ roomNumber: updatedEnquiry.roomNumber });
+      if (user && user.fcmToken) {
+        // Construct the notification message
+        const notificationMessage = {
+          notification: {
+            title: "Enquiry Update",
+            body: `Your enquiry (ID: ${updatedEnquiry.requestId}) has been updated to ${updatedEnquiry.status}.`,
+          },
+          token: user.fcmToken,
+        };
+  
+        // Send push notification using Firebase Admin SDK
+        admin.messaging().send(notificationMessage)
+          .then(response => {
+            console.log("Enquiry update notification sent successfully:", response);
+          })
+          .catch(error => {
+            console.error("Error sending enquiry update notification:", error);
+          });
+      } else {
+        console.log("User does not have an FCM token registered.");
+      }
+      
       res.json({ message: 'Enquiry updated successfully', enquiry: updatedEnquiry });
     } catch (error) {
       console.error('Error updating enquiry:', error);
