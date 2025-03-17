@@ -3,7 +3,7 @@ const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const authenticateToken = require("../middleware/authMiddleware");
 const Maintenance = require("../models/maintenance");
-const admin = require('../utils/notificationService');
+
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() }); // Store in memory before Cloudinary upload
 
@@ -80,68 +80,45 @@ router.get("/", authenticateToken, async (req, res) => {
     }
 });
 
+// PUT: Update a maintenance request
 router.put('/:id', authenticateToken, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { category, description, roomAccess, status } = req.body;
-
-    // Validate category, roomAccess, and status against allowed values
-    const validCategories = ["Appliances", "Cleaning", "Plumbing & Leaking", "Heating", "Lighting", "Windows & Doors", "Furniture & Fitting", "Flooring", "Other"];
-    if (!validCategories.includes(category)) {
-      return res.status(400).json({ message: "Invalid maintenance category" });
+    try {
+      const { id } = req.params;
+      const { category, description, roomAccess, status } = req.body;
+  
+      // Validate category, roomAccess, and status against allowed values
+      const validCategories = ["Appliances", "Cleaning", "Plumbing & Leaking", "Heating", "Lighting", "Windows & Doors", "Furniture & Fitting", "Flooring", "Other"];
+      if (!validCategories.includes(category)) {
+        return res.status(400).json({ message: "Invalid maintenance category" });
+      }
+  
+      const validRoomAccess = ["Yes", "No"];
+      if (!validRoomAccess.includes(roomAccess)) {
+        return res.status(400).json({ message: "Invalid room access value" });
+      }
+  
+      const validStatuses = ["In Process", "Completed"];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+  
+      const updateFields = { category, description, roomAccess, status };
+      if (status === "Completed") {
+        updateFields.completedAt = new Date();
+      } else {
+        updateFields.completedAt = null;
+      }
+  
+      const updatedMaintenance = await Maintenance.findByIdAndUpdate(id, updateFields, { new: true });
+      if (!updatedMaintenance) {
+        return res.status(404).json({ message: "Maintenance request not found" });
+      }
+      res.json({ message: "Maintenance request updated successfully", maintenance: updatedMaintenance });
+    } catch (error) {
+      console.error("Error updating maintenance request:", error);
+      res.status(500).json({ message: "Server error", error: error.message });
     }
-
-    const validRoomAccess = ["Yes", "No"];
-    if (!validRoomAccess.includes(roomAccess)) {
-      return res.status(400).json({ message: "Invalid room access value" });
-    }
-
-    const validStatuses = ["In Process", "Completed"];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({ message: "Invalid status" });
-    }
-
-    const updateFields = { category, description, roomAccess, status };
-    if (status === "Completed") {
-      updateFields.completedAt = new Date();
-    } else {
-      updateFields.completedAt = null;
-    }
-
-    const updatedMaintenance = await Maintenance.findByIdAndUpdate(id, updateFields, { new: true });
-    if (!updatedMaintenance) {
-      return res.status(404).json({ message: "Maintenance request not found" });
-    }
-
-    // After updating, attempt to send a push notification to the user.
-    // Find the user associated with this maintenance request by roomNumber.
-    const user = await User.findOne({ roomNumber: updatedMaintenance.roomNumber });
-    if (user && user.fcmToken) {
-      const notificationMessage = {
-        notification: {
-          title: "Maintenance Request Update",
-          body: `Your maintenance request has been updated to  ${updatedMaintenance.status}.`,
-        },
-        token: user.fcmToken
-      };
-
-      admin.messaging().send(notificationMessage)
-        .then(response => {
-          console.log("Maintenance update notification sent successfully:", response);
-        })
-        .catch(error => {
-          console.error("Error sending maintenance update notification:", error);
-        });
-    } else {
-      console.log("User does not have an FCM token registered.");
-    }
-
-    res.json({ message: "Maintenance request updated successfully", maintenance: updatedMaintenance });
-  } catch (error) {
-    console.error("Error updating maintenance request:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-});
+  });
   
   // DELETE: Delete a maintenance request
   router.delete('/:id', authenticateToken, async (req, res) => {
