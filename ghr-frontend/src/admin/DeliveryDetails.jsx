@@ -41,9 +41,12 @@ const DeliveryDetails = ({ delivery: initialDelivery, onClose, onUpdateDeleted }
       const res = await axios.put(`${API_URL}/api/auth/deliveries/${delivery._id}`, updatedDelivery, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      // Update both states to ensure the new status and other fields are reflected.
       setDelivery(res.data);
+      setUpdatedDelivery(res.data);
       setEditMode(false);
       if (onUpdateDeleted) onUpdateDeleted();
+      onClose(); // Close the modal after successful update
     } catch (err) {
       console.error("Error updating delivery:", err.response || err);
       alert("Error updating delivery");
@@ -84,21 +87,29 @@ const DeliveryDetails = ({ delivery: initialDelivery, onClose, onUpdateDeleted }
   };
 
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-      backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
-      justifyContent: 'center', alignItems: 'center', zIndex: 1000
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '1rem',
-        borderRadius: '8px',
-        position: 'relative',
-        maxWidth: '500px',
-        width: '90%',
-        maxHeight: '90vh',
-        overflowY: 'auto'
-      }}>
+    // Outer container: clicking here closes the modal.
+    <div 
+      onClick={onClose}
+      style={{
+        position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+        backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
+        justifyContent: 'center', alignItems: 'center', zIndex: 1000
+      }}
+    >
+      {/* Inner container: stop propagation so clicks inside don't close the modal */}
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          backgroundColor: 'white',
+          padding: '1rem',
+          borderRadius: '8px',
+          position: 'relative',
+          maxWidth: '500px',
+          width: '90%',
+          maxHeight: '90vh',
+          overflowY: 'auto'
+        }}
+      >
         {/* Header: Left section contains title and (in non‑edit mode) a small edit icon;
             Right section shows either delete/exit (non‑edit mode) or cancel/save (edit mode) */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
