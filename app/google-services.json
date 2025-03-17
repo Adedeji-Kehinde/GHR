@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1068212307465",
+    "project_id": "ghr-sdp",
+    "storage_bucket": "ghr-sdp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1068212307465:android:8f13bacbdca66c33c49ad8",
+        "android_client_info": {
+          "package_name": "com.griffith.ghr"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBA8__kpRiWeGziHsCDerHbirZaBOusrKE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

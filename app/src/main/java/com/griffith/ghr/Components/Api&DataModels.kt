@@ -8,6 +8,7 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Part
 
 // ------------------------- API INTERFACE -------------------------
@@ -28,6 +29,13 @@ interface UserProfileApi {
     suspend fun getUserProfile(@Header("Authorization") token: String): UserProfile
 }
 
+interface UpdateTokenApi {
+    @PUT("api/auth/updateToken")
+    suspend fun updateToken(
+        @Header("Authorization") token: String,
+        @Body tokenData: Map<String, String>
+    ): UpdateTokenResponse
+}
 /**
  * Delivery API interface for fetching user deliveries.
  */
@@ -107,9 +115,13 @@ data class UserProfile(
     val email: String,
     val phone: String? = null,
     val roomNumber: String,
-    val profileImageUrl: String?
+    val profileImageUrl: String?,
+    val fcmToken: String?
 )
-
+data class UpdateTokenResponse(
+    val message: String,
+    val user: UserProfile
+)
 /**
  * Data class representing a delivery item.
  */

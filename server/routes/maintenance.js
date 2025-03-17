@@ -112,7 +112,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
       const notificationMessage = {
         notification: {
           title: "Maintenance Request Update",
-          body: `Your maintenance request ${updatedMaintenance.requestId || ""} is now ${updatedMaintenance.status}.`,
+          body: `Your maintenance request is now ${updatedMaintenance.status}.`,
         },
         token: user.fcmToken,
       };
