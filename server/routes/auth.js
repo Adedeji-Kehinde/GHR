@@ -16,55 +16,85 @@ const nodemailer = require('nodemailer');
 const admin = require('../utils/notificationService');
 
 router.post("/register", upload.single("image"), async (req, res) => {
-    try {
-        const { email, password, name, lastName, roomNumber, gender, phone, role } = req.body;
+  try {
+    const { email, password, name, lastName, roomNumber, gender, phone, role } = req.body;
 
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ error: "Email already in use" });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        let profileImageUrl = "https://res.cloudinary.com/dxlrv28eb/user_photos/default_Image.png";
-
-        if (req.file) {
-            try {
-                const result = await new Promise((resolve, reject) => {
-                    cloudinary.uploader.upload_stream(
-                        { folder: "user_profiles", resource_type: "image" },
-                        (error, result) => (error ? reject(error) : resolve(result))
-                    ).end(req.file.buffer);
-                });
-
-                profileImageUrl = result.secure_url;
-            } catch (uploadError) {
-                console.error("Cloudinary Upload Error:", uploadError);
-            }
-        }
-
-        const newUser = new User({
-            email,
-            password: hashedPassword,
-            name,
-            lastName,
-            roomNumber,
-            gender,
-            phone,
-            profileImageUrl,
-            role
-        });
-
-        await newUser.save();
-
-        const { password: _, ...userData } = newUser.toObject();
-
-        res.status(201).json({ message: "User registered successfully", user: userData });
-    } catch (error) {
-        console.error("Registration Error:", error);
-        res.status(500).json({ error: "Registration failed", details: error.message });
+    // If role is admin, ensure an authenticated admin is creating the account.
+    if (role === "admin") {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        return res.status(403).json({ error: "Only an authenticated admin can create an admin account" });
+      }
+      // Extract the token from the header (assuming Bearer token format)
+      const token = authHeader.split(" ")[1];
+      let adminPayload;
+      try {
+        adminPayload = jwt.verify(token, process.env.JWT_SECRET);
+      } catch (err) {
+        return res.status(403).json({ error: "Invalid or expired token" });
+      }
+      // Verify that the user creating the account is an admin.
+      const creator = await User.findById(adminPayload.id);
+      if (!creator || creator.role !== "admin") {
+        return res.status(403).json({ error: "Only admins can create admin accounts" });
+      }
     }
+
+    // Check if the email is already in use.
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: "Email already in use" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    let profileImageUrl = "https://res.cloudinary.com/dxlrv28eb/user_photos/default_Image.png";
+
+    if (req.file) {
+      try {
+        const result = await new Promise((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            { folder: "user_profiles", resource_type: "image" },
+            (error, result) => (error ? reject(error) : resolve(result))
+          ).end(req.file.buffer);
+        });
+        profileImageUrl = result.secure_url;
+      } catch (uploadError) {
+        console.error("Cloudinary Upload Error:", uploadError);
+      }
+    }
+
+    // Set the createdBy field: for admin accounts, record who created it; for others, leave null.
+    let createdBy = null;
+    if (role === "admin") {
+      // At this point, we have verified the requester is an admin.
+      const adminUser = await User.findById(jwt.decode(req.headers.authorization.split(" ")[1]).id);
+      createdBy = adminUser ? `${adminUser.name} ${adminUser.lastName}` : null;
+    }
+
+    const newUser = new User({
+      email,
+      password: hashedPassword,
+      name,
+      lastName,
+      roomNumber,
+      gender,
+      phone,
+      profileImageUrl,
+      role,
+      createdBy
+    });
+
+    await newUser.save();
+
+    const { password: _, ...userData } = newUser.toObject();
+    res.status(201).json({ message: "User registered successfully", user: userData });
+  } catch (error) {
+    console.error("Registration Error:", error);
+    res.status(500).json({ error: "Registration failed", details: error.message });
+  }
 });
+
 
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;

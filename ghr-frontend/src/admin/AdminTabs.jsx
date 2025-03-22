@@ -29,7 +29,8 @@ const enquiriesIcon = "/images/enquiries.png";
 const deliveriesIcon = "/images/deliveries.png";
 const bookingsIcon = "/images/bookings.png";
 const contactIcon = "/images/contact.png";
-const testimonialsIcon = "/images/testimonials.png"; // New icon for Testimonials Management
+const testimonialsIcon = "/images/testimonials.png";
+const createAdminIcon = "/images/create-admin.png";
 
 const AdminTabs = () => {
   const navigate = useNavigate();
@@ -55,6 +56,9 @@ const AdminTabs = () => {
       </div>
       <div style={tabStyle} onClick={() => navigate("/testimonials-management")}>
         <img src={testimonialsIcon} alt="Testimonials" style={{ height: "40px" }} title="Testimonials" />
+      </div>
+      <div style={tabStyle} onClick={() => navigate("/create-admin")}>
+        <img src={createAdminIcon} alt="Create Admin" style={{ height: "40px" }} title="Create Admin" />
       </div>
     </div>
   );

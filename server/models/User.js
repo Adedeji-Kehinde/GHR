@@ -32,11 +32,11 @@ const UserSchema = new mongoose.Schema({
   address: { type: String, default: "" },
   gender: { type: String, enum: ['Male', 'Female', 'Other'], default: 'Male' },
   nationality: { type: String, default: "" },
-  // Update emergencyContacts to be an array of the new EmergencyContactSchema.
   emergencyContacts: { type: [EmergencyContactSchema], default: [] },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   createdAt: { type: Date, default: Date.now },
-  fcmToken: { type: String, default: "" }
+  fcmToken: { type: String, default: "" },
+  createdBy: { type: String, default: null }
 });
 
 UserSchema.methods.comparePassword = async function(candidatePassword) {

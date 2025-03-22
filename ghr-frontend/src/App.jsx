@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import CreateAdmin from "./admin/CreateAdmin";
 import UserProfilePage from "./pages/UserProfilePage";
 import Home from "./pages/Home";
 import AboutUs from "./pages/AboutUs";
@@ -41,6 +42,7 @@ function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/create-admin" element={<CreateAdmin />} />
         <Route path="/user-profile" element={<UserProfilePage />} />
         <Route path="/home" element={<Home />} />
         <Route path="/about" element={<AboutUs />} />
