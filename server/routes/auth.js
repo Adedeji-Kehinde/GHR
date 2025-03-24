@@ -15,116 +15,76 @@ const router = express.Router();
 const nodemailer = require('nodemailer');
 const admin = require('../utils/notificationService');
 
-router.post("/register", upload.single("image"), async (req, res) => {
+router.post("/firebase-register", async (req, res) => {
+  const { idToken, name, lastName, gender, phone } = req.body;
+
   try {
-    const { email, password, name, lastName, roomNumber, gender, phone, role } = req.body;
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    const { email, uid } = decoded;
 
-    // If role is admin, ensure an authenticated admin is creating the account.
-    if (role === "admin") {
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-        return res.status(403).json({ error: "Only an authenticated admin can create an admin account" });
-      }
-      // Extract the token from the header (assuming Bearer token format)
-      const token = authHeader.split(" ")[1];
-      let adminPayload;
-      try {
-        adminPayload = jwt.verify(token, process.env.JWT_SECRET);
-      } catch (err) {
-        return res.status(403).json({ error: "Invalid or expired token" });
-      }
-      // Verify that the user creating the account is an admin.
-      const creator = await User.findById(adminPayload.id);
-      if (!creator || creator.role !== "admin") {
-        return res.status(403).json({ error: "Only admins can create admin accounts" });
-      }
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = new User({
+        email,
+        name,
+        lastName,
+        gender,
+        phone,
+        password: uid // Not used
+      });
+      await user.save();
     }
 
-    // Check if the email is already in use.
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ error: "Email already in use" });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    let profileImageUrl = "https://res.cloudinary.com/dxlrv28eb/user_photos/default_Image.png";
-
-    if (req.file) {
-      try {
-        const result = await new Promise((resolve, reject) => {
-          cloudinary.uploader.upload_stream(
-            { folder: "user_profiles", resource_type: "image" },
-            (error, result) => (error ? reject(error) : resolve(result))
-          ).end(req.file.buffer);
-        });
-        profileImageUrl = result.secure_url;
-      } catch (uploadError) {
-        console.error("Cloudinary Upload Error:", uploadError);
-      }
-    }
-
-    // Set the createdBy field: for admin accounts, record who created it; for others, leave null.
-    let createdBy = null;
-    if (role === "admin") {
-      // At this point, we have verified the requester is an admin.
-      const adminUser = await User.findById(jwt.decode(req.headers.authorization.split(" ")[1]).id);
-      createdBy = adminUser ? `${adminUser.name} ${adminUser.lastName}` : null;
-    }
-
-    const newUser = new User({
-      email,
-      password: hashedPassword,
-      name,
-      lastName,
-      roomNumber,
-      gender,
-      phone,
-      profileImageUrl,
-      role,
-      createdBy
+    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, {
+      expiresIn: "7d"
     });
 
-    await newUser.save();
-
-    const { password: _, ...userData } = newUser.toObject();
-    res.status(201).json({ message: "User registered successfully", user: userData });
-  } catch (error) {
-    console.error("Registration Error:", error);
-    res.status(500).json({ error: "Registration failed", details: error.message });
+    res.status(201).json({ token, user });
+  } catch (err) {
+    console.error("Firebase Register Error:", err);
+    res.status(401).json({ error: "Invalid Firebase ID token" });
   }
 });
 
 
-router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
+router.post("/firebase-login", async (req, res) => {
+  const { idToken } = req.body;
 
-    try {
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(401).json({ message: 'Invalid credentials' });
-        }
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { email, name, picture, uid } = decodedToken;
 
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-            return res.status(401).json({ message: 'Invalid credentials' });
-        }
-
-        const token = jwt.sign(
-            { id: user._id, email: user.email },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
-
-        res.status(200).json({
-            message: 'Login successful',
-            token,
-        });
-    } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+    if (!email) {
+      return res.status(400).json({ error: "Email not found in Firebase token" });
     }
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      const [firstName, lastName] = name?.split(" ") || ["User"];
+      user = new User({
+        email,
+        name: firstName,
+        lastName: lastName || "",
+        profileImageUrl: picture,
+        password: uid // Not used
+      });
+      await user.save();
+    }
+
+    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, {
+      expiresIn: "7d"
+    });
+
+    res.status(200).json({ token, user });
+  } catch (error) {
+    console.error("Firebase login error:", error);
+    res.status(401).json({ error: "Invalid Firebase token" });
+  }
 });
+
+
 // Update FCM token for a user
 router.put('/updateToken', authenticateToken, async (req, res) => {
   try {
@@ -167,7 +127,7 @@ router.put("/update-image", authenticateToken, upload.single("image"), async (re
         try {
             const result = await new Promise((resolve, reject) => {
                 cloudinary.uploader.upload_stream(
-                    { folder: "user_profiles", resource_type: "image" },
+                    { folder: "user_photos", resource_type: "image" },
                     (error, result) => (error ? reject(error) : resolve(result))
                 ).end(req.file.buffer);
             });

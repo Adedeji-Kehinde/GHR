@@ -1,51 +1,102 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { auth, googleProvider } from "../firebaseConfig";
+import { 
+  signInWithEmailAndPassword, 
+  signInWithPopup, 
+  sendPasswordResetEmail, 
+  sendEmailVerification 
+} from "firebase/auth";
 import axios from "axios";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [unverifiedUser, setUnverifiedUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";  
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setUnverifiedUser(null);
     setLoading(true);
 
     try {
-      const loginRes = await axios.post(`${API_URL}/api/auth/login`, {
-        email,
-        password,
-      });
-
-      const { token } = loginRes.data;
-      localStorage.setItem("token", token);
-
-      // Fetch user details
-      const userRes = await axios.get(`${API_URL}/api/auth/user`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const user = userRes.data;
-      if (user.role === "admin") {
-        navigate("/admin-dashboard");
-      } else {
-        navigate("/home");
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Refresh user data
+      await userCred.user.reload();
+      if (!userCred.user.emailVerified) {
+        setError("Please verify your email before logging in.");
+        setUnverifiedUser(userCred.user);
+        setLoading(false);
+        return;
       }
+      
+      const idToken = await userCred.user.getIdToken();
+      const res = await axios.post(`${API_URL}/api/auth/firebase-login`, { idToken });
+      localStorage.setItem("token", res.data.token);
+      const role = res.data.user.role;
+      navigate(role === "admin" ? "/admin-dashboard" : "/home");
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      setError("Login failed.");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const idToken = await result.user.getIdToken();
+      const res = await axios.post(`${API_URL}/api/auth/firebase-login`, { idToken });
+      localStorage.setItem("token", res.data.token);
+      const role = res.data.user.role;
+      navigate(role === "admin" ? "/admin-dashboard" : "/home");
+    } catch (err) {
+      setError("Google login failed.");
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError("Please enter your email above first.");
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      alert("Password reset email sent. Check your inbox.");
+    } catch (error) {
+      console.error("Error sending reset email:", error);
+      setError("Failed to send reset email. Try again later.");
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (unverifiedUser) {
+      try {
+        await sendEmailVerification(unverifiedUser);
+        alert("Verification email resent. Please check your inbox.");
+      } catch (error) {
+        console.error("Error resending verification email:", error);
+        setError("Failed to resend verification email.");
+      }
+    }
+  };
+
+  // Style object for clickable texts to match label style
+  const clickableTextStyle = {
+    fontSize: "0.8rem",
+    textAlign: "left",
+    color: "#007bff",
+    cursor: "pointer"
+  };
+
   return (
     <div className="login-page">
-      {/* Left side: Fixed sidebar with background image */}
       <div className="login-left">
         <div className="text-container">
           <h1>Welcome Home</h1>
@@ -55,8 +106,6 @@ const Login = () => {
           <img src="/images/logo.png" alt="Griffith Halls Logo" />
         </div>
       </div>
-
-      {/* Right side: Login form */}
       <div className="login-right">
         <div className="login-form-wrapper">
           <div className="login-form-container">
@@ -73,6 +122,15 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
+              {/* Resend Verification Email appears below the email input when needed */}
+              {error === "Please verify your email before logging in." && (
+                <p 
+                  style={clickableTextStyle}
+                  onClick={handleResendVerification}
+                >
+                  Resend Verification Email
+                </p>
+              )}
 
               <label htmlFor="login-password">Password</label>
               <input
@@ -83,7 +141,13 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-
+              {/* Forgot password link moved below the password input */}
+              <p 
+                style={clickableTextStyle}
+                onClick={handleForgotPassword}
+              >
+                Forgot password?
+              </p>
               <button type="submit" disabled={loading}>
                 {loading ? "Logging in..." : "Login"}
               </button>
@@ -91,6 +155,11 @@ const Login = () => {
             <p>
               Don't have an account? <Link to="/register">Create Account</Link>
             </p>
+            <hr className="divider" />
+            <p className="or-text">or</p>
+            <button onClick={handleGoogleLogin} className="google-login-btn">
+              Continue with Google
+            </button>
           </div>
         </div>
       </div>
