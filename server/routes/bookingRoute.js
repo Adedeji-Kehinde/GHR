@@ -74,6 +74,10 @@ router.post('/bookings', authenticateToken, async (req, res) => {
     room.bedSpaces[bedSpace] = bedSpaceData;
     await room.save();
 
+    // Update the user's roomNumber field
+    const generatedRoomNumber = `${room.buildingBlock}${room.floor}${String(room.apartmentNumber).padStart(2, '0')}${bedSpace}${bedNumber || ''}`;
+    await User.findByIdAndUpdate(userId, { roomNumber: generatedRoomNumber });
+
     res.status(201).json({ message: 'Room booked successfully', booking: newBooking });
   } catch (error) {
     res.status(500).json({ message: 'Error booking room', error: error.message });

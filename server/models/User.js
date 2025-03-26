@@ -18,6 +18,7 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   name: { type: String, required: true },
   lastName: { type: String, required: true },
+  roomNumber: { type: String, default: null, sparse: true },
   phone: { type: String, default: "" },
   profileImageUrl: { 
     type: String, 

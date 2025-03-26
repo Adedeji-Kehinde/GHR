@@ -14,11 +14,11 @@ import retrofit2.http.Part
 // ------------------------- API INTERFACE -------------------------
 
 /**
- * Defines authentication API endpoints.
+ * Defines authentication API endpoints for Firebase login.
  */
 interface AuthApi {
-    @POST("api/auth/login")
-    suspend fun login(@Body request: LoginRequest): LoginResponse
+    @POST("api/auth/firebase-login")
+    suspend fun firebaseLogin(@Body request: FirebaseLoginRequest): LoginResponse
 }
 
 /**
@@ -92,19 +92,19 @@ interface MaintenanceRequestApi {
 // ------------------------- DATA MODEL & RESPONSES -------------------------
 
 /**
- * Represents the login request payload.
+ * Represents the Firebase login request payload.
  */
-data class LoginRequest(
-    val email: String,
-    val password: String)
+data class FirebaseLoginRequest(
+    val idToken: String
+)
 
 /**
  * Represents the login response from the server.
  */
 data class LoginResponse(
     val message: String,
-    val token: String?)
-
+    val token: String?
+)
 /**
  * Data class representing a user Profile item.
  */

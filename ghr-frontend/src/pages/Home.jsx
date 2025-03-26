@@ -37,7 +37,13 @@ const Home = () => {
       <UserHeader user={user} />
       <div
         style={{
-          width: "100%", // full width
+          marginTop: "80px", // avoid overlap with fixed header
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "calc(100vh - 80px)",
+          width: "100%",
         }}
       >
         <h1>Welcome to GHR Website</h1>

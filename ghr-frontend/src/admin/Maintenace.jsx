@@ -18,7 +18,6 @@ const MaintenanceManagement = () => {
   const [selectedMaintenanceIds, setSelectedMaintenanceIds] = useState([]);
   // New state to control which requests to show
   const [currentFilter, setCurrentFilter] = useState("In Process");
-
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
