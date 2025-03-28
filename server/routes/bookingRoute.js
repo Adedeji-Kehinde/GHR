@@ -4,19 +4,22 @@ const authenticateToken = require('../middleware/authMiddleware');
 const Booking = require('../models/booking');
 const Room = require('../models/room');
 const User = require('../models/User');
+const cron = require('node-cron');
+const { freeUpBed } = require('../utils/bookingUtils');
+
 
 const router = express.Router();
 
 // Create a new booking
 router.post('/bookings', authenticateToken, async (req, res) => {
   try {
-    const { buildingBlock, floor, apartmentNumber, bedSpace, bedNumber, roomType, lengthOfStay } = req.body;
+    const { buildingBlock, floor, apartmentNumber, bedSpace, bedNumber, roomType, lengthOfStay, checkInDate, checkOutDate } = req.body;
     const userId = req.user.id;
 
     // Check if the user has already booked a room
-    const existingBooking = await Booking.findOne({ userId });
+    const existingBooking = await Booking.findOne({ userId, status: 'Booked' });
     if (existingBooking) {
-      return res.status(400).json({ message: 'User has already booked a room' });
+      return res.status(400).json({ message: 'You already booked a room' });
     }
 
     // Check if the room exists
@@ -25,17 +28,22 @@ router.post('/bookings', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Room not found' });
     }
 
+    if (lengthOfStay === 'Flexible') {
+      if (!checkInDate || !checkOutDate) {
+        return res.status(400).json({ message: 'Check‑in and check‑out required for Flexible stay' });
+      }
+      if (new Date(checkInDate) >= new Date(checkOutDate)) {
+        return res.status(400).json({ message: 'Check‑out must be after check‑in' });
+      }
+    }
+
     // Create the booking
-    const newBooking = new Booking({
-      userId,
-      buildingBlock,
-      floor,
-      apartmentNumber,
-      bedSpace,
-      bedNumber,
-      roomType,
-      lengthOfStay,
-    });
+    const bookingPayload = { userId, buildingBlock, floor, apartmentNumber, bedSpace, bedNumber, roomType, lengthOfStay };
+    if (lengthOfStay === 'Flexible') {
+      bookingPayload.checkInDate = new Date(checkInDate);
+      bookingPayload.checkOutDate = new Date(checkOutDate);
+    }
+    const newBooking = new Booking(bookingPayload);
     await newBooking.save();
 
     // Update room occupancy based on room type
@@ -127,34 +135,8 @@ router.put('/bookings/:bookingId', authenticateToken, async (req, res) => {
 
     if (status && status !== booking.status) {
       if (status === 'Cancelled' && booking.status !== 'Cancelled') {
-        // Free up the bed (same as DELETE)
-        const room = await Room.findOne({ buildingBlock, floor, apartmentNumber });
-        if (!room) {
-          return res.status(404).json({ message: 'Room not found' });
-        }
-        const bedSpaceData = room.bedSpaces[bedSpace];
-        if (!bedSpaceData) {
-          return res.status(400).json({ message: 'Invalid bed space in booking' });
-        }
-        if (roomType === 'Ensuite') {
-          bedSpaceData.bed1 = false;
-          bedSpaceData.occupied = false;
-        } else if (roomType === 'Twin Shared') {
-          if (!bedNumber) {
-            return res.status(400).json({ message: 'Missing bed number for Twin Shared' });
-          }
-          if (bedNumber === '1') {
-            bedSpaceData.bed1 = false;
-          } else if (bedNumber === '2') {
-            bedSpaceData.bed2 = false;
-          }
-          if (!bedSpaceData.bed1 && !bedSpaceData.bed2) {
-            bedSpaceData.occupied = false;
-          }
-        }
-        room.bedSpaces[bedSpace] = bedSpaceData;
-        await room.save();
-        await User.findByIdAndUpdate(userId, { roomNumber: null });
+        // Free bed + clear user.roomNumber
+        await freeUpBed(booking);
         updateFields.status = status;
       } else if (status === 'Booked' && booking.status === 'Cancelled') {
         // Reallocate the room back to the user.
@@ -231,37 +213,8 @@ router.delete('/bookings/:bookingId', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
-    const { buildingBlock, floor, apartmentNumber, bedSpace, bedNumber, roomType, userId } = booking;
-    const room = await Room.findOne({ buildingBlock, floor, apartmentNumber });
-    if (!room) {
-      return res.status(404).json({ message: 'Room not found' });
-    }
-
-    const bedSpaceData = room.bedSpaces[bedSpace];
-    if (!bedSpaceData) {
-      return res.status(400).json({ message: 'Invalid bed space in booking' });
-    }
-    if (roomType === 'Ensuite') {
-      bedSpaceData.bed1 = false;
-      bedSpaceData.occupied = false;
-    } else if (roomType === 'Twin Shared') {
-      if (!bedNumber) {
-        return res.status(400).json({ message: 'Missing bed number for Twin Shared' });
-      }
-      if (bedNumber === '1') {
-        bedSpaceData.bed1 = false;
-      } else if (bedNumber === '2') {
-        bedSpaceData.bed2 = false;
-      }
-      if (!bedSpaceData.bed1 && !bedSpaceData.bed2) {
-        bedSpaceData.occupied = false;
-      }
-    }
-    room.bedSpaces[bedSpace] = bedSpaceData;
-    await room.save();
-
+    await freeUpBed(booking);
     await Booking.findByIdAndDelete(bookingId);
-    await User.findByIdAndUpdate(userId, { roomNumber: null });
 
     res.json({ message: 'Booking deleted, bed freed, and user room number cleared successfully' });
   } catch (error) {
@@ -359,5 +312,29 @@ router.get('/rooms-available', authenticateToken, async (req, res) => {
   }
 });
 
+// Run every minute — update any “Booked” whose checkout ≤ now
+cron.schedule('* * * * *', async () => {
+  try {
+    const now = new Date();
 
+    // Find all bookings that should expire
+    const expiredBookings = await Booking.find({
+      status: 'Booked',
+      checkOutDate: { $lte: now }
+    });
+
+    // Update each booking’s status and clear its user’s roomNumber
+    for (const booking of expiredBookings) {
+      // Free bed + clear user’s roomNumber
+      await freeUpBed(booking);
+      await Booking.findByIdAndUpdate(booking._id, { status: 'Expired' });
+    }
+
+    if (expiredBookings.length) {
+      console.log(`Expired ${expiredBookings.length} booking(s) and cleared their users' room numbers.`);
+    }
+  } catch (err) {
+    console.error('Booking expiration job error:', err);
+  }
+});
 module.exports = router;

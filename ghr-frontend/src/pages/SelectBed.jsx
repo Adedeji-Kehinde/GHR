@@ -78,7 +78,9 @@ const SelectBed = () => {
   const flatmates = localStorage.getItem("flatmates");
   const roomType = localStorage.getItem("roomType");
   const lengthOfStay = localStorage.getItem("lengthOfStay");
-
+  const checkInDate = localStorage.getItem("checkInDateTime");
+  const checkOutDate = localStorage.getItem("checkOutDateTime");
+  
   // ---------------------
   // ROOMS & SELECTION STATE
   // ---------------------
@@ -206,6 +208,10 @@ const SelectBed = () => {
       roomType,
       lengthOfStay,
     };
+    if (lengthOfStay === "Flexible") {
+      bookingData.checkInDate = checkInDate;
+      bookingData.checkOutDate = checkOutDate;
+    }
     try {
       await axios.post(`${API_URL}/api/booking/bookings`, bookingData, {
         headers: { Authorization: `Bearer ${token}` },
@@ -215,7 +221,7 @@ const SelectBed = () => {
     } catch (error) {
       console.error("Error booking room:", error);
       alert(error.response?.data?.message || "Booking failed");
-      navigate("/home");
+      //navigate("/home");
     }
   };
 

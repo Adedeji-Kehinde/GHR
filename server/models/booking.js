@@ -33,30 +33,31 @@ const BookingSchema = new mongoose.Schema({
   buildingBlock: { type: String, required: true },
   floor: { type: Number, required: true },
   apartmentNumber: { type: Number, required: true },
-  bedSpace: { type: String, enum: ['A', 'B', 'C'], required: true },
-  bedNumber: { type: String, enum: ['1', '2'], required: false },
-  roomType: { type: String, enum: ['Ensuite', 'Twin Shared'], required: true },
-  // Only fixed options are available.
-  lengthOfStay: { type: String, enum: ['Summer', 'First Semester', 'Second Semester', 'Full Year'], required: true },
-  checkInDate: { type: Date },
-  checkOutDate: { type: Date },
-  status: { type: String, enum: ['Booked', 'Cancelled', 'Expired'], default: 'Booked' }
+  bedSpace: { type: String, enum: ['A','B','C'], required: true },
+  bedNumber: { type: String, enum: ['1','2'] },
+  roomType: { type: String, enum: ['Ensuite','Twin Shared'], required: true },
+  lengthOfStay: {
+    type: String,
+    enum: ['Summer','First Semester','Second Semester','Full Year','Flexible'],
+    required: true
+  },
+  checkInDate: {
+    type: Date,
+    required: function() { return this.lengthOfStay === 'Flexible'; }
+  },
+  checkOutDate: {
+    type: Date,
+    required: function() { return this.lengthOfStay === 'Flexible'; }
+  },
+  status: { type: String, enum: ['Booked','Cancelled','Expired'], default: 'Booked' }
 });
 
-// Middleware to update booking fields before saving.
-BookingSchema.pre('save', async function (next) {
-  // Auto-calculate check-in and check-out dates if they are not provided.
-  if (!this.checkInDate || !this.checkOutDate) {
+// Auto‑calculate fixed‑term dates; leave flexible untouched
+BookingSchema.pre('save', async function(next) {
+  if (this.lengthOfStay !== 'Flexible') {
     const { checkInDate, checkOutDate } = computeDates(this.lengthOfStay);
     this.checkInDate = checkInDate;
     this.checkOutDate = checkOutDate;
-  }
-  
-  // Prevent duplicate bookings for a user.
-  const Booking = mongoose.model('Booking');
-  const existingBooking = await Booking.findOne({ userId: this.userId, _id: { $ne: this._id } });
-  if (existingBooking) {
-    return next(new Error('User has already booked a room.'));
   }
 
   // Update status to "Expired" if the check-out date is in the past.

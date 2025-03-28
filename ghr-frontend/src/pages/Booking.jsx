@@ -64,6 +64,9 @@ const Booking = () => {
   const [roomType, setRoomType] = useState("");
   const [buildingBlock, setBuildingBlock] = useState("");
   const [floor, setFloor] = useState("");
+  const [checkInDateTime, setCheckInDateTime] = useState("");
+  const [checkOutDateTime, setCheckOutDateTime] = useState("");
+
 
   // Dropdown data
   const [uniqueBuildings, setUniqueBuildings] = useState([]);
@@ -157,6 +160,10 @@ const Booking = () => {
     localStorage.setItem("roomType", roomType);
     localStorage.setItem("buildingBlock", buildingBlock);
     localStorage.setItem("floor", floor);
+    if (lengthOfStay === "Flexible") {
+      localStorage.setItem("checkInDateTime", checkInDateTime);
+      localStorage.setItem("checkOutDateTime", checkOutDateTime);
+    }
     // Apartment Number will be selected in the next phase (SelectBed)
     navigate("/selectBed");
   };
@@ -174,7 +181,36 @@ const Booking = () => {
         <option value="First Semester">First Semester</option>
         <option value="Second Semester">Second Semester</option>
         <option value="Full Year">Full Year</option>
+        <option value="Flexible">Flexible</option>
       </select>
+      {lengthOfStay === "Flexible" && (
+        <>
+          <label>Check‑in Date & Time</label>
+          <input
+            type="datetime-local"
+            value={checkInDateTime}
+            min={new Date().toISOString().slice(0, 16)}
+            onChange={(e) => setCheckInDateTime(e.target.value)}
+          />
+
+          <label>Check‑out Date & Time</label>
+          <input
+            type="datetime-local"
+            value={checkOutDateTime}
+            min={
+              checkInDateTime
+                ? new Date(new Date(checkInDateTime).setMonth(new Date(checkInDateTime).getMonth() + 2))
+                    .toISOString()
+                    .slice(0, 16)
+                : new Date().toISOString().slice(0, 16)
+            }
+            onChange={(e) => setCheckOutDateTime(e.target.value)}
+          />
+        </>
+      )}
+
+
+
       <label>Number of Flatmates</label>
       <select
         value={flatmates}
@@ -238,7 +274,8 @@ const Booking = () => {
           !flatmates ||
           !roomType ||
           !buildingBlock ||
-          floor === ""
+          floor === "" ||
+          (lengthOfStay === "Flexible" && (!checkInDateTime || !checkOutDateTime))
         }
       >
         Proceed to Bed Selection

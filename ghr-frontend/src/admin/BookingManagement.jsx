@@ -119,27 +119,47 @@ const BookingManagement = () => {
 
   // Filtering and sorting for bookings table
   const filteredBookings = useMemo(() => {
+    const query = searchQuery.toLowerCase();
     return bookings.filter((booking) => {
-      if (booking.status !== filterStatus) return false;
-      const query = searchQuery.toLowerCase();
+      // Apply status filter: if filterStatus is "Inactive", accept both Cancelled and Expired;
+      // otherwise, only accept bookings with a matching status.
+      const statusMatch =
+        filterStatus === "Inactive"
+          ? ["Cancelled", "Expired"].includes(booking.status)
+          : booking.status === filterStatus;
+      if (!statusMatch) return false;
+      
+      // If there's no search query, then return the booking (because it passed the status check).
+      if (!query) return true;
+  
+      // Convert each field to a string and perform a case-insensitive search.
       return (
-        booking.userName.toLowerCase().includes(query) ||
-        booking.userRoom.toLowerCase().includes(query) ||
-        booking.buildingBlock.toLowerCase().includes(query) ||
-        booking.floor.toString().includes(query) ||
-        booking.apartmentNumber.toString().includes(query) ||
-        booking.bedSpace.toLowerCase().includes(query) ||
-        (booking.bedNumber ? booking.bedNumber.toString().includes(query) : false) ||
-        booking.roomType.toLowerCase().includes(query) ||
-        booking.status.toLowerCase().includes(query)
+        (booking.userName || "").toLowerCase().includes(query) ||
+        (booking.userRoom || "").toLowerCase().includes(query) ||
+        (booking.buildingBlock || "").toLowerCase().includes(query) ||
+        (booking.floor?.toString() || "").includes(query) ||
+        (booking.apartmentNumber?.toString() || "").includes(query) ||
+        (booking.bedSpace || "").toLowerCase().includes(query) ||
+        (booking.bedNumber ? booking.bedNumber.toString() : "").includes(query) ||
+        (booking.roomType || "").toLowerCase().includes(query) ||
+        (booking.status || "").toLowerCase().includes(query)
       );
     });
   }, [bookings, filterStatus, searchQuery]);
+  
+  
 
   const sortedBookings = useMemo(() => {
     let sortable = [...filteredBookings];
     if (sortConfig.key) {
       sortable.sort((a, b) => {
+        if (sortConfig.key === "checkInDate" || sortConfig.key === "checkOutDate") {
+          const aDate = new Date(a[sortConfig.key] || 0);
+          const bDate = new Date(b[sortConfig.key] || 0);
+          return sortConfig.direction === "ascending"
+            ? aDate - bDate
+            : bDate - aDate;
+        }
         const aValue = a[sortConfig.key] ? a[sortConfig.key].toString().toLowerCase() : "";
         const bValue = b[sortConfig.key] ? b[sortConfig.key].toString().toLowerCase() : "";
         if (aValue < bValue) return sortConfig.direction === "ascending" ? -1 : 1;
@@ -250,18 +270,18 @@ const BookingManagement = () => {
             <p>{countBooked}</p>
           </div>
           <div
-            onClick={() => { setViewMode("bookings"); setFilterStatus("Cancelled"); }}
+            onClick={() => { setViewMode("bookings"); setFilterStatus("Inactive"); }}
             style={{
               flex: 1,
               padding: "1rem",
-              border: viewMode === "bookings" && filterStatus === "Cancelled" ? "2px solid blue" : "1px solid #ccc",
+              border: viewMode === "bookings" && filterStatus === "Inactive" ? "2px solid blue" : "1px solid #ccc",
               borderRadius: "5px",
               textAlign: "center",
               cursor: "pointer"
             }}
           >
             <h3>Expired/Cancelled Bookings</h3>
-            <p>{countCancelled}</p>
+            <p>{bookings.filter(b => ["Cancelled", "Expired"].includes(b.status)).length}</p>
           </div>
           <div
             onClick={() => { 
@@ -328,7 +348,7 @@ const BookingManagement = () => {
                     Select All
                   </th>
                   <th onClick={() => handleSort("userName")} style={{ cursor: "pointer" }}>Occupant Name</th>
-                  <th onClick={() => handleSort("userRoom")} style={{ cursor: "pointer" }}>Room Number</th>
+                  <th onClick={() => handleSort("userRoom")} style={{ cursor: "pointer" }}>Current Room Number</th>
                   <th onClick={() => handleSort("buildingBlock")} style={{ cursor: "pointer" }}>Building Block</th>
                   <th onClick={() => handleSort("floor")} style={{ cursor: "pointer" }}>Floor</th>
                   <th onClick={() => handleSort("apartmentNumber")} style={{ cursor: "pointer" }}>Apartment Number</th>
@@ -336,6 +356,8 @@ const BookingManagement = () => {
                   <th onClick={() => handleSort("bedNumber")} style={{ cursor: "pointer" }}>Bed Number</th>
                   <th onClick={() => handleSort("roomType")} style={{ cursor: "pointer" }}>Room Type</th>
                   <th onClick={() => handleSort("status")} style={{ cursor: "pointer" }}>Status</th>
+                  <th onClick={() => handleSort("checkInDate")} style={{ cursor: "pointer" }}>Check-In</th>
+                  <th onClick={() => handleSort("checkOutDate")} style={{ cursor: "pointer" }}>Check-Out</th>
                 </tr>
               </thead>
               <tbody>
@@ -362,6 +384,8 @@ const BookingManagement = () => {
                     <td>{booking.bedNumber || "-"}</td>
                     <td>{booking.roomType}</td>
                     <td>{booking.status}</td>
+                    <td>{booking.checkInDate ? new Date(booking.checkInDate).toLocaleString() : "-"}</td>
+                    <td>{booking.checkOutDate ? new Date(booking.checkOutDate).toLocaleString() : "-"}</td>
                   </tr>
                 ))}
               </tbody>
