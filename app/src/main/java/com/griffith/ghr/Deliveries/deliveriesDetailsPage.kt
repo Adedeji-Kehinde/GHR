@@ -95,10 +95,6 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
                 }
             )
         }
-
-        if (isNotificationDrawerOpen.value) {
-            NotificationDrawerOverlay(isNotificationDrawerOpen)
-        }
     }
 }
 

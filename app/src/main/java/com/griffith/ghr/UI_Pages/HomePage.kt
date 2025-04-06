@@ -86,12 +86,6 @@ fun HomePage(navController: NavController) {
                 }
             )
         }
-
-        if (isNotificationDrawerOpen.value) {
-            NotificationDrawerOverlay(
-                isNotificationDrawerOpen = isNotificationDrawerOpen
-            )
-        }
     }
 }
 

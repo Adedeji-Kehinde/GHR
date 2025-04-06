@@ -97,6 +97,10 @@ fun MenuDrawerContent(navController: NavController) {
             }
             item { Spacer(modifier = Modifier.height(20.dp)) }
             item {
+                MenuItem(navController, painterResource(id = R.drawable.my_booking), "My Bookings", "MyBookingsScreen")
+            }
+            item { Spacer(modifier = Modifier.height(20.dp)) }
+            item {
                 MenuItem(navController, painterResource(id = R.drawable.deliveries), "Deliveries", "DeliveriesPage")
             }
             item { Spacer(modifier = Modifier.height(20.dp)) }

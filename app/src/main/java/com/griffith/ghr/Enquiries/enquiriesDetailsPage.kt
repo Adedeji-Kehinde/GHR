@@ -93,10 +93,6 @@ fun EnquiryDetailsPage(navController: NavController, requestId: String) {
                 }
             )
         }
-
-        if (isNotificationDrawerOpen.value) {
-            NotificationDrawerOverlay(isNotificationDrawerOpen)
-        }
     }
 }
 

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -66,20 +65,6 @@ fun BackArrowIcon(onClick: () -> Unit) {
     }
 }
 
-/**
- * Notification Icon - Displays a notification bell on the right.
- */
-@Composable
-fun NotificationIcon(onClick: () -> Unit) {
-    IconButton(onClick = onClick) {
-        Icon(
-            imageVector = Icons.Filled.Notifications,
-            contentDescription = "Open Notifications",
-            tint = Color.White
-        )
-    }
-}
-
 // ------------------------- Header Component -------------------------
 
 /**
@@ -103,7 +88,6 @@ fun AppHeader(
                 }
             }
         },
-        actions = { NotificationIcon(onClick = onNotificationClick) }, // Notification icon on the right
         modifier = Modifier.fillMaxWidth(),
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Red // Sets the app bar background color to red

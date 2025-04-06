@@ -73,9 +73,6 @@ fun UsefulInfoPage(navController: NavController) {
                 )
             }
         }
-        if (isNotificationDrawerOpen.value) {
-            NotificationDrawerOverlay(isNotificationDrawerOpen)
-        }
     }
 }
 

@@ -51,11 +51,6 @@ fun EnquiriesRequestPage(navController: NavController) {
                 }
             )
         }
-
-        // Notification Drawer Overlay
-        if (isNotificationDrawerOpen.value) {
-            NotificationDrawerOverlay(isNotificationDrawerOpen)
-        }
     }
 }
 

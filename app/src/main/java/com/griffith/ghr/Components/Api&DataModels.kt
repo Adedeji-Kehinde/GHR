@@ -86,6 +86,10 @@ interface MaintenanceRequestApi {
         @Part images: List<MultipartBody.Part>
     ): ResponseBody
 }
+interface BookingApi {
+    @GET("/api/booking/bookings")
+    suspend fun getBookings(@Header("Authorization") auth: String): List<Booking>
+}
 
 
 
@@ -179,4 +183,17 @@ data class MaintenanceRequest(
     val status: String,
     val createdAt: String,
     val completedAt: String?
+)
+
+data class Booking(
+    val id: String,
+    val status: String,
+    val buildingBlock: String,
+    val apartmentNumber: String,
+    val bedSpace: String,
+    val floor: String,
+    val roomType: String,
+    val lengthOfStay: String,
+    val checkInDate: String?,
+    val checkOutDate: String?
 )

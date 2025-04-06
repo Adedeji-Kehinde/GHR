@@ -106,10 +106,6 @@ fun MaintenanceRequestDetailsPage(navController: NavController, requestId: Strin
                 }
             )
         }
-
-        if (isNotificationDrawerOpen.value) {
-            NotificationDrawerOverlay(isNotificationDrawerOpen)
-        }
     }
 }
 

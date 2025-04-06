@@ -77,5 +77,8 @@ fun NavGraph() {
 
         // Navigate to User Profile page
         composable("UserProfilePage") { UserProfilePage(navController) }
+
+        // Navigate to My Bookings page
+        composable("MyBookingsScreen") { MyBookingsScreen(navController) }
     }
 }

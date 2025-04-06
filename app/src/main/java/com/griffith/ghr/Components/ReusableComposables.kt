@@ -24,31 +24,6 @@ import coil.compose.rememberAsyncImagePainter
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-// ------------------------- Notification Drawer Overlay -------------------------
-
-/**
- * NotificationDrawerOverlay - Displays a dimmed overlay with a slide-in notification drawer.
- */
-@Composable
-fun NotificationDrawerOverlay(isNotificationDrawerOpen: MutableState<Boolean>) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.5f)) // Dim background
-            .clickable { isNotificationDrawerOpen.value = false } // Close drawer on tap
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .width((2 * LocalConfiguration.current.screenWidthDp / 3).dp) // 2/3 screen width
-                .align(Alignment.TopEnd)
-                .background(MaterialTheme.colorScheme.onBackground, shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)) // Rounded corners on the left
-        ) {
-            NotificationDrawerBox()
-        }
-    }
-}
-
 // ------------------------- Empty Page Message Content -------------------------
 
 @Composable
