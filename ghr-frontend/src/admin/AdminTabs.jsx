@@ -1,65 +1,99 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const tabStyle = {
+const baseTabStyle = {
   display: "flex",
   alignItems: "center",
-  padding: "1rem",
+  padding: "0.5rem 0.5rem",
   cursor: "pointer",
 };
 
-const containerStyle = {
+const containerCollapsedStyle = {
   position: "fixed",
-  top: "70px", // below the header (header height)
+  top: "70px", // below the header
   left: 0,
-  width: "80px",
+  width: "60px", // smaller width when collapsed
   height: "calc(100% - 70px)",
   backgroundColor: "#f5f5f5",
   borderRight: "1px solid #ddd",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  gap: "1rem",
-  paddingTop: "1rem",
+  overflowY: "auto",
+  transition: "width 0.3s ease",
 };
 
-const dashboardIcon = "/images/dashboard.png";
-const maintenanceIcon = "/images/maintenance.png";
-const enquiriesIcon = "/images/enquiries.png";
-const deliveriesIcon = "/images/deliveries.png";
-const bookingsIcon = "/images/bookings.png";
-const contactIcon = "/images/contact.png";
-const testimonialsIcon = "/images/testimonials.png";
-const createAdminIcon = "/images/create-admin.png";
+const containerExpandedStyle = {
+  ...containerCollapsedStyle,
+  width: "200px", // wider when expanded to show text
+  alignItems: "flex-start",
+  paddingLeft: "1rem",
+};
+
+const iconStyle = {
+  height: "40px", 
+  marginBottom: "0.5rem",
+};
+
+const iconStyleExpanded = {
+  height: "50px",
+  marginRight: "1rem",
+};
+
+const tabsData = [
+  { route: "/admin-dashboard", icon: "/images/dashboard.png", title: "Dashboard" },
+  { route: "/maintenance", icon: "/images/maintenance.png", title: "Maintenance" },
+  { route: "/enquiries", icon: "/images/enquiries.png", title: "Enquiries" },
+  { route: "/deliveries", icon: "/images/deliveries.png", title: "Deliveries" },
+  { route: "/booking-management", icon: "/images/bookings.png", title: "Bookings" },
+  { route: "/contactus-management", icon: "/images/contact.png", title: "Contact Us" },
+  { route: "/testimonials-management", icon: "/images/testimonials.png", title: "Testimonials" },
+  { route: "/create-admin", icon: "/images/create-admin.png", title: "Create Admin" },
+  { route: "/announcement", icon: "/images/announcement.png", title: "Announcements" },
+];
 
 const AdminTabs = () => {
   const navigate = useNavigate();
+  const [expanded, setExpanded] = useState(false);
+
   return (
-    <div style={containerStyle}>
-      <div style={tabStyle} onClick={() => navigate("/admin-dashboard")}>
-        <img src={dashboardIcon} alt="Dashboard" style={{ height: "40px" }} title="Dashboard" />
+    <div style={expanded ? containerExpandedStyle : containerCollapsedStyle}>
+      {/* Toggle Button using text labels */}
+      <div
+        style={{
+          ...baseTabStyle,
+          alignSelf: "stretch",
+          justifyContent: "center",
+          borderBottom: "1px solid #ddd",
+          padding: "0.5rem",
+          fontSize: "0.9rem",
+          fontWeight: "bold",
+        }}
+        onClick={() => setExpanded((prev) => !prev)}
+      >
+        {expanded ? "Minimise" : "Expand"}
       </div>
-      <div style={tabStyle} onClick={() => navigate("/maintenance")}>
-        <img src={maintenanceIcon} alt="Maintenance" style={{ height: "40px" }} title="Maintenance" />
-      </div>
-      <div style={tabStyle} onClick={() => navigate("/enquiries")}>
-        <img src={enquiriesIcon} alt="Enquiries" style={{ height: "40px" }} title="Enquiries" />
-      </div>
-      <div style={tabStyle} onClick={() => navigate("/deliveries")}>
-        <img src={deliveriesIcon} alt="Deliveries" style={{ height: "40px" }} title="Deliveries" />
-      </div>
-      <div style={tabStyle} onClick={() => navigate("/booking-management")}>
-        <img src={bookingsIcon} alt="Bookings" style={{ height: "40px" }} title="Bookings" />
-      </div>
-      <div style={tabStyle} onClick={() => navigate("/contactus-management")}>
-        <img src={contactIcon} alt="Contact Us" style={{ height: "40px" }} title="Contact Us" />
-      </div>
-      <div style={tabStyle} onClick={() => navigate("/testimonials-management")}>
-        <img src={testimonialsIcon} alt="Testimonials" style={{ height: "40px" }} title="Testimonials" />
-      </div>
-      <div style={tabStyle} onClick={() => navigate("/create-admin")}>
-        <img src={createAdminIcon} alt="Create Admin" style={{ height: "40px" }} title="Create Admin" />
-      </div>
+
+      {tabsData.map((tab) => (
+        <div
+          key={tab.route}
+          style={{
+            ...baseTabStyle,
+            width: "100%",
+            justifyContent: expanded ? "flex-start" : "center",
+            padding: expanded ? "0.5rem 1rem" : "0.5rem 0",
+          }}
+          onClick={() => navigate(tab.route)}
+        >
+          <img
+            src={tab.icon}
+            alt={tab.title}
+            style={expanded ? iconStyleExpanded : iconStyle}
+            title={tab.title}
+          />
+          {expanded && <span style={{ fontSize: "1rem", color: "#333" }}>{tab.title}</span>}
+        </div>
+      ))}
     </div>
   );
 };

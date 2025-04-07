@@ -4,6 +4,7 @@ const Delivery = require('../models/deliveries');
 const Enquiry = require('../models/enquiries');
 const ContactUs = require("../models/contactus");
 const Testimonial = require("../models/testimonials");
+const Announcement = require('../models/announcement');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const authenticateToken = require('../middleware/authMiddleware.js');
@@ -158,7 +159,7 @@ router.put("/update-image", authenticateToken, upload.single("image"), async (re
     }
 });
 
-//fetch user
+// Fetch user
 router.get('/user', authenticateToken, async (req, res) => {
     try {
         const user = await User.findById(req.user.id).select('-password');
@@ -170,7 +171,7 @@ router.get('/user', authenticateToken, async (req, res) => {
     }
 });
 
-//fetch all users
+// Fetch all users
 router.get('/users', authenticateToken, async (req, res) => {
     try {
       // Fetch all users, excluding the password field
@@ -181,6 +182,7 @@ router.get('/users', authenticateToken, async (req, res) => {
       res.status(500).json({ message: 'Server error', error: error.message });
     }
   });
+
 // Update personal information (including greeting fields)
 router.put('/updatePersonal', authenticateToken, async (req, res) => {
   try {
@@ -234,7 +236,6 @@ router.put('/updateEmergency', authenticateToken, async (req, res) => {
     return res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
-  
   
 router.post('/deliveries', authenticateToken, async (req, res) => {
     try {
@@ -343,7 +344,6 @@ router.put('/deliveries/:id', authenticateToken, async (req, res) => {
       }
   
       // Send a push notification to the user
-      // (Make sure to retrieve the user's FCM token from your user model)
       const user = await User.findOne({ roomNumber: updatedDelivery.roomNumber });
       if (user && user.fcmToken) {
         const message = {
@@ -361,7 +361,7 @@ router.put('/deliveries/:id', authenticateToken, async (req, res) => {
           .catch(error => {
             console.error("Error sending notification:", error);
           });
-      }else {
+      } else {
         console.log("User does not have an FCM token registered.");
       }
 
@@ -372,8 +372,7 @@ router.put('/deliveries/:id', authenticateToken, async (req, res) => {
     }
   });
   
-  
-  router.delete('/deliveries/:id', authenticateToken, async (req, res) => {
+router.delete('/deliveries/:id', authenticateToken, async (req, res) => {
     try {
       const { id } = req.params;
   
@@ -387,9 +386,8 @@ router.put('/deliveries/:id', authenticateToken, async (req, res) => {
       console.error('Delivery deletion error:', error);
       return res.status(500).json({ message: 'Server error', error: error.message });
     }
-  });
+});
   
-
 router.post('/enquiries', authenticateToken, async (req, res) => {
     try {
         const { roomNumber, enquiryText } = req.body;
@@ -453,37 +451,35 @@ router.put('/enquiries/:id', authenticateToken, async (req, res) => {
       if (!updatedEnquiry) {
         return res.status(404).json({ message: 'Enquiry not found' });
       }
-       const user = await User.findOne({ roomNumber: updatedEnquiry.roomNumber });
-    if (user && user.fcmToken) {
-      // Construct the notification message
-      const notificationMessage = {
-        notification: {
-          title: "Enquiry Update",
-          body: `Your enquiry has been updated to ${updatedEnquiry.status}.`,
-        },
-        token: user.fcmToken,
-      };
+      const user = await User.findOne({ roomNumber: updatedEnquiry.roomNumber });
+      if (user && user.fcmToken) {
+        const notificationMessage = {
+          notification: {
+            title: "Enquiry Update",
+            body: `Your enquiry has been updated to ${updatedEnquiry.status}.`,
+          },
+          token: user.fcmToken,
+        };
 
-      // Send push notification using Firebase Admin SDK
-      admin.messaging().send(notificationMessage)
-        .then(response => {
-          console.log("Enquiry update notification sent successfully:", response);
-        })
-        .catch(error => {
-          console.error("Error sending enquiry update notification:", error);
-        });
-    } else {
-      console.log("User does not have an FCM token registered.");
-    }
+        admin.messaging().send(notificationMessage)
+          .then(response => {
+            console.log("Enquiry update notification sent successfully:", response);
+          })
+          .catch(error => {
+            console.error("Error sending enquiry update notification:", error);
+          });
+      } else {
+        console.log("User does not have an FCM token registered.");
+      }
       res.json({ message: 'Enquiry updated successfully', enquiry: updatedEnquiry });
     } catch (error) {
       console.error('Error updating enquiry:', error);
       res.status(500).json({ message: 'Server error', error: error.message });
     }
-  });
+});
   
-  // DELETE /api/auth/enquiries/:id - Delete an enquiry
-  router.delete('/enquiries/:id', authenticateToken, async (req, res) => {
+// DELETE /api/auth/enquiries/:id - Delete an enquiry
+router.delete('/enquiries/:id', authenticateToken, async (req, res) => {
     try {
       const { id } = req.params;
       const deletedEnquiry = await Enquiry.findByIdAndDelete(id);
@@ -495,10 +491,9 @@ router.put('/enquiries/:id', authenticateToken, async (req, res) => {
       console.error('Error deleting enquiry:', error);
       res.status(500).json({ message: 'Server error', error: error.message });
     }
-  });
+});
   
-
-  // GET all Contact Us submissions
+// GET all Contact Us submissions
 router.get("/contactus", async (req, res) => {
   try {
     const submissions = await ContactUs.find();
@@ -512,27 +507,23 @@ router.get("/contactus", async (req, res) => {
 router.post('/contactus', async (req, res) => {
   try {
     const { firstName, lastName, email, phone, message } = req.body;
-    // Create and save the new submission
     const newSubmission = new ContactUs({ firstName, lastName, email, phone, message });
     await newSubmission.save();
 
-    // Set up nodemailer transporter using SendGrid SMTP
     let transporter = nodemailer.createTransport({
       host: 'smtp.sendgrid.net',
       port: 587,
-      secure: false, // TLS
+      secure: false,
       auth: {
-        user: 'apikey', // This literal string "apikey" must be used for SendGrid
-        pass: process.env.SENDGRID_API_KEY, // Your SendGrid API key
+        user: 'apikey',
+        pass: process.env.SENDGRID_API_KEY,
       },
     });
 
-    // Use your single verified sender email
     const verifiedSender = 'adedejikehinde2004@gmail.com';
 
-    // Define email options for the admin
     const mailOptionsAdmin = {
-      from: `"Griffith Halls Contact Us" <${verifiedSender}>`, // Use verified sender email
+      from: `"Griffith Halls Contact Us" <${verifiedSender}>`,
       to: 'adedejikehinde2004@gmail.com',
       subject: 'New Contact Us Submission',
       text: `You have a new submission from ${firstName} ${lastName}.
@@ -544,9 +535,8 @@ Message:
 ${message}`,
     };
 
-    // Define email options for the user
     const mailOptionsUser = {
-      from: `"GHR Contact Us" <${verifiedSender}>`, // Use verified sender email
+      from: `"GHR Contact Us" <${verifiedSender}>`,
       to: email,
       subject: 'Thank you for contacting us',
       text: `Hi ${firstName},
@@ -561,7 +551,6 @@ Best regards,
 Your Team`,
     };
 
-    // Send both emails in parallel
     const [adminInfo, userInfo] = await Promise.all([
       transporter.sendMail(mailOptionsAdmin),
       transporter.sendMail(mailOptionsUser),
@@ -577,7 +566,6 @@ Your Team`,
   }
 });
 
-// DELETE a Contact Us submission by ID
 router.delete("/contactus/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -592,14 +580,11 @@ router.delete("/contactus/:id", async (req, res) => {
   }
 });
 
-// PUT route to update a Contact Us submission
 router.put('/contactus/:id', async (req, res) => {
   try {
     const { status, actionTaken } = req.body;
-    // Build update payload
     const updateData = { status, actionTaken };
 
-    // If status is changed to completed, set completedAt if not already set
     if (status.toLowerCase() === "completed") {
       updateData.completedAt = Date.now();
     }
@@ -622,7 +607,6 @@ router.put('/contactus/:id', async (req, res) => {
 });
 
 // POST /api/auth/testimonials
-// Creates a new testimonial from the request body
 router.post("/testimonials", async (req, res) => {
   try {
     const { name, message, rating } = req.body;
@@ -639,11 +623,8 @@ router.post("/testimonials", async (req, res) => {
 });
 
 // GET /api/auth/testimonials
-// Returns all testimonials (optionally, you might filter only approved ones)
 router.get("/testimonials", async (req, res) => {
   try {
-    // To only return approved testimonials, you can use:
-    // const testimonials = await Testimonial.find({ approved: true }).sort({ date: -1 });
     const testimonials = await Testimonial.find().sort({ date: -1 });
     res.json(testimonials);
   } catch (error) {
@@ -653,7 +634,6 @@ router.get("/testimonials", async (req, res) => {
 });
 
 // DELETE /api/auth/testimonials/:id
-// Deletes a testimonial based on its id. Typically, this route should be protected.
 router.delete("/testimonials/:id", async (req, res) => {
   try {
     const testimonial = await Testimonial.findById(req.params.id);
@@ -688,5 +668,91 @@ router.put("/testimonials/:id", async (req, res) => {
   }
 });
 
+/* Announcement Routes */
+// POST /api/auth/announcements - Create a new announcement
+router.post('/announcements', authenticateToken, upload.single("image"), async (req, res) => {
+  try {
+    const { title, message, approved } = req.body;
+    let attachments = [];
+    
+    // If an image file is provided, upload it to Cloudinary
+    if (req.file) {
+      let secure_url;
+      try {
+        const result = await new Promise((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            { folder: "announcement_attachments", resource_type: "image" },
+            (error, result) => (error ? reject(error) : resolve(result))
+          ).end(req.file.buffer);
+        });
+        secure_url = result.secure_url;
+        attachments.push(secure_url);
+      } catch (uploadError) {
+        console.error("Cloudinary Upload Error:", uploadError);
+        return res.status(500).json({ message: "Image upload failed", error: uploadError.message });
+      }
+    }
+
+    const announcement = new Announcement({
+      title,
+      message,
+      attachments, // Array with the uploaded image URL (if any)
+      approved: approved === "true" || approved === true, // Ensure boolean
+      createdBy: req.user.id,
+    });
+
+    const savedAnnouncement = await announcement.save();
+    res.status(201).json(savedAnnouncement);
+  } catch (error) {
+    console.error('Error creating announcement:', error);
+    res.status(500).json({ error: 'Server error while creating announcement.' });
+  }
+});
+
+// GET /api/auth/announcements - Get all announcements
+router.get('/announcements', async (req, res) => {
+  try {
+    const announcements = await Announcement.find().sort({ createdAt: -1 });
+    res.json(announcements);
+  } catch (error) {
+    console.error('Error fetching announcements:', error);
+    res.status(500).json({ error: 'Server error while fetching announcements.' });
+  }
+});
+
+// PUT /api/auth/announcements/:id - Update an announcement
+router.put('/announcements/:id', authenticateToken, async (req, res) => {
+  try {
+    const { title, message, attachments, approved, favourite } = req.body;
+    const updatedAnnouncement = await Announcement.findByIdAndUpdate(
+      req.params.id,
+      { title, message, attachments, approved, favourite },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedAnnouncement) {
+      return res.status(404).json({ error: 'Announcement not found' });
+    }
+
+    res.json(updatedAnnouncement);
+  } catch (error) {
+    console.error('Error updating announcement:', error);
+    res.status(500).json({ error: 'Server error while updating announcement.' });
+  }
+});
+
+// DELETE /api/auth/announcements/:id - Delete an announcement
+router.delete('/announcements/:id', authenticateToken, async (req, res) => {
+  try {
+    const deletedAnnouncement = await Announcement.findByIdAndDelete(req.params.id);
+    if (!deletedAnnouncement) {
+      return res.status(404).json({ error: 'Announcement not found' });
+    }
+    res.json({ message: 'Announcement deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting announcement:', error);
+    res.status(500).json({ error: 'Server error while deleting announcement.' });
+  }
+});
 
 module.exports = router;

@@ -27,7 +27,10 @@ import MaintenanceDetailsPage from "./admin/MaintenanceDetails";
 import AddMaintenance from "./admin/AddMaintenance";
 import BookingManagement from "./admin/BookingManagement";
 import BookingDetails from "./admin/BookingDetails";
-import MainPage from "./pages/MainPage"; // New MainPage component
+import MainPage from "./pages/MainPage";
+import AnnouncementManagement from "./admin/Announcement";
+import AddAnnouncement from "./admin/AddAnnouncement";
+import AnnouncementDetails from "./admin/AnnouncementDetails";
 
 import "./App.css";
 import "./styles.css";
@@ -39,7 +42,6 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<MainPage />} />
-
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/create-admin" element={<CreateAdmin />} />
@@ -68,6 +70,9 @@ function App() {
         <Route path="/maintenance" element={<Maintenance />} />
         <Route path="/maintenance-details" element={<MaintenanceDetailsPage />} />
         <Route path="/add-maintenance" element={<AddMaintenance />} />
+        <Route path="/announcement" element={<AnnouncementManagement />} />
+        <Route path="/add-announcement" element={<AddAnnouncement />} />
+        <Route path="/announcement-details" element={<AnnouncementDetails />} />
       </Routes>
     </Router>
   );
