@@ -68,7 +68,6 @@ fun MaintenanceRequestPage(navController: NavController) {
 
     // Drawer States
     val menuDrawerState = rememberDrawerState(DrawerValue.Closed)
-    val isNotificationDrawerOpen = remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
         ModalNavigationDrawer(
@@ -80,7 +79,6 @@ fun MaintenanceRequestPage(navController: NavController) {
                 topBar = {
                     AppHeader(
                         onMenuClick = { scope.launch { menuDrawerState.open() } },
-                        onNotificationClick = { isNotificationDrawerOpen.value = true },
                         navController = navController,
                         showBackButton = true
                     )

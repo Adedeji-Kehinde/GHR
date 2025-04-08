@@ -2,13 +2,18 @@ package com.griffith.ghr
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.messaging.FirebaseMessaging
@@ -35,7 +40,6 @@ fun provideRetrofit(): Retrofit {
 fun HomePage(navController: NavController) {
     val scope = rememberCoroutineScope()
     val menuDrawerState = rememberDrawerState(DrawerValue.Closed)
-    val isNotificationDrawerOpen = remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     // Retrieve and update FCM token when HomePage is launched
@@ -73,9 +77,6 @@ fun HomePage(navController: NavController) {
                     AppHeader(
                         onMenuClick = {
                             scope.launch { menuDrawerState.open() }
-                        },
-                        onNotificationClick = {
-                            isNotificationDrawerOpen.value = true
                         },
                         navController = navController,
                         showBackButton = false
@@ -117,6 +118,23 @@ fun sendTokenToServer(fcmToken: String, jwtToken: String) {
  */
 @Composable
 fun HomePageContent(navController: NavController, innerPadding: PaddingValues) {
+    // Announcements state; Announcement is your data class for announcements
+    val announcements = remember { mutableStateOf<List<Announcement>>(emptyList()) }
+
+    // Fetch announcements on load
+    LaunchedEffect(Unit) {
+        val retrofit = provideRetrofit()
+        // AnnouncementApi is your Retrofit interface for announcements
+        val announcementApi = retrofit.create(AnnouncementApi::class.java)
+        try {
+            val result = announcementApi.getAnnouncements()
+            // Filter to include only approved announcements
+            announcements.value = result.filter { it.approved }
+        } catch (e: Exception) {
+            println("Error fetching announcements: ${e.message}")
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -126,17 +144,25 @@ fun HomePageContent(navController: NavController, innerPadding: PaddingValues) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Large card for "My Deliveries"
+            // Announcements Section at the top; shows only approved announcements
+            AnnouncementsSection(
+                announcements = announcements.value,
+                onSeeAllClick = { navController.navigate("announcementsList") },
+                onAnnouncementClick = { announcement ->
+                    navController.navigate("announcementDetails/${announcement.id.toString()}")
+                }
+            )
+            // Rest of your Home Page cards
             LargeCard(
                 title = "My Deliveries",
                 subtitle = "",
                 icon = painterResource(id = R.drawable.deliveries),
                 onClick = { navController.navigate("deliveriesPage") }
             )
-            // Row with two smaller cards side by side
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -156,7 +182,6 @@ fun HomePageContent(navController: NavController, innerPadding: PaddingValues) {
                     modifier = Modifier.weight(1f)
                 )
             }
-            // Large card for "Useful Information"
             LargeCard(
                 title = "Useful Information",
                 subtitle = "Find out more information",
@@ -166,3 +191,86 @@ fun HomePageContent(navController: NavController, innerPadding: PaddingValues) {
         }
     }
 }
+
+@Composable
+fun AnnouncementsSection(
+    announcements: List<Announcement>,
+    onSeeAllClick: () -> Unit,
+    onAnnouncementClick: (Announcement) -> Unit
+) {
+    // Display only the top three approved announcements
+    val topThree = announcements.take(3)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            // "Announcements" header with larger, bold white text
+            Text(
+                text = "Announcements",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+            // "See All" button with rounded edge border
+            Box(
+                modifier = Modifier
+                    .clickable { onSeeAllClick() }
+                    .border(
+                        width = 1.dp,
+                        color = Color.White,
+                        shape = MaterialTheme.shapes.small
+                    )
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    text = "See All",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.White)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        topThree.forEach { announcement ->
+            AnnouncementItem(
+                announcement = announcement,
+                onClick = {
+                    // Convert the id explicitly to String.
+                    onAnnouncementClick(announcement)
+                },
+                textColor = Color.White
+            )
+            Divider(modifier = Modifier.padding(vertical = 8.dp), color = Color.White.copy(alpha = 0.5f))
+        }
+    }
+}
+
+@Composable
+fun AnnouncementItem(
+    announcement: Announcement,
+    onClick: () -> Unit,
+    textColor: Color
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+    ) {
+        Text(
+            text = announcement.title,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.bodyLarge.copy(color = textColor)
+        )
+        Text(
+            text = formatDateTime(announcement.createdAt),
+            style = MaterialTheme.typography.bodySmall.copy(color = textColor)
+        )
+    }
+}
+
+

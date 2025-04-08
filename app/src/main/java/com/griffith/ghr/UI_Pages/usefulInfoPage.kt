@@ -35,7 +35,6 @@ import java.io.FileOutputStream
 fun UsefulInfoPage(navController: NavController) {
     val scope = rememberCoroutineScope()
     val menuDrawerState = rememberDrawerState(DrawerValue.Closed)
-    val isNotificationDrawerOpen = remember { mutableStateOf(false) }
 
     // State for tracking selected PDF section
     var selectedSection by remember { mutableStateOf<Pair<String, String>?>(null) }
@@ -59,7 +58,6 @@ fun UsefulInfoPage(navController: NavController) {
                     topBar = {
                         AppHeader(
                             onMenuClick = { scope.launch { menuDrawerState.open() } },
-                            onNotificationClick = {isNotificationDrawerOpen.value = true  },
                             navController = navController,
                             showBackButton = true
                         )

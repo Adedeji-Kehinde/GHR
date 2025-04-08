@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -154,6 +155,37 @@ fun FooterButton(navController: NavController, buttonText: String, navigateTo: S
                 Icon(imageVector = Icons.Default.Add, contentDescription = "Add", tint = Color.White)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = buttonText, color = Color.White, style = MaterialTheme.typography.bodyLarge, maxLines = 1)
+            }
+        }
+    }
+}
+
+@Composable
+fun ActionFooterButton(
+    buttonText: String,
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Button(
+            onClick = onClick,
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            modifier = Modifier.wrapContentWidth()
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(imageVector = icon, contentDescription = buttonText, tint = Color.White)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = buttonText,
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1
+                )
             }
         }
     }

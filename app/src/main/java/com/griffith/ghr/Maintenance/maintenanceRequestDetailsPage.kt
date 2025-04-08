@@ -41,7 +41,6 @@ fun MaintenanceRequestDetailsPage(navController: NavController, requestId: Strin
 
     // Drawer states
     val menuDrawerState = rememberDrawerState(DrawerValue.Closed)
-    val isNotificationDrawerOpen = remember { mutableStateOf(false) }
 
     // Maintenance request details state
     var maintenanceDetails by remember { mutableStateOf<MaintenanceRequest?>(null) }
@@ -90,7 +89,6 @@ fun MaintenanceRequestDetailsPage(navController: NavController, requestId: Strin
                 topBar = {
                     AppHeader(
                         onMenuClick = { scope.launch { menuDrawerState.open() } },
-                        onNotificationClick = { isNotificationDrawerOpen.value = true },
                         navController = navController,
                         showBackButton = true
                     )

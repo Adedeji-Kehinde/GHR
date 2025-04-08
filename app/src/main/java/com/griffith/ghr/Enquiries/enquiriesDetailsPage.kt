@@ -31,7 +31,6 @@ fun EnquiryDetailsPage(navController: NavController, requestId: String) {
 
     // Drawer states
     val menuDrawerState = rememberDrawerState(DrawerValue.Closed)
-    val isNotificationDrawerOpen = remember { mutableStateOf(false) }
 
     // Enquiry details state
     var enquiryDetails by remember { mutableStateOf<Enquiry?>(null) }
@@ -79,7 +78,6 @@ fun EnquiryDetailsPage(navController: NavController, requestId: String) {
                 topBar = {
                     AppHeader(
                         onMenuClick = { scope.launch { menuDrawerState.open() } },
-                        onNotificationClick = { isNotificationDrawerOpen.value = true },
                         navController = navController,
                         showBackButton = true
                     )

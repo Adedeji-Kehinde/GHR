@@ -43,7 +43,7 @@ const UserProfilePage = () => {
   // We now store each emergency contact with an "isEditing" property.
   const [emergencyContacts, setEmergencyContacts] = useState([]);
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  const API_URL =import.meta.env.VITE_API_BASE_URL ||"http://localhost:8000";
   const fileInputRef = useRef(null);
 
   // Editable state for personal info (including greeting fields)

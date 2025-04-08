@@ -80,5 +80,17 @@ fun NavGraph() {
 
         // Navigate to My Bookings page
         composable("MyBookingsScreen") { MyBookingsScreen(navController) }
+
+        // Navigate to Announcements page
+        composable("announcementsList") {
+            AnnouncementsListScreen(navController)
+        }
+        composable(
+            route = "announcementDetails/{announcementId}",
+            arguments = listOf(navArgument("announcementId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val announcementId = backStackEntry.arguments?.getString("announcementId") ?: ""
+            AnnouncementDetailsPage(navController, announcementId)
+        }
     }
 }

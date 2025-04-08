@@ -1,5 +1,6 @@
 package com.griffith.ghr
 
+import com.google.gson.annotations.SerializedName
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -86,13 +87,22 @@ interface MaintenanceRequestApi {
         @Part images: List<MultipartBody.Part>
     ): ResponseBody
 }
+
+/**
+ * API interface for fetching user bookings.
+ */
 interface BookingApi {
     @GET("/api/booking/bookings")
     suspend fun getBookings(@Header("Authorization") auth: String): List<Booking>
 }
 
-
-
+/**
+ * API interface for fetching announcements
+ */
+interface AnnouncementApi {
+    @GET("api/auth/announcements")
+    suspend fun getAnnouncements(): List<Announcement>
+}
 // ------------------------- DATA MODEL & RESPONSES -------------------------
 
 /**
@@ -185,6 +195,9 @@ data class MaintenanceRequest(
     val completedAt: String?
 )
 
+/**
+ * Data class representing a booking.
+ */
 data class Booking(
     val id: String,
     val status: String,
@@ -196,4 +209,17 @@ data class Booking(
     val lengthOfStay: String,
     val checkInDate: String?,
     val checkOutDate: String?
+)
+
+/**
+ * Data class representing an announcement.
+ */
+data class Announcement(
+    @SerializedName("_id")
+    val id: String,
+    val title: String,
+    val message: String,
+    val createdAt: String,
+    val approved: Boolean,
+    val attachments: List<String> = emptyList()
 )

@@ -33,7 +33,6 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
 
     // Drawer states
     val menuDrawerState = rememberDrawerState(DrawerValue.Closed)
-    val isNotificationDrawerOpen = remember { mutableStateOf(false) }
 
     // Delivery details state
     var deliveryDetails by remember { mutableStateOf<Delivery?>(null) }
@@ -81,7 +80,6 @@ fun DeliveryDetailsPage(navController: NavController, parcelNumber: String) {
                 topBar = {
                     AppHeader(
                         onMenuClick = { scope.launch { menuDrawerState.open() } },
-                        onNotificationClick = { isNotificationDrawerOpen.value = true },
                         navController = navController,
                         showBackButton = true
                     )

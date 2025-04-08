@@ -675,9 +675,8 @@ router.post('/announcements', authenticateToken, upload.single("image"), async (
     const { title, message, approved } = req.body;
     let attachments = [];
     
-    // If an image file is provided, upload it to Cloudinary
+    // If an image file is provided, upload it to Cloudinary.
     if (req.file) {
-      let secure_url;
       try {
         const result = await new Promise((resolve, reject) => {
           cloudinary.uploader.upload_stream(
@@ -685,29 +684,60 @@ router.post('/announcements', authenticateToken, upload.single("image"), async (
             (error, result) => (error ? reject(error) : resolve(result))
           ).end(req.file.buffer);
         });
-        secure_url = result.secure_url;
-        attachments.push(secure_url);
+        attachments.push(result.secure_url);
       } catch (uploadError) {
         console.error("Cloudinary Upload Error:", uploadError);
         return res.status(500).json({ message: "Image upload failed", error: uploadError.message });
       }
     }
-
+    
     const announcement = new Announcement({
       title,
       message,
-      attachments, // Array with the uploaded image URL (if any)
-      approved: approved === "true" || approved === true, // Ensure boolean
+      attachments,
+      approved: approved === "true" || approved === true,
       createdBy: req.user.id,
     });
 
     const savedAnnouncement = await announcement.save();
+    console.log("Announcement saved:", savedAnnouncement);
+
+    // If announcement is approved, loop through users to send notifications.
+    if (savedAnnouncement.approved) {
+      // Find all users with a non-null fcmToken.
+      const users = await User.find({ fcmToken: { $exists: true, $ne: null } });
+      if (users.length > 0) {
+        const tokens = users.map(user => user.fcmToken);
+        const notificationPayload = {
+          notification: {
+            title: savedAnnouncement.title,
+            body: "New Announcement",
+          },
+        };
+
+        // Loop over tokens and send a notification to each device.
+        for (const token of tokens) {
+          try {
+            // This sends a single message to the specific token.
+            const response = await admin.messaging().send({ ...notificationPayload, token });
+            console.log(`Notification sent to token: ${token} -> Response: ${response}`);
+          } catch (notificationError) {
+            console.error(`Error sending notification to token ${token}:`, notificationError);
+            // Optionally, handle individual token errors, but continue the loop.
+          }
+        }
+      } else {
+        console.log("No users with FCM tokens registered.");
+      }
+    }
+
     res.status(201).json(savedAnnouncement);
   } catch (error) {
     console.error('Error creating announcement:', error);
     res.status(500).json({ error: 'Server error while creating announcement.' });
   }
 });
+
 
 // GET /api/auth/announcements - Get all announcements
 router.get('/announcements', async (req, res) => {
@@ -723,10 +753,10 @@ router.get('/announcements', async (req, res) => {
 // PUT /api/auth/announcements/:id - Update an announcement
 router.put('/announcements/:id', authenticateToken, async (req, res) => {
   try {
-    const { title, message, attachments, approved, favourite } = req.body;
+    const { title, message, attachments, approved } = req.body;
     const updatedAnnouncement = await Announcement.findByIdAndUpdate(
       req.params.id,
-      { title, message, attachments, approved, favourite },
+      { title, message, attachments, approved },
       { new: true, runValidators: true }
     );
 
@@ -734,46 +764,40 @@ router.put('/announcements/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Announcement not found' });
     }
 
+    // If updated announcement is approved, send notifications to all users with FCM tokens.
+    if (updatedAnnouncement.approved) {
+      // Find all users with a non-null fcmToken.
+      const users = await User.find({ fcmToken: { $exists: true, $ne: null } });
+      if (users.length > 0) {
+        const tokens = users.map(user => user.fcmToken);
+        const notificationPayload = {
+          notification: {
+            title: updatedAnnouncement.title,
+            body: "New Announcement",
+          },
+        };
+
+        // Loop through each token and send a notification individually.
+        for (const token of tokens) {
+          try {
+            const response = await admin.messaging().send({ ...notificationPayload, token });
+            console.log(`Notification sent to token: ${token} - Response: ${response}`);
+          } catch (notificationError) {
+            console.error(`Error sending notification to token ${token}:`, notificationError);
+            // Continue sending notifications for the remaining tokens.
+          }
+        }
+      } else {
+        console.log("No users with FCM tokens registered.");
+      }
+    }
+    
     res.json(updatedAnnouncement);
   } catch (error) {
     console.error('Error updating announcement:', error);
     res.status(500).json({ error: 'Server error while updating announcement.' });
   }
 });
-
-
-router.put('/announcements/:id/toggleFavourite', authenticateToken, async (req, res) => {
-  try {
-    const announcementId = req.params.id;
-    const userId = req.user.id; // Provided by your authentication middleware
-
-    // Find the announcement by id
-    const announcement = await Announcement.findById(announcementId);
-    if (!announcement) {
-      return res.status(404).json({ message: "Announcement not found" });
-    }
-
-    let isFavourite;
-    // Check if the current user's ID is already in the favouriteBy array.
-    if (announcement.favouriteBy.some(id => id.toString() === userId)) {
-      // Remove user ID if already favourited.
-      announcement.favouriteBy = announcement.favouriteBy.filter(id => id.toString() !== userId);
-      isFavourite = false;
-    } else {
-      // Add user ID if not favourited yet.
-      announcement.favouriteBy.push(mongoose.Types.ObjectId(userId));
-      isFavourite = true;
-    }
-
-    await announcement.save();
-
-    res.status(200).json({ favourite: isFavourite });
-  } catch (err) {
-    console.error("Error toggling favourite announcement:", err);
-    res.status(500).json({ error: "Server error while toggling favourite" });
-  }
-});
-
 
 // DELETE /api/auth/announcements/:id - Delete an announcement
 router.delete('/announcements/:id', authenticateToken, async (req, res) => {

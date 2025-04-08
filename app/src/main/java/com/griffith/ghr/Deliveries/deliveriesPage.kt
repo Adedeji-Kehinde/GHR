@@ -34,7 +34,6 @@ fun DeliveriesPage(navController: NavController) {
 
     // Drawer States
     val menuDrawerState = rememberDrawerState(DrawerValue.Closed)
-    val isNotificationDrawerOpen = remember { mutableStateOf(false) }
 
     // Tab Navigation State
     val selectedTabIndex = remember { mutableStateOf(0) }
@@ -53,7 +52,6 @@ fun DeliveriesPage(navController: NavController) {
                         // App Header with Menu & Notifications
                         AppHeader(
                             onMenuClick = { scope.launch { menuDrawerState.open() } },
-                            onNotificationClick = { isNotificationDrawerOpen.value = true },
                             navController = navController,
                             showBackButton = true
                         )

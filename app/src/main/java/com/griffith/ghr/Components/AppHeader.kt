@@ -1,7 +1,8 @@
 package com.griffith.ghr
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
@@ -23,16 +24,11 @@ import androidx.navigation.NavController
  */
 @Composable
 fun AppLogo() {
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.logo),
-            contentDescription = "App Logo",
-            modifier = Modifier.size(40.dp)
-        )
-    }
+    Image(
+        painter = painterResource(id = R.drawable.logo),
+        contentDescription = "App Logo",
+        modifier = Modifier.size(40.dp)
+    )
 }
 
 // ------------------------- Icon Components -------------------------
@@ -68,29 +64,27 @@ fun BackArrowIcon(onClick: () -> Unit) {
 // ------------------------- Header Component -------------------------
 
 /**
- * AppHeader - A top app bar with a logo, menu icon, back button (optional), and notification icon.
+ * AppHeader - A top app bar with a centered logo, menu icon, and optional back button.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppHeader(
     onMenuClick: () -> Unit, // Action when the menu button is clicked
-    onNotificationClick: () -> Unit, // Action when the notification button is clicked
     navController: NavController, // Navigation controller to handle back navigation
     showBackButton: Boolean = false // Whether to show the back button
 ) {
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = { AppLogo() },
         navigationIcon = {
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 MenuIcon(onClick = onMenuClick) // Menu icon (always present)
                 if (showBackButton) {
                     BackArrowIcon(onClick = { navController.popBackStack() }) // Back button if enabled
                 }
             }
         },
-        modifier = Modifier.fillMaxWidth(),
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.Red // Sets the app bar background color to red
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+            containerColor = Color.Red // App bar background color remains red
         )
     )
 }
@@ -105,8 +99,7 @@ fun AppHeader(
 fun AppHeaderPreview() {
     AppHeader(
         onMenuClick = {},
-        onNotificationClick = {},
-        navController = NavController(context = LocalContext.current),
+        navController = NavController(LocalContext.current),
         showBackButton = true // Enables the back button in the preview
     )
 }

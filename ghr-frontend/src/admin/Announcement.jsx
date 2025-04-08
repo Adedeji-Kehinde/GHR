@@ -8,6 +8,7 @@ import deleteImage from '/images/deleteImage.png'; // Bulk delete icon
 
 const AnnouncementManagement = () => {
   const [announcements, setAnnouncements] = useState([]);
+  const [users, setUsers] = useState([]); // To join createdBy user names
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: "", direction: "ascending" });
   const [loading, setLoading] = useState(true);
@@ -15,7 +16,7 @@ const AnnouncementManagement = () => {
   const [selectedAnnouncements, setSelectedAnnouncements] = useState([]);
   const [admin, setAdmin] = useState(null);
 
-  const API_URL =   import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  const API_URL =import.meta.env.VITE_API_BASE_URL ||"http://localhost:8000";
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
@@ -34,14 +35,20 @@ const AnnouncementManagement = () => {
     fetchAdmin();
   }, [API_URL, token]);
 
-  // Fetch announcements from backend
+  // Fetch announcements and users from backend
   const fetchData = async () => {
     setLoading(true);
     try {
+      // Fetch announcements
       const res = await axios.get(`${API_URL}/api/auth/announcements`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      // Fetch all users
+      const usersRes = await axios.get(`${API_URL}/api/auth/users`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setAnnouncements(res.data);
+      setUsers(usersRes.data);
       setError("");
       setSelectedAnnouncements([]); // Clear selections after refresh
     } catch (err) {
@@ -56,7 +63,13 @@ const AnnouncementManagement = () => {
     fetchData();
   }, [API_URL, token]);
 
-  // Filter announcements based on search query
+  // Helper to truncate text to 50 characters.
+  const truncateText = (text, maxLength = 50) => {
+    if (!text) return "";
+    return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
+  };
+
+  // Filter announcements based on search query.
   const filteredAnnouncements = announcements.filter((announcement) => {
     const query = searchQuery.toLowerCase();
     return (
@@ -65,7 +78,7 @@ const AnnouncementManagement = () => {
     );
   });
 
-  // Sort announcements based on sortConfig
+  // Sort announcements based on sortConfig.
   const sortedAnnouncements = useMemo(() => {
     let sortable = [...filteredAnnouncements];
     if (sortConfig.key) {
@@ -88,27 +101,25 @@ const AnnouncementManagement = () => {
     setSortConfig({ key: columnKey, direction });
   };
 
-  // Toggle selection for bulk deletion
+  // Toggle selection for bulk deletion.
   const toggleSelectRow = (id) => {
     setSelectedAnnouncements((prev) =>
       prev.includes(id) ? prev.filter((selectedId) => selectedId !== id) : [...prev, id]
     );
   };
 
-  // "Select All" toggle for visible rows
+  // "Select All" toggle for visible rows.
   const toggleSelectAll = () => {
     const visibleIds = sortedAnnouncements.map((a) => a._id);
     const allSelected = visibleIds.every((id) => selectedAnnouncements.includes(id));
     if (allSelected) {
-      setSelectedAnnouncements((prev) =>
-        prev.filter((id) => !visibleIds.includes(id))
-      );
+      setSelectedAnnouncements((prev) => prev.filter((id) => !visibleIds.includes(id)));
     } else {
       setSelectedAnnouncements(Array.from(new Set([...selectedAnnouncements, ...visibleIds])));
     }
   };
 
-  // Bulk deletion handler
+  // Bulk deletion handler.
   const handleDeleteSelected = async () => {
     if (selectedAnnouncements.length === 0) {
       alert("No announcements selected.");
@@ -133,12 +144,12 @@ const AnnouncementManagement = () => {
     }
   };
 
-  // When a row is clicked, redirect to the announcement details (edit) page via state
+  // When a row is clicked, redirect to the announcement details page, passing the announcement in state.
   const handleRowClick = (announcement) => {
     navigate("/announcement-details", { state: { announcement } });
   };
 
-  // Navigate to add announcement page
+  // Navigate to add announcement page.
   const handleAddNew = () => {
     navigate('/add-announcement');
   };
@@ -234,36 +245,45 @@ const AnnouncementManagement = () => {
         >
           <thead>
             <tr>
-              <th onClick={toggleSelectAll} style={{ cursor: "pointer" }}>
-                Select All
-              </th>
+              <th onClick={toggleSelectAll} style={{ cursor: "pointer" }}>Select All</th>
               <th onClick={() => handleSort("title")} style={{ cursor: "pointer" }}>Title</th>
               <th onClick={() => handleSort("message")} style={{ cursor: "pointer" }}>Message</th>
-              <th onClick={() => handleSort("approved")} style={{ cursor: "pointer" }}>Approved</th>
               <th onClick={() => handleSort("createdAt")} style={{ cursor: "pointer" }}>Created At</th>
+              <th onClick={() => handleSort("createdBy")} style={{ cursor: "pointer" }}>Created By</th>
             </tr>
           </thead>
           <tbody>
-            {sortedAnnouncements.map((announcement) => (
-              <tr
-                key={announcement._id}
-                onClick={() => handleRowClick(announcement)}
-                style={{ cursor: "pointer" }}
-              >
-                <td onClick={(e) => e.stopPropagation()}>
-                  <input
-                    type="radio"
-                    checked={selectedAnnouncements.includes(announcement._id)}
-                    onClick={() => toggleSelectRow(announcement._id)}
-                    readOnly
-                  />
-                </td>
-                <td>{announcement.title}</td>
-                <td>{announcement.message}</td>
-                <td>{announcement.approved ? "Yes" : "No"}</td>
-                <td>{new Date(announcement.createdAt).toLocaleString()}</td>
-              </tr>
-            ))}
+            {sortedAnnouncements.map((announcement) => {
+              // Truncate the message to 50 characters.
+              const truncatedMessage = announcement.message.length > 50
+                ? announcement.message.slice(0, 50) + "..."
+                : announcement.message;
+              // Find the user who created the announcement.
+              const creator = users.find(
+                user => user._id === announcement.createdBy
+              );
+              const creatorName = creator ? `${creator.name} ${creator.lastName}` : "Unknown";
+              return (
+                <tr
+                  key={announcement._id}
+                  onClick={() => handleRowClick(announcement)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <td onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="radio"
+                      checked={selectedAnnouncements.includes(announcement._id)}
+                      onClick={() => toggleSelectRow(announcement._id)}
+                      readOnly
+                    />
+                  </td>
+                  <td>{announcement.title}</td>
+                  <td>{truncatedMessage}</td>
+                  <td>{new Date(announcement.createdAt).toLocaleString()}</td>
+                  <td>{creatorName}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

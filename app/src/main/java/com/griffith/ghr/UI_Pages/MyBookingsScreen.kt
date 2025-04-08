@@ -30,7 +30,6 @@ fun MyBookingsScreen(navController: NavController) {
 
     // Drawer States
     val menuDrawerState = rememberDrawerState(DrawerValue.Closed)
-    val isNotificationDrawerOpen = remember { mutableStateOf(false) }
 
     // Tab Navigation State - three tabs: Active, Expired, Cancelled
     val selectedTabIndex = remember { mutableStateOf(0) }
@@ -49,7 +48,6 @@ fun MyBookingsScreen(navController: NavController) {
                         // App Header with Menu & Notifications; pass a title "My Bookings"
                         AppHeader(
                             onMenuClick = { scope.launch { menuDrawerState.open() } },
-                            onNotificationClick = { isNotificationDrawerOpen.value = true },
                             navController = navController,
                             showBackButton = true,
                         )

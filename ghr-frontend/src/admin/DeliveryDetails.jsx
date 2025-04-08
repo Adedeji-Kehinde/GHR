@@ -12,7 +12,7 @@ const DeliveryDetails = ({ delivery: initialDelivery, onClose, onUpdateDeleted }
   const [editMode, setEditMode] = useState(false);
   const [updatedDelivery, setUpdatedDelivery] = useState(initialDelivery);
   const [loading, setLoading] = useState(false);
-  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  const API_URL =import.meta.env.VITE_API_BASE_URL ||"http://localhost:8000";
   const token = localStorage.getItem("token");
 
   // Handler for deleting the delivery

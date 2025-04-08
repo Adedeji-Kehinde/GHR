@@ -9,7 +9,7 @@ const BookingDetails = () => {
   const navigate = useNavigate();
   // Retrieve the full booking object passed via navigation state
   const { booking } = location.state || {};
-  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  const API_URL =import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
   const token = localStorage.getItem("token");
 
   // Fetch admin details for header display

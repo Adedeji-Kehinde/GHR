@@ -6,7 +6,6 @@ const announcementSchema = new mongoose.Schema({
     message: { type: String, required: true },
     attachments: [{ type: String }],
     approved: { type: Boolean, default: false },
-    favouriteBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   }, { timestamps: true });  
 

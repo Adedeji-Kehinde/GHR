@@ -40,7 +40,6 @@ fun UserProfilePage(navController: NavController) {
 
     // Drawer States
     val menuDrawerState = rememberDrawerState(DrawerValue.Closed)
-    val isNotificationDrawerOpen = remember { mutableStateOf(false) }
 
     //  States for user profile details
     var userName by remember { mutableStateOf("Loading...") }
@@ -95,7 +94,6 @@ fun UserProfilePage(navController: NavController) {
                 topBar = {
                     AppHeader(
                         onMenuClick = { scope.launch { menuDrawerState.open() } },
-                        onNotificationClick = { isNotificationDrawerOpen.value = true },
                         navController = navController,
                         showBackButton = true
                     )
