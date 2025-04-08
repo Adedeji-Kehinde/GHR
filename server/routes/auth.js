@@ -741,6 +741,41 @@ router.put('/announcements/:id', authenticateToken, async (req, res) => {
   }
 });
 
+
+router.put('/announcements/:id/favourite', authenticateToken, async (req, res) => {
+  try {
+    const announcementId = req.params.id;
+    const { favourite } = req.body; // Expect a boolean, true to favourite, false to unfavourite
+    const userId = req.user.id;
+
+    const announcement = await Announcement.findById(announcementId);
+    if (!announcement) {
+      return res.status(404).json({ error: "Announcement not found" });
+    }
+    // Ensure favouriteBy is initialized.
+    if (!announcement.favouriteBy) announcement.favouriteBy = [];
+
+    if (favourite) {
+      // Add userId if not already favourited.
+      if (!announcement.favouriteBy.some(id => id.toString() === userId)) {
+        announcement.favouriteBy.push(userId);
+      }
+    } else {
+      // Remove userId if present.
+      announcement.favouriteBy = announcement.favouriteBy.filter(id => id.toString() != userId);
+    }
+    await announcement.save();
+
+    // Return the updated favourite status (true if current user is in the favouriteBy array)
+    const isFavourite = announcement.favouriteBy.some(id => id.toString() === userId);
+    res.json({ favourite: isFavourite });
+  } catch (error) {
+    console.error("Error updating favourite:", error);
+    res.status(500).json({ error: "Server error while updating favourite." });
+  }
+});
+
+
 // DELETE /api/auth/announcements/:id - Delete an announcement
 router.delete('/announcements/:id', authenticateToken, async (req, res) => {
   try {
