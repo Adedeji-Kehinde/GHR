@@ -742,36 +742,35 @@ router.put('/announcements/:id', authenticateToken, async (req, res) => {
 });
 
 
-router.put('/announcements/:id/favourite', authenticateToken, async (req, res) => {
+router.put('/announcements/:id/toggleFavourite', authenticateToken, async (req, res) => {
   try {
     const announcementId = req.params.id;
-    const { favourite } = req.body; // Expect a boolean, true to favourite, false to unfavourite
-    const userId = req.user.id;
+    const userId = req.user.id; // Provided by your authentication middleware
 
+    // Find the announcement by id
     const announcement = await Announcement.findById(announcementId);
     if (!announcement) {
-      return res.status(404).json({ error: "Announcement not found" });
+      return res.status(404).json({ message: "Announcement not found" });
     }
-    // Ensure favouriteBy is initialized.
-    if (!announcement.favouriteBy) announcement.favouriteBy = [];
 
-    if (favourite) {
-      // Add userId if not already favourited.
-      if (!announcement.favouriteBy.some(id => id.toString() === userId)) {
-        announcement.favouriteBy.push(userId);
-      }
+    let isFavourite;
+    // Check if the current user's ID is already in the favouriteBy array.
+    if (announcement.favouriteBy.some(id => id.toString() === userId)) {
+      // Remove user ID if already favourited.
+      announcement.favouriteBy = announcement.favouriteBy.filter(id => id.toString() !== userId);
+      isFavourite = false;
     } else {
-      // Remove userId if present.
-      announcement.favouriteBy = announcement.favouriteBy.filter(id => id.toString() != userId);
+      // Add user ID if not favourited yet.
+      announcement.favouriteBy.push(mongoose.Types.ObjectId(userId));
+      isFavourite = true;
     }
+
     await announcement.save();
 
-    // Return the updated favourite status (true if current user is in the favouriteBy array)
-    const isFavourite = announcement.favouriteBy.some(id => id.toString() === userId);
-    res.json({ favourite: isFavourite });
-  } catch (error) {
-    console.error("Error updating favourite:", error);
-    res.status(500).json({ error: "Server error while updating favourite." });
+    res.status(200).json({ favourite: isFavourite });
+  } catch (err) {
+    console.error("Error toggling favourite announcement:", err);
+    res.status(500).json({ error: "Server error while toggling favourite" });
   }
 });
 
