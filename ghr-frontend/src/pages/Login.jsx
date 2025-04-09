@@ -16,8 +16,7 @@ const Login = () => {
   const [unverifiedUser, setUnverifiedUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const API_URL =import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
-
+  const API_URL =import.meta.env.VITE_API_BASE_URL ||  "http://localhost:8000";
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -26,23 +25,33 @@ const Login = () => {
     setLoading(true);
 
     try {
+      // Sign in using Firebase Authentication
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       
-      // Refresh user data
+      // Reload user data
       await userCred.user.reload();
-      if (!userCred.user.emailVerified) {
+      
+      // Get the idToken to send to your backend
+      const idToken = await userCred.user.getIdToken();
+      
+      // Call your backend's firebase-login endpoint to log the user in
+      const res = await axios.post(`${API_URL}/api/auth/firebase-login`, { idToken });
+      
+      const role = res.data.user.role;
+      
+      // If the email is not verified and the user is not an admin, block login
+      if (!userCred.user.emailVerified && role !== "admin") {
         setError("Please verify your email before logging in.");
         setUnverifiedUser(userCred.user);
         setLoading(false);
         return;
       }
       
-      const idToken = await userCred.user.getIdToken();
-      const res = await axios.post(`${API_URL}/api/auth/firebase-login`, { idToken });
+      // Save the JWT token and navigate accordingly
       localStorage.setItem("token", res.data.token);
-      const role = res.data.user.role;
       navigate(role === "admin" ? "/admin-dashboard" : "/home");
     } catch (err) {
+      console.error("Login error:", err);
       setError("Login failed.");
     } finally {
       setLoading(false);
@@ -58,6 +67,7 @@ const Login = () => {
       const role = res.data.user.role;
       navigate(role === "admin" ? "/admin-dashboard" : "/home");
     } catch (err) {
+      console.error("Google login error:", err);
       setError("Google login failed.");
     }
   };
@@ -88,7 +98,7 @@ const Login = () => {
     }
   };
 
-  // Style object for clickable texts to match label style
+  // Style object for clickable text
   const clickableTextStyle = {
     fontSize: "0.8rem",
     textAlign: "left",
@@ -123,7 +133,7 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-              {/* Resend Verification Email appears below the email input when needed */}
+              {/* Only show verification link if error indicates missing verification */}
               {error === "Please verify your email before logging in." && (
                 <p 
                   style={clickableTextStyle}
@@ -142,7 +152,6 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              {/* Forgot password link moved below the password input */}
               <p 
                 style={clickableTextStyle}
                 onClick={handleForgotPassword}

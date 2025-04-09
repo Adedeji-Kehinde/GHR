@@ -24,7 +24,6 @@ const UserSchema = new mongoose.Schema({
     type: String, 
     default: "https://res.cloudinary.com/dxlrv28eb/image/upload/v1740475083/user_photos/default_image.png"
   },
-  profileImageId: { type: String, default: "" },
   university: { type: String, default: "" },
   yearOfStudy: { type: String, default: "" },
   course: { type: String, default: "" },

@@ -31,6 +31,9 @@ import MainPage from "./pages/MainPage";
 import AnnouncementManagement from "./admin/Announcement";
 import AddAnnouncement from "./admin/AddAnnouncement";
 import AnnouncementDetails from "./admin/AnnouncementDetails";
+import ManageAdmin from "./admin/ManageAdmin";
+import AdminDetailsPage from "./admin/AdminDetails";
+
 
 import "./App.css";
 import "./styles.css";
@@ -45,6 +48,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/create-admin" element={<CreateAdmin />} />
+        <Route path="/manage-admin" element={<ManageAdmin />} />
+        <Route path="/admin/details" element={<AdminDetailsPage />} />
         <Route path="/user-profile" element={<UserProfilePage />} />
         <Route path="/home" element={<Home />} />
         <Route path="/about" element={<AboutUs />} />

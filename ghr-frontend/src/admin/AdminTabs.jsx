@@ -48,7 +48,7 @@ const tabsData = [
   { route: "/booking-management", icon: "/images/bookings.png", title: "Bookings" },
   { route: "/contactus-management", icon: "/images/contact.png", title: "Contact Us" },
   { route: "/testimonials-management", icon: "/images/testimonials.png", title: "Testimonials" },
-  { route: "/create-admin", icon: "/images/create-admin.png", title: "Create Admin" },
+  { route: "/manage-admin", icon: "/images/manageadmin.png", title: "Manage Admin" },
   { route: "/announcement", icon: "/images/announcement.png", title: "Announcements" },
 ];
 

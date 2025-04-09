@@ -16,15 +16,13 @@ const router = express.Router();
 const nodemailer = require('nodemailer');
 const admin = require('../utils/notificationService');
 
-router.post("/firebase-register", async (req, res) => {
-  const { idToken, name, lastName, gender, phone } = req.body;
-
+router.post("/firebase-register", authenticateToken, async (req, res) => {
+  const { idToken, name, lastName, gender, phone, role } = req.body;
   try {
     const decoded = await admin.auth().verifyIdToken(idToken);
     const { email, uid } = decoded;
-
+    
     let user = await User.findOne({ email });
-
     if (!user) {
       user = new User({
         email,
@@ -32,15 +30,18 @@ router.post("/firebase-register", async (req, res) => {
         lastName,
         gender,
         phone,
-        password: uid // Not used
+        password: uid, // Store Firebase UID here
+        role: role && role === "admin" ? "admin" : "user",
+        createdBy: req.user ? req.user.id : null
       });
       await user.save();
     }
 
-    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, {
-      expiresIn: "7d"
-    });
-
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
     res.status(201).json({ token, user });
   } catch (err) {
     console.error("Firebase Register Error:", err);
@@ -211,6 +212,81 @@ router.put('/updatePersonal', authenticateToken, async (req, res) => {
     return res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+router.put('/users/:id/reset-password', authenticateToken, async (req, res) => {
+  const { newPassword } = req.body;
+  
+  if (!newPassword) {
+    return res.status(400).json({ error: "New password is required." });
+  }
+  
+  try {
+    // Fetch user from MongoDB
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    // Here, because you're storing the UID in the password field,
+    // we assume that changing the password only requires updating Firebase.
+    // Note: Firebase UID does not change after a password update.
+    // So we update Firebase without modifying the local 'password' field.
+    // This means that subsequent logins will rely on Firebase auth.
+    if (!user.password) { // in your approach, password is used to store UID
+      return res.status(400).json({ error: "User does not have a valid UID stored." });
+    }
+
+    try {
+      // Update password in Firebase. This uses the UID stored in user.password.
+      // Because you're using the password field to store the UID,
+      // we call updateUser using that value.
+      const fbResponse = await admin.auth().updateUser(user.password, { password: newPassword });
+      console.log("Firebase update response:", fbResponse);
+    } catch (firebaseError) {
+      console.error("Error updating Firebase password:", firebaseError);
+      return res.status(500).json({ error: "Failed to update Firebase password: " + firebaseError.message });
+    }
+    
+    // Do not update the local password field as you want to keep the UID there.
+    res.json({ message: "Password updated successfully in Firebase." });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    res.status(500).json({ error: "Server error: " + error.message });
+  }
+});
+
+
+
+// DELETE /api/auth/users/:id - Delete an admin account (admin users only)
+router.delete('/users/:id', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const userToDelete = await User.findById(userId);
+    
+    if (!userToDelete) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    // Attempt to remove the user from Firebase using their email
+    try {
+      // Get the Firebase user record by email
+      const firebaseUser = await admin.auth().getUserByEmail(userToDelete.email);
+      // Delete the Firebase user using their UID
+      await admin.auth().deleteUser(firebaseUser.uid);
+    } catch (firebaseError) {
+      console.error("Error deleting Firebase user:", firebaseError);
+      // You can decide whether to fail the deletion process or continue deleting the local record.
+      return res.status(500).json({ message: "Failed to delete Firebase user.", error: firebaseError.message });
+    }
+
+    // Delete the user from MongoDB
+    await User.findByIdAndDelete(userId);
+    return res.status(200).json({ message: "User deleted successfully from both MongoDB and Firebase." });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
 
 // Update emergency contacts 
 router.put('/updateEmergency', authenticateToken, async (req, res) => {

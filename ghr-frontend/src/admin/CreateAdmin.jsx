@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import AdminHeader from "./AdminHeader";
 import AdminTabs from "./AdminTabs";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
 const CreateAdmin = () => {
   const navigate = useNavigate();
@@ -25,9 +26,9 @@ const CreateAdmin = () => {
       }
     };
     fetchAdminInfo();
-  }, []);
+  }, [API_URL]);
 
-  // Fix the role to "admin" in the initial state.
+  // Form data state. The role is fixed to "admin" on the backend.
   const [formData, setFormData] = useState({
     name: "",
     lastName: "",
@@ -35,7 +36,6 @@ const CreateAdmin = () => {
     password: "",
     gender: "Male",
     phone: "",
-    role: "admin",
   });
 
   const [error, setError] = useState("");
@@ -47,22 +47,42 @@ const CreateAdmin = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle form submission to create an admin account.
+  // Handle form submission: use Firebase to create the account then call backend's firebase-register endpoint
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
     setLoading(true);
+    
+    const auth = getAuth();
     try {
-      // Include the admin's auth token in the request headers.
+      // Create the user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+      const idToken = await userCredential.user.getIdToken();
+      
+      // Call the firebase-register endpoint to create the user in your backend
       await axios.post(
-        `${API_URL}/api/auth/register`,
-        formData,
+        `${API_URL}/api/auth/firebase-register`,
+        {
+          idToken,
+          name: formData.name,
+          lastName: formData.lastName,
+          gender: formData.gender,
+          phone: formData.phone,
+          // Optionally include role if your backend supports it:
+          role: "admin"
+        },
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
+      
       setSuccess("Admin account created successfully!");
-      setTimeout(() => navigate("/admin-dashboard"), 2000);
+      setTimeout(() => navigate("/manage-admin"), 2000);
     } catch (err) {
+      console.error("Registration error:", err);
       setError(err.response?.data?.error || "Registration failed");
     } finally {
       setLoading(false);
@@ -165,7 +185,6 @@ const CreateAdmin = () => {
               />
             </div>
           </div>
-          {/* The role field is fixed to "admin" so we don't display it for editing */}
           <button type="submit" disabled={loading}>
             {loading ? "Creating Admin..." : "Create Admin"}
           </button>
