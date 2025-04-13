@@ -40,6 +40,8 @@ app.use("/api/booking", bookingRoutes); // Mount booking routes under "/api/book
 //   await generateBuildingsAndRooms(); // Run once on server startup
 // });
 
+const paymentApp = require("../braintreeTutorial/app");
+app.use("/payment", paymentApp);
 // Base Route
 app.get("/", (req, res) => {
   res.send("Server is running!");

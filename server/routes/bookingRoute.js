@@ -17,10 +17,15 @@ router.post('/bookings', authenticateToken, async (req, res) => {
     const userId = req.user.id;
 
     // Check if the user has already booked a room
-    const existingBooking = await Booking.findOne({ userId, status: 'Booked' });
+    const existingBooking = await Booking.findOne({
+      userId: req.user.id,
+      status: 'Booked',
+    });
+    
     if (existingBooking) {
-      return res.status(400).json({ message: 'You already booked a room' });
+      return res.status(400).json({ success: false, message: 'You already have an active booking' });
     }
+    
 
     // Check if the room exists
     const room = await Room.findOne({ buildingBlock, floor, apartmentNumber });

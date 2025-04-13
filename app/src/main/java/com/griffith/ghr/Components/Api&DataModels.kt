@@ -123,6 +123,8 @@ data class LoginResponse(
  * Data class representing a user Profile item.
  */
 data class UserProfile(
+    @SerializedName("_id")
+    val id: String,
     val name: String,
     val lastName: String,
     val gender: String,
@@ -198,18 +200,26 @@ data class MaintenanceRequest(
 /**
  * Data class representing a booking.
  */
+data class UserReference(
+    @SerializedName("_id")
+    val id: String
+)
+
 data class Booking(
     val id: String,
+    @SerializedName("userId")
+    val userReference: UserReference, // The JSON object is deserialized into this nested object.
     val status: String,
-    val buildingBlock: String,
-    val apartmentNumber: String,
+    val floor: Int,
+    val apartmentNumber: Int,
     val bedSpace: String,
-    val floor: String,
+    val buildingBlock: String,
     val roomType: String,
     val lengthOfStay: String,
     val checkInDate: String?,
     val checkOutDate: String?
 )
+
 
 /**
  * Data class representing an announcement.

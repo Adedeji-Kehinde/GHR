@@ -196,7 +196,7 @@ const Testimonials = () => {
 
   return (
     <>
-      <UserHeader user={user} />
+      <UserHeader  />
       <div style={containerStyle}>
         <h1 style={sectionTitleStyle}>Testimonials</h1>
         <hr style={titleDividerStyle} />

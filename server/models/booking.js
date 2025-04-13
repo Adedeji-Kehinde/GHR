@@ -29,7 +29,7 @@ function computeDates(lengthOfStay) {
 }
 
 const BookingSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
   buildingBlock: { type: String, required: true },
   floor: { type: Number, required: true },
   apartmentNumber: { type: Number, required: true },

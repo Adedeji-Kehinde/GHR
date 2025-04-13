@@ -348,7 +348,7 @@ const BookingManagement = () => {
                     Select All
                   </th>
                   <th onClick={() => handleSort("userName")} style={{ cursor: "pointer" }}>Occupant Name</th>
-                  <th onClick={() => handleSort("userRoom")} style={{ cursor: "pointer" }}>Current Room Number</th>
+                  <th onClick={() => handleSort("userRoom")} style={{ cursor: "pointer" }}>Room Number</th>
                   <th onClick={() => handleSort("buildingBlock")} style={{ cursor: "pointer" }}>Building Block</th>
                   <th onClick={() => handleSort("floor")} style={{ cursor: "pointer" }}>Floor</th>
                   <th onClick={() => handleSort("apartmentNumber")} style={{ cursor: "pointer" }}>Apartment Number</th>
@@ -376,7 +376,12 @@ const BookingManagement = () => {
                       />
                     </td>
                     <td>{booking.userName}</td>
-                    <td>{booking.userRoom}</td>
+                    <td>
+                      {(booking.status === "Cancelled" || booking.status === "Expired") ? 
+                        `${booking.buildingBlock}${booking.floor}${booking.apartmentNumber?.toString().padStart(2, '0') || ''}${booking.bedSpace}${booking.bedNumber}` :
+                        booking.userRoom
+                      }
+                    </td>
                     <td>{booking.buildingBlock}</td>
                     <td>{booking.floor}</td>
                     <td>{booking.apartmentNumber}</td>

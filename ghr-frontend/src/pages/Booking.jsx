@@ -199,7 +199,7 @@ const Booking = () => {
             value={checkOutDateTime}
             min={
               checkInDateTime
-                ? new Date(new Date(checkInDateTime).setMonth(new Date(checkInDateTime).getMonth() + 2))
+                ? new Date(new Date(checkInDateTime).setMonth(new Date(checkInDateTime).getMonth() + 0))
                     .toISOString()
                     .slice(0, 16)
                 : new Date().toISOString().slice(0, 16)

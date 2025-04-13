@@ -90,6 +90,8 @@ fun MyBookingsContent(
     val context = LocalContext.current
     // List to hold bookings fetched from the backend.
     val bookings = remember { mutableStateListOf<Booking>() }
+    // State for the user profile.
+    var userProfile by remember { mutableStateOf<UserProfile?>(null) }
 
     // Retrofit API setup (use your base URL)
     val retrofit = remember {
@@ -107,24 +109,31 @@ fun MyBookingsContent(
         val token = sharedPreferences.getString("authToken", null)
         if (token != null) {
             try {
-                // Fetch user profile (if needed)
-                val userProfile = userApi.getUserProfile("Bearer $token")
-                // Fetch all bookings
+                // Fetch the current user profile.
+                val fetchedUserProfile = userApi.getUserProfile("Bearer $token")
+                userProfile = fetchedUserProfile
+                // Fetch all bookings.
                 val allBookings = bookingApi.getBookings("Bearer $token")
+                // Filter bookings so that only those belonging to the current user are kept.
+                val userBookings = fetchedUserProfile?.let { profile ->
+                    allBookings.filter { booking ->
+                        booking.userReference.id == profile.id
+                    }
+                } ?: emptyList()
                 bookings.clear()
-                bookings.addAll(allBookings)
+                bookings.addAll(userBookings)
             } catch (e: Exception) {
                 Log.e("MyBookingsContent", "Error fetching bookings: ${e.message}")
             }
         }
     }
 
-    // Filter bookings based on the selected tab
+    // Filter bookings based on the selected tab.
     val filteredBookings = bookings.filter { booking ->
         when (selectedTab) {
-            0 -> booking.status == "Booked"  // Active
-            1 -> booking.status == "Expired" // Expired
-            2 -> booking.status == "Cancelled" // Cancelled
+            0 -> booking.status == "Booked"   // Active
+            1 -> booking.status == "Expired"  // Expired
+            2 -> booking.status == "Cancelled"// Cancelled
             else -> false
         }
     }
@@ -136,7 +145,7 @@ fun MyBookingsContent(
     ) {
         if (filteredBookings.isEmpty()) {
             EmptyPageMessage(
-                icon = R.drawable.my_booking, // Updated icon resource name
+                icon = R.drawable.my_booking, // Use your icon for no bookings.
                 message = "No bookings to display"
             )
         } else {

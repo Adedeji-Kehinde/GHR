@@ -40,7 +40,7 @@ function getBedDisplayDetails(roomType) {
 
 const SelectBed = () => {
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  const API_URL =import.meta.env.VITE_API_BASE_URL ||"http://localhost:8000";
   const token = localStorage.getItem("token");
 
   // ---------------------
@@ -88,7 +88,7 @@ const SelectBed = () => {
   const [selectedApartmentNumber, setSelectedApartmentNumber] = useState("");
   const [selectedBedSpace, setSelectedBedSpace] = useState("");
   const [selectedBedNumber, setSelectedBedNumber] = useState("");
-
+  const [bookingData, setBookingData] = useState(null);
   // ---------------------
   // OCCUPANT BOOKINGS
   // ---------------------
@@ -199,7 +199,7 @@ const SelectBed = () => {
       alert("Please select an apartment and bed.");
       return;
     }
-    const bookingData = {
+    const data = {
       buildingBlock,
       floor: Number(floor),
       apartmentNumber: Number(selectedApartmentNumber),
@@ -209,22 +209,48 @@ const SelectBed = () => {
       lengthOfStay,
     };
     if (lengthOfStay === "Flexible") {
-      bookingData.checkInDate = checkInDate;
-      bookingData.checkOutDate = checkOutDate;
+      data.checkInDate = checkInDate;
+      data.checkOutDate = checkOutDate;
     }
-    try {
-      await axios.post(`${API_URL}/api/booking/bookings`, bookingData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      alert("Room booked successfully!");
-      navigate("/home");
-    } catch (error) {
-      console.error("Error booking room:", error);
-      alert(error.response?.data?.message || "Booking failed");
-      //navigate("/home");
-    }
+    localStorage.setItem("pendingBooking", JSON.stringify(data));
+    openPaymentPopup(300);
   };
 
+  const openPaymentPopup = (amount) => {
+    // Open the popup pointing to the payment sub‑app URL
+    const popup = window.open(
+      `${API_URL}/payment?amount=${amount}`, // pass the amount as query param
+      'Payment',
+      'width=500,height=500'
+    );
+    window.addEventListener('message', async (event) => {
+      const { payment } = event.data;
+      if (payment === "success") {
+        if (window.bookingInProgress) return;
+        window.bookingInProgress = true;
+      
+        try {
+          const bookingData = JSON.parse(localStorage.getItem("pendingBooking"));
+          const res = await axios.post(`${API_URL}/api/booking/bookings`, bookingData, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+      
+          alert("Booking complete!");
+          navigate("/home");
+        } catch (error) {
+          console.error("Booking error:", error);
+          alert("Booking failed.");
+        } finally {
+          window.bookingInProgress = false;
+        }
+      }else if (payment === "failure") {
+        alert("Payment failed. Please try again.");
+      }
+    });
+  };
+  
   const isCardSelected = (apartmentNumber, bedSpaceKey, bedNum) =>
     selectedApartmentNumber === apartmentNumber.toString() &&
     selectedBedSpace === bedSpaceKey &&
@@ -273,7 +299,7 @@ const SelectBed = () => {
 
   return (
     <>
-      <UserHeader user={user} />
+      <UserHeader user={user}hideBookRoom={true} />
       <h2>Select Bed</h2>
       {/* Display selection summary */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", marginBottom: "1rem" }}>
