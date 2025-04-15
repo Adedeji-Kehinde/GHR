@@ -37,8 +37,8 @@ const MyBookingDetails = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       // Expected response: { booking: { ... }, payments: [ ... ] }
-      const { booking: fetchedBooking, payments } = res.data;
-      setBooking(fetchedBooking);
+      const payments = res.data.payments || []
+      setBooking(res.data.booking);
       setPaymentData({
         paymentSchedule: payments,
         totalAmount: payments.reduce((acc, p) => acc + p.amount, 0).toFixed(2),
@@ -436,8 +436,8 @@ const MyBookingDetails = () => {
             </tr>
           </thead>
           <tbody>
-            {paymentData.paymentSchedule.map((p, i) => (
-              <tr key={i} style={{ borderBottom: "1px solid #ddd" }}>
+            {paymentData.paymentSchedule.map((p) => (
+              <tr key={p._id} style={{ borderBottom: "1px solid #ddd" }}>
                 <td style={{ padding: "8px", fontSize: "18px" }}>{p.stayMonth}</td>
                 <td style={{ padding: "8px", fontSize: "18px" }}>{p.stayDates}</td>
                 <td style={{ padding: "8px", fontSize: "18px" }}>
