@@ -16,10 +16,9 @@ function formatDateTime(dateTimeString) {
 }
 
 // Reusable BookingCard component (non-clickable)
-function BookingCard({ booking, cardWidth = "300px" }) {
+function BookingCard({ booking, cardWidth = "300px", clickable = false, onClick }) {
   const isPast = booking.status === "Cancelled" || booking.status === "Expired";
 
-  // If cardWidth is "100%", we force the container to display as block.
   const containerStyle =
     cardWidth === "100%"
       ? {
@@ -27,20 +26,24 @@ function BookingCard({ booking, cardWidth = "300px" }) {
           width: "100%",
           maxWidth: "100%",
           margin: "16px 0",
+          cursor: clickable ? "pointer" : "default"
         }
       : {
           width: cardWidth,
           margin: "16px 0",
+          cursor: clickable ? "pointer" : "default"
         };
 
   return (
     <div
+      onClick={clickable ? onClick : undefined}
       style={{
         ...containerStyle,
         border: "1px solid #ccc",
         borderRadius: "8px",
         overflow: "hidden",
         boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        transition: "box-shadow 0.3s",
       }}
     >
       <img
@@ -54,14 +57,7 @@ function BookingCard({ booking, cardWidth = "300px" }) {
         }}
       />
       <div style={{ padding: "16px" }}>
-        <h3
-          style={{
-            margin: "0 0 8px",
-            fontSize: "20px",
-            fontWeight: "bold",
-            color: "#000",
-          }}
-        >
+        <h3 style={{ margin: "0 0 8px", fontSize: "20px", fontWeight: "bold", color: "#000" }}>
           {`Bed ${booking.floor}.${booking.apartmentNumber}${booking.bedSpace}, Block ${booking.buildingBlock}, ${booking.roomType}`}
         </h3>
         <p style={{ margin: "0 0 4px", color: "#666", fontSize: "18px" }}>
@@ -76,7 +72,6 @@ function BookingCard({ booking, cardWidth = "300px" }) {
     </div>
   );
 }
-
 
 // Component to display steps if the user has no active booking
 function NoBookingsMessage() {
@@ -113,7 +108,7 @@ const Home = () => {
   const [loadingUser, setLoadingUser] = useState(true);
   const [loadingBookings, setLoadingBookings] = useState(true);
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  const API_URL =import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
   // Fetch user details.
   useEffect(() => {
@@ -210,11 +205,17 @@ const Home = () => {
               >
                 {activeBookings.map((booking) => (
                   <BookingCard
-                    key={booking.id}
-                    booking={booking}
-                    cardWidth={activeBookings.length === 1 ? "100%" : "300px"}
-                  />
-                ))}
+                  key={booking._id}
+                  booking={booking}
+                  cardWidth={activeBookings.length === 1 ? "100%" : "300px"}
+                  clickable={true}
+                  onClick={() => {
+                    localStorage.setItem("selectedBookingId", booking._id); // Save clicked ID
+                    navigate("/my-booking-details");
+                  }}
+                  
+                />
+              ))}
               </div>
             ) : (
               // If the user has no active bookings, display the no-booking steps.

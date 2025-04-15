@@ -4,9 +4,10 @@ const authenticateToken = require('../middleware/authMiddleware');
 const Booking = require('../models/booking');
 const Room = require('../models/room');
 const User = require('../models/User');
+const Payment = require('../models/payment'); // New Payment model
 const cron = require('node-cron');
 const { freeUpBed } = require('../utils/bookingUtils');
-
+const generatePaymentSchedule = require("../utils/paymentSchedule");
 
 const router = express.Router();
 
@@ -16,7 +17,7 @@ router.post('/bookings', authenticateToken, async (req, res) => {
     const { buildingBlock, floor, apartmentNumber, bedSpace, bedNumber, roomType, lengthOfStay, checkInDate, checkOutDate } = req.body;
     const userId = req.user.id;
 
-    // Check if the user has already booked a room
+    // Check if the user already has an active booking
     const existingBooking = await Booking.findOne({
       userId: req.user.id,
       status: 'Booked',
@@ -26,7 +27,6 @@ router.post('/bookings', authenticateToken, async (req, res) => {
       return res.status(400).json({ success: false, message: 'You already have an active booking' });
     }
     
-
     // Check if the room exists
     const room = await Room.findOne({ buildingBlock, floor, apartmentNumber });
     if (!room) {
@@ -42,7 +42,7 @@ router.post('/bookings', authenticateToken, async (req, res) => {
       }
     }
 
-    // Create the booking
+    // Create the booking payload
     const bookingPayload = { userId, buildingBlock, floor, apartmentNumber, bedSpace, bedNumber, roomType, lengthOfStay };
     if (lengthOfStay === 'Flexible') {
       bookingPayload.checkInDate = new Date(checkInDate);
@@ -91,6 +91,28 @@ router.post('/bookings', authenticateToken, async (req, res) => {
     const generatedRoomNumber = `${room.buildingBlock}${room.floor}${String(room.apartmentNumber).padStart(2, '0')}${bedSpace}${bedNumber || ''}`;
     await User.findByIdAndUpdate(userId, { roomNumber: generatedRoomNumber });
 
+    // GENERATE PAYMENT SCHEDULE on the BACKEND
+    // Determine the price per night (e.g. €40 for Ensuite, €30 for Twin Shared)
+    const pricePerNight = roomType === "Ensuite" ? 40 : 30;
+    
+    // The generatePaymentSchedule helper returns an array of schedule items
+    const schedule = generatePaymentSchedule(newBooking.checkInDate, newBooking.checkOutDate, pricePerNight);
+    
+    // Save each scheduled payment as a Payment record linked to this booking
+    // Map each schedule item to a Payment document format:
+    const paymentRecords = schedule.map(item => ({
+      bookingId: newBooking._id,
+      stayMonth: item.stayMonth,
+      stayDates: item.stayDates,
+      nights: item.nights,
+      amount: item.amount, // total cost for that period (number)
+      dueDate: item.dueDate, // should be a Date object
+      status: "Unpaid"
+    }));
+    
+    // Insert these Payment records
+    await Payment.insertMany(paymentRecords);
+
     res.status(201).json({ message: 'Room booked successfully', booking: newBooking });
   } catch (error) {
     res.status(500).json({ message: 'Error booking room', error: error.message });
@@ -110,15 +132,19 @@ router.get('/bookings', authenticateToken, async (req, res) => {
   }
 });
 
-// Get a single booking by its ID (with occupant details)
 router.get('/bookings/:bookingId', authenticateToken, async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.bookingId)
       .populate('userId', 'name lastName roomNumber');
+      
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
-    res.json(booking);
+
+    // Fetch related payments and sort by dueDate in ascending order
+    const payments = await Payment.find({ bookingId: req.params.bookingId }).sort({ dueDate: 1 });
+
+    res.json({ booking, payments });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching booking details', error: error.message });
   }

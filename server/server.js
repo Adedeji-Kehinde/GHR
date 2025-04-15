@@ -33,6 +33,8 @@ const maintenanceRoutes = require("./routes/maintenance"); // Import maintenance
 app.use("/api/maintenance", maintenanceRoutes); // Mount maintenance routes under "/api/maintenance"
 const bookingRoutes = require("./routes/bookingRoute"); // Import booking routes
 app.use("/api/booking", bookingRoutes); // Mount booking routes under "/api/booking"
+const paymentRoutes = require("./routes/paymentRecord");
+app.use("/api/payment", paymentRoutes);
 
 // const generateBuildingsAndRooms = require('./utils/generateRooms');
 

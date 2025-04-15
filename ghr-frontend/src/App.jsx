@@ -15,6 +15,7 @@ import FAQs from "./pages/FAQs";
 import ContactUs from "./pages/ContactUs";
 import ContactUsManagement from "./admin/ContactUsManagement";
 import ContactUsDetails from "./admin/ContactUsDetails";
+import MyBookingDetails from "./pages/MyBookingDetails";
 import Booking from "./pages/Booking";
 import SelectBed from "./pages/SelectBed";
 import AdminDashboard from "./admin/AdminDashboard";
@@ -64,6 +65,7 @@ function App() {
         <Route path="/contactus-management" element={<ContactUsManagement />} />
         <Route path="/contactus-details" element={<ContactUsDetails />} />
         <Route path="/booking" element={<Booking />} />
+        <Route path="/my-booking-details" element={<MyBookingDetails />} />
         <Route path="/selectBed" element={<SelectBed />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/booking-management" element={<BookingManagement />} />
