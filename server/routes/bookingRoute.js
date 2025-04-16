@@ -231,7 +231,7 @@ router.put('/bookings/:bookingId', authenticateToken, async (req, res) => {
   }
 });
 
-// Delete a booking by its ID
+// Delete a booking by its ID, and also delete associated Payment documents.
 router.delete('/bookings/:bookingId', authenticateToken, async (req, res) => {
   try {
     const bookingId = req.params.bookingId;
@@ -244,10 +244,16 @@ router.delete('/bookings/:bookingId', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
+    // Free the bed and clear the user's room number
     await freeUpBed(booking);
+    
+    // Delete all Payment records associated with this booking
+    await Payment.deleteMany({ bookingId: booking._id });
+
+    // Now delete the booking itself
     await Booking.findByIdAndDelete(bookingId);
 
-    res.json({ message: 'Booking deleted, bed freed, and user room number cleared successfully' });
+    res.json({ message: 'Booking and associated payments deleted, bed freed, and user room number cleared successfully' });
   } catch (error) {
     console.error('Error deleting booking:', error);
     res.status(500).json({ message: 'Server error', error: error.message });

@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -156,7 +157,7 @@ fun MyBookingsContent(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 filteredBookings.forEach { booking ->
-                    item { BookingCard(booking) }
+                    item { BookingCard(navController, booking) }
                 }
             }
         }
@@ -169,22 +170,27 @@ fun MyBookingsContent(
  * BookingCard - A simple card displaying basic booking details.
  */
 @Composable
-fun BookingCard(booking: Booking) {
+fun BookingCard(navController: NavController, booking: Booking) {
+    // Wrap the card in clickable so that active bookings navigate to details screen.
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            // Only enable click for active bookings (status "Booked").
+            .clickable(enabled = booking.status == "Booked") {
+                navController.navigate("BookingDetailsPage/${booking.id}")
+            },
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column {
-            // Building Image (non-clickable)
+            // Building Image Section
             Box(modifier = Modifier.height(180.dp)) {
                 Image(
-                    painter = painterResource(id = R.drawable.building), // Ensure drawable exists in res/drawable
+                    painter = painterResource(id = R.drawable.building),
                     contentDescription = "Building Image",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
-                // Optional status badge for Expired/Cancelled bookings
                 if (booking.status == "Expired" || booking.status == "Cancelled") {
                     Text(
                         text = "Past",
@@ -192,7 +198,7 @@ fun BookingCard(booking: Booking) {
                         modifier = Modifier
                             .padding(8.dp)
                             .background(
-                                color = Color(0x80000000), // semi-transparent black
+                                color = Color(0x80000000),
                                 shape = RoundedCornerShape(4.dp)
                             )
                             .padding(horizontal = 8.dp, vertical = 4.dp),
@@ -202,7 +208,6 @@ fun BookingCard(booking: Booking) {
             }
             // Details Section
             Column(modifier = Modifier.padding(16.dp)) {
-                // First line: e.g. "Bed 1.1A, Block 1A, Ensuite"
                 Text(
                     text = "Bed ${booking.floor}.${booking.apartmentNumber}${booking.bedSpace}, Block ${booking.buildingBlock}, ${booking.roomType}",
                     fontWeight = FontWeight.SemiBold,
@@ -210,7 +215,6 @@ fun BookingCard(booking: Booking) {
                     color = Color.Black
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                // Second line: Formatted Check-In and Check-Out dates
                 val checkIn = booking.checkInDate?.let { formatDateTime(it) } ?: "-"
                 val checkOut = booking.checkOutDate?.let { formatDateTime(it) } ?: "-"
                 Text(
@@ -219,7 +223,6 @@ fun BookingCard(booking: Booking) {
                     color = Color.Gray
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                // Third line: Length of Stay
                 Text(
                     text = booking.lengthOfStay,
                     fontSize = 14.sp,
@@ -229,3 +232,4 @@ fun BookingCard(booking: Booking) {
         }
     }
 }
+

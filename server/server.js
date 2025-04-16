@@ -10,7 +10,7 @@ const app = express();
 
 // Middleware
 app.use(express.json()); // Parse JSON bodies
-app.use(cors()); // Enable CORS for cross-origin requests
+app.use(cors({ origin: 'http://localhost:5173' })); // Enable CORS for cross-origin requests
 
 // MongoDB Connection
 mongoose

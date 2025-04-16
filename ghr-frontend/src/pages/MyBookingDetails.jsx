@@ -1,55 +1,56 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import moment from "moment";
 import UserHeader from "./UserHeader";
 import Footer from "./Footer";
 
 const MyBookingDetails = () => {
+  // Retrieve the full booking object passed via navigation state.
+  const location = useLocation();
+  console.log("MyBookingDetails location state:", location.state);
+  const navigate = useNavigate();
+  const { booking: initialBooking } = location.state || {};
+
+  // Use initialBooking directly.
   const [user, setUser] = useState(null);
-  const [booking, setBooking] = useState(null);
+  const [booking, setBooking] = useState(initialBooking);
   const [paymentData, setPaymentData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-  const API_URL =import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"; // Update if needed
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
-    // Summary box style for payment totals
-    const summaryCardStyle = {
-      flex: "1 1 200px",
-      padding: "16px",
-      borderRadius: "8px",
-      backgroundColor: "#f8f8f8",
-      border: "1px solid #ddd",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-      textAlign: "center",
-      fontSize: "18px",
-    };
+  // Summary card style for payment totals
+  const summaryCardStyle = {
+    flex: "1 1 200px",
+    padding: "16px",
+    borderRadius: "8px",
+    backgroundColor: "#f8f8f8",
+    border: "1px solid #ddd",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+    textAlign: "center",
+    fontSize: "18px",
+  };
 
-  // Fetch booking details using the specific booking id stored for the user.
+  // Fetch booking details to update payment data (and optionally booking info)
   const fetchBookingDetails = async () => {
     try {
       const token = localStorage.getItem("token");
-      const bookingId = localStorage.getItem("selectedBookingId");
-      if (!bookingId) {
+      if (!booking || !booking._id) {
         throw new Error("No booking id found for this user.");
       }
-      const res = await axios.get(`${API_URL}/api/booking/bookings/${bookingId}`, {
+      const res = await axios.get(`${API_URL}/api/booking/bookings/${booking._id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // Expected response: { booking: { ... }, payments: [ ... ] }
-      const payments = res.data.payments || []
+      console.log("API response for booking details:", res.data);
+      const payments = res.data.payments || [];
+      console.log("Payments data:", payments);
+      // Optionally update booking details in case they have changed.
       setBooking(res.data.booking);
       setPaymentData({
         paymentSchedule: payments,
         totalAmount: payments.reduce((acc, p) => acc + p.amount, 0).toFixed(2),
-        totalPaid: payments
-          .filter((p) => p.status === "Paid")
-          .reduce((sum, p) => sum + p.amount, 0)
-          .toFixed(2),
-        totalUnpaid: payments
-          .filter((p) => p.status === "Unpaid")
-          .reduce((sum, p) => sum + p.amount, 0)
-          .toFixed(2),
+        totalPaid: payments.filter((p) => p.status === "Paid").reduce((sum, p) => sum + p.amount, 0).toFixed(2),
+        totalUnpaid: payments.filter((p) => p.status === "Unpaid").reduce((sum, p) => sum + p.amount, 0).toFixed(2),
       });
     } catch (error) {
       console.error("Error fetching booking details:", error);
@@ -66,7 +67,7 @@ const MyBookingDetails = () => {
     }
     fetchBookingDetails();
 
-    // Fetch user info from the specific endpoint
+    // Fetch user info
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -81,7 +82,7 @@ const MyBookingDetails = () => {
     fetchUser();
   }, [API_URL, navigate]);
 
-  // Trigger monthly payment popup (for upcoming payment)
+  // Payment popup for initiating monthly payment.
   const openMonthlyPaymentPopup = (monthlyPayment) => {
     const popup = window.open(
       `${API_URL}/payment?amount=${monthlyPayment.amount}&paymentId=${monthlyPayment._id}`,
@@ -89,21 +90,18 @@ const MyBookingDetails = () => {
       "width=500,height=500"
     );
 
-    // Named message handler, so we can remove it later
     const messageHandler = async (event) => {
       console.log("Received message event:", event);
       if (event.data && event.data.payment === "success") {
         try {
           const token = localStorage.getItem("token");
-          // Update the payment record to "Paid" for the specific booking
-          const res = await axios.post(
+          await axios.post(
             `${API_URL}/api/payment/${monthlyPayment._id}/record`,
             {},
             { headers: { Authorization: `Bearer ${token}` } }
           );
-          console.log("Payment record updated:", res.data);
           alert("Monthly Payment Complete!");
-          // Refresh the booking details to reflect the updated payment status
+          // Refresh details to update payment status.
           fetchBookingDetails();
         } catch (error) {
           console.error("Error recording monthly payment:", error);
@@ -119,19 +117,18 @@ const MyBookingDetails = () => {
     window.addEventListener("message", messageHandler);
   };
 
-  // Identify the upcoming (first unpaid) monthly payment
+  // Identify upcoming (first unpaid) monthly payment.
   const upcomingPayment =
     paymentData && paymentData.paymentSchedule.find((p) => p.status === "Unpaid");
 
-  // Identify future payments: all unpaid payments except the upcoming one
+  // Identify future payments: all unpaid payments except the upcoming one.
   const futurePayments =
     paymentData &&
     paymentData.paymentSchedule.filter(
       (p) => p.status === "Unpaid" && (!upcomingPayment || p._id !== upcomingPayment._id)
     );
 
-  // -------------------------------
-  // Styles for Booking Details Section (Adjusted for increased font and spacing)
+  // Styling configurations.
   const rowStyle = {
     display: "flex",
     justifyContent: "space-between",
@@ -143,7 +140,7 @@ const MyBookingDetails = () => {
     flexBasis: "48%",
     display: "flex",
     alignItems: "center",
-    fontSize: "18px", // Increased font size by 2px (e.g., 18px)
+    fontSize: "18px",
   };
 
   const iconStyle = {
@@ -156,24 +153,18 @@ const MyBookingDetails = () => {
     textAlign: "left",
   };
 
-  // -------------------------------
-  // Styles for Section Titles (Booking Details & Payments)
   const mainTitleStyle = {
     fontSize: "34px",
     textAlign: "left",
     marginBottom: "16px",
   };
 
-  // -------------------------------
-  // Styles for Payment Section Titles (subtitles for Upcoming and Future Payments)
   const sectionTitleStyle = {
     fontSize: "24px",
     textAlign: "left",
     marginBottom: "8px",
   };
 
-  // -------------------------------
-  // Styles for Payment Cards (Upcoming Payment and Future Payments)
   const cardStyleBase = {
     borderRadius: "8px",
     padding: "12px",
@@ -195,8 +186,6 @@ const MyBookingDetails = () => {
     background: "#ffe6e6",
   };
 
-  // Inside each card, the top row displays two fields (Stay Month and Stay Dates),
-  // each preceded by the length-of-stay.png icon.
   const cardRowStyle = {
     display: "flex",
     alignItems: "center",
@@ -215,20 +204,16 @@ const MyBookingDetails = () => {
     height: "28px",
   };
 
-  // -------------------------------
   if (loading) return <p>Loading...</p>;
-  if (!booking || !paymentData) return <p>No active booking found.</p>;
+  if (!booking || !paymentData) return <p className="error">No active booking found.</p>;
 
   return (
     <>
       <UserHeader user={user} hideBookRoom={!!booking} />
       <div style={{ padding: "24px", marginTop: "80px" }}>
-        {/* Booking Details Title */}
+        {/* Booking Details Section */}
         <h2 style={mainTitleStyle}>My Booking Details</h2>
-
-        {/* Booking Details: 5 rows, 2 columns */}
         <div style={{ marginBottom: "24px" }}>
-          {/* Row 1: Building Block & Floor */}
           <div style={rowStyle}>
             <div style={cellStyle}>
               <img src="/images/building-block.png" alt="Building Block" style={iconStyle} />
@@ -243,7 +228,6 @@ const MyBookingDetails = () => {
               </span>
             </div>
           </div>
-          {/* Row 2: Apartment Number & Room (Bed Space) */}
           <div style={rowStyle}>
             <div style={cellStyle}>
               <img src="/images/apartment.png" alt="Apartment" style={iconStyle} />
@@ -258,7 +242,6 @@ const MyBookingDetails = () => {
               </span>
             </div>
           </div>
-          {/* Row 3: Room Type & Bed (Bed Number) */}
           <div style={rowStyle}>
             <div style={cellStyle}>
               <img
@@ -283,7 +266,6 @@ const MyBookingDetails = () => {
               </span>
             </div>
           </div>
-          {/* Row 4: Length of Stay & Status */}
           <div style={rowStyle}>
             <div style={cellStyle}>
               <img src="/images/length-of-stay.png" alt="Length of Stay" style={iconStyle} />
@@ -298,7 +280,6 @@ const MyBookingDetails = () => {
               </span>
             </div>
           </div>
-          {/* Row 5: Check-In & Check-Out */}
           <div style={rowStyle}>
             <div style={cellStyle}>
               <img src="/images/check-in.png" alt="Check-In" style={iconStyle} />
@@ -315,58 +296,47 @@ const MyBookingDetails = () => {
           </div>
         </div>
 
-        {/* Divider between Booking Details and Payments */}
         <hr style={{ marginBottom: "24px" }} />
 
         {/* Payment Section */}
         <h2 style={mainTitleStyle}>My Payments</h2>
 
-        {/* Upcoming Payment Section */}
+        {/* Upcoming Payment */}
         {upcomingPayment && (
           <>
             <h4 style={sectionTitleStyle}>Upcoming Payment</h4>
-            <div style={{ display: "flex", flexWrap: "wrap"}}>
-            <div
-              style={upcomingCardStyle}
-              onClick={() => openMonthlyPaymentPopup(upcomingPayment)}
-            >
-              {/* Top Row: Two columns, each with its own length-of-stay icon and corresponding text */}
-              <div style={cardRowStyle}>
-                <div style={cardItemStyle}>
-                  <img
-                    src="/images/length-of-stay.png"
-                    alt="Stay Month"
-                    style={cardIconStyle}
-                  />
-                  <span>{upcomingPayment.stayMonth}</span>
+            <div style={{ display: "flex", flexWrap: "wrap" }}>
+              <div
+                style={upcomingCardStyle}
+                onClick={() => openMonthlyPaymentPopup(upcomingPayment)}
+              >
+                <div style={cardRowStyle}>
+                  <div style={cardItemStyle}>
+                    <img src="/images/length-of-stay.png" alt="Stay Month" style={cardIconStyle} />
+                    <span>{upcomingPayment.stayMonth}</span>
+                  </div>
+                  <div style={cardItemStyle}>
+                    <img src="/images/length-of-stay.png" alt="Stay Dates" style={cardIconStyle} />
+                    <span>{upcomingPayment.stayDates}</span>
+                  </div>
                 </div>
-                <div style={cardItemStyle}>
-                  <img
-                    src="/images/length-of-stay.png"
-                    alt="Stay Dates"
-                    style={cardIconStyle}
-                  />
-                  <span>{upcomingPayment.stayDates}</span>
-                </div>
-              </div>
-              {/* Bottom Row: Due and Amount */}
-              <div style={cardRowStyle}>
-                <div style={{ marginRight: "16px" }}>
-                  <strong>Due:</strong> {moment(upcomingPayment.dueDate).format("DD MMM YYYY")}
-                </div>
-                <div>
-                  <strong>Amount:</strong> €{upcomingPayment.amount}
+                <div style={cardRowStyle}>
+                  <div style={{ marginRight: "16px" }}>
+                    <strong>Due:</strong> {moment(upcomingPayment.dueDate).format("DD MMM YYYY")}
+                  </div>
+                  <div>
+                    <strong>Amount:</strong> €{upcomingPayment.amount}
+                  </div>
                 </div>
               </div>
             </div>
-            </div>
-            <p style={{ fontStyle: "italic", color: "#555", marginTop: "4px",display: "flex" }}>
-                (Click to pay now)
-              </p>
+            <p style={{ fontStyle: "italic", color: "#555", marginTop: "4px", display: "flex" }}>
+              (Click to pay now)
+            </p>
           </>
         )}
 
-        {/* Future Payments Section */}
+        {/* Future Payments */}
         {futurePayments && futurePayments.length > 0 && (
           <>
             <h4 style={{ ...sectionTitleStyle, marginTop: "24px" }}>Future Payments</h4>
@@ -375,19 +345,11 @@ const MyBookingDetails = () => {
                 <div key={payment._id} style={futureCardStyle}>
                   <div style={cardRowStyle}>
                     <div style={cardItemStyle}>
-                      <img
-                        src="/images/length-of-stay.png"
-                        alt="Stay Month"
-                        style={cardIconStyle}
-                      />
+                      <img src="/images/length-of-stay.png" alt="Stay Month" style={cardIconStyle} />
                       <span>{payment.stayMonth}</span>
                     </div>
                     <div style={cardItemStyle}>
-                      <img
-                        src="/images/length-of-stay.png"
-                        alt="Stay Dates"
-                        style={cardIconStyle}
-                      />
+                      <img src="/images/length-of-stay.png" alt="Stay Dates" style={cardIconStyle} />
                       <span>{payment.stayDates}</span>
                     </div>
                   </div>

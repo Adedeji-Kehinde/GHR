@@ -210,10 +210,9 @@ const Home = () => {
                   cardWidth={activeBookings.length === 1 ? "100%" : "300px"}
                   clickable={true}
                   onClick={() => {
-                    localStorage.setItem("selectedBookingId", booking._id); // Save clicked ID
-                    navigate("/my-booking-details");
-                  }}
-                  
+                    console.log("Navigating with booking:", booking);
+                    navigate("/my-booking-details", { state: { booking } });
+                  }}                  
                 />
               ))}
               </div>

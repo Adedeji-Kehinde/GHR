@@ -11,6 +11,7 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
+import retrofit2.http.Path
 
 // ------------------------- API INTERFACE -------------------------
 
@@ -94,7 +95,15 @@ interface MaintenanceRequestApi {
 interface BookingApi {
     @GET("/api/booking/bookings")
     suspend fun getBookings(@Header("Authorization") auth: String): List<Booking>
+
+    // New API method for booking details with payments.
+    @GET("/api/booking/bookings/{bookingId}")
+    suspend fun getBookingDetails(
+        @Header("Authorization") auth: String,
+        @Path("bookingId") bookingId: String
+    ): BookingDetailsResponse
 }
+
 
 /**
  * API interface for fetching announcements
@@ -206,6 +215,7 @@ data class UserReference(
 )
 
 data class Booking(
+    @SerializedName("_id")
     val id: String,
     @SerializedName("userId")
     val userReference: UserReference, // The JSON object is deserialized into this nested object.
@@ -220,6 +230,21 @@ data class Booking(
     val checkOutDate: String?
 )
 
+data class BookingDetailsResponse(
+    val booking: Booking,
+    val payments: List<Payment>
+)
+
+data class Payment(
+    @SerializedName("_id")
+    val id: String,
+    val stayMonth: String,
+    val stayDates: String,
+    val nights: Int,
+    val amount: Double,
+    val dueDate: String,  // You can parse this into a Date if needed
+    val status: String
+)
 
 /**
  * Data class representing an announcement.
