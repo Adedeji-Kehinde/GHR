@@ -8,8 +8,20 @@ const Payment = require('../models/payment'); // New Payment model
 const cron = require('node-cron');
 const { freeUpBed } = require('../utils/bookingUtils');
 const generatePaymentSchedule = require("../utils/paymentSchedule");
-
+const nodemailer = require('nodemailer');
 const router = express.Router();
+const moment = require('moment');
+
+const VERIFIED_SENDER = 'adedejikehinde2004@gmail.com';
+const transporter = nodemailer.createTransport({
+  host: 'smtp.sendgrid.net',
+  port: 587,
+  secure: false,
+  auth: {
+    user: 'apikey',
+    pass: process.env.SENDGRID_API_KEY,
+  },
+});
 
 // Create a new booking
 router.post('/bookings', authenticateToken, async (req, res) => {
@@ -17,22 +29,17 @@ router.post('/bookings', authenticateToken, async (req, res) => {
     const { buildingBlock, floor, apartmentNumber, bedSpace, bedNumber, roomType, lengthOfStay, checkInDate, checkOutDate } = req.body;
     const userId = req.user.id;
 
-    // Check if the user already has an active booking
-    const existingBooking = await Booking.findOne({
-      userId: req.user.id,
-      status: 'Booked',
-    });
-    
+    // Ensure one active booking per user
+    const existingBooking = await Booking.findOne({ userId, status: 'Booked' });
     if (existingBooking) {
       return res.status(400).json({ success: false, message: 'You already have an active booking' });
     }
-    
-    // Check if the room exists
-    const room = await Room.findOne({ buildingBlock, floor, apartmentNumber });
-    if (!room) {
-      return res.status(404).json({ message: 'Room not found' });
-    }
 
+    // Find room
+    const room = await Room.findOne({ buildingBlock, floor, apartmentNumber });
+    if (!room) return res.status(404).json({ message: 'Room not found' });
+
+    // Validate flexible dates
     if (lengthOfStay === 'Flexible') {
       if (!checkInDate || !checkOutDate) {
         return res.status(400).json({ message: 'Check‑in and check‑out required for Flexible stay' });
@@ -42,80 +49,111 @@ router.post('/bookings', authenticateToken, async (req, res) => {
       }
     }
 
-    // Create the booking payload
-    const bookingPayload = { userId, buildingBlock, floor, apartmentNumber, bedSpace, bedNumber, roomType, lengthOfStay };
+    // Build and save booking
+    const payload = { userId, buildingBlock, floor, apartmentNumber, bedSpace, bedNumber, roomType, lengthOfStay };
     if (lengthOfStay === 'Flexible') {
-      bookingPayload.checkInDate = new Date(checkInDate);
-      bookingPayload.checkOutDate = new Date(checkOutDate);
+      payload.checkInDate = new Date(checkInDate);
+      payload.checkOutDate = new Date(checkOutDate);
     }
-    const newBooking = new Booking(bookingPayload);
+    const newBooking = new Booking(payload);
     await newBooking.save();
 
-    // Update room occupancy based on room type
-    const bedSpaceData = room.bedSpaces[bedSpace];
-    if (!bedSpaceData) {
-      return res.status(400).json({ message: 'Invalid bed space' });
-    }
+    // Mark bed occupied
+    const bs = room.bedSpaces[bedSpace];
+    if (!bs) return res.status(400).json({ message: 'Invalid bed space' });
     if (roomType === 'Ensuite') {
-      if (bedSpaceData.bed1) {
-        return res.status(400).json({ message: 'This ensuite is already occupied.' });
-      }
-      bedSpaceData.bed1 = true;
-      bedSpaceData.occupied = true;
-    } else if (roomType === 'Twin Shared') {
-      if (bedNumber) {
-        if (bedNumber === '1') {
-          if (bedSpaceData.bed1) {
-            return res.status(400).json({ message: 'Bed 1 is already occupied.' });
-          }
-          bedSpaceData.bed1 = true;
-        } else if (bedNumber === '2') {
-          if (bedSpaceData.bed2) {
-            return res.status(400).json({ message: 'Bed 2 is already occupied.' });
-          }
-          bedSpaceData.bed2 = true;
-        } else {
-          return res.status(400).json({ message: 'Invalid bed number.' });
-        }
-        if (bedSpaceData.bed1 && bedSpaceData.bed2) {
-          bedSpaceData.occupied = true;
-        }
-      } else {
-        return res.status(400).json({ message: 'Bed number is required for Twin Shared.' });
-      }
+      if (bs.bed1) return res.status(400).json({ message: 'This ensuite is already occupied.' });
+      bs.bed1 = true; bs.occupied = true;
+    } else {
+      if (!bedNumber) return res.status(400).json({ message: 'Bed number required for Twin Shared.' });
+      if (bedNumber !== '1' && bedNumber !== '2') return res.status(400).json({ message: 'Invalid bed number.' });
+      if (bs[`bed${bedNumber}`]) return res.status(400).json({ message: `Bed ${bedNumber} is already occupied.` });
+      bs[`bed${bedNumber}`] = true;
+      if (bs.bed1 && bs.bed2) bs.occupied = true;
     }
-    room.bedSpaces[bedSpace] = bedSpaceData;
+    room.bedSpaces[bedSpace] = bs;
     await room.save();
 
-    // Update the user's roomNumber field
-    const generatedRoomNumber = `${room.buildingBlock}${room.floor}${String(room.apartmentNumber).padStart(2, '0')}${bedSpace}${bedNumber || ''}`;
-    await User.findByIdAndUpdate(userId, { roomNumber: generatedRoomNumber });
+    // Assign room number to user
+    const roomNumber = `${room.buildingBlock}${room.floor}${String(room.apartmentNumber).padStart(2, '0')}${bedSpace}${bedNumber || ''}`;
+    await User.findByIdAndUpdate(userId, { roomNumber });
 
-    // GENERATE PAYMENT SCHEDULE on the BACKEND
-    // Determine the price per night (e.g. €40 for Ensuite, €30 for Twin Shared)
-    const pricePerNight = roomType === "Ensuite" ? 40 : 30;
-    
-    // The generatePaymentSchedule helper returns an array of schedule items
-    const schedule = generatePaymentSchedule(newBooking.checkInDate, newBooking.checkOutDate, pricePerNight);
-    
-    // Save each scheduled payment as a Payment record linked to this booking
-    // Map each schedule item to a Payment document format:
-    const paymentRecords = schedule.map(item => ({
+    // Generate and save payments
+    const rate = roomType === "Ensuite" ? 40 : 30;
+    const schedule = generatePaymentSchedule(newBooking.checkInDate, newBooking.checkOutDate, rate);
+    const payments = schedule.map(item => ({
       bookingId: newBooking._id,
       stayMonth: item.stayMonth,
       stayDates: item.stayDates,
       nights: item.nights,
-      amount: item.amount, // total cost for that period (number)
-      dueDate: item.dueDate, // should be a Date object
+      amount: item.amount,
+      dueDate: item.dueDate,
       status: "Unpaid"
     }));
-    
-    // Insert these Payment records
-    await Payment.insertMany(paymentRecords);
+    await Payment.insertMany(payments);
 
-    res.status(201).json({ message: 'Room booked successfully', booking: newBooking });
-  } catch (error) {
-    res.status(500).json({ message: 'Error booking room', error: error.message });
+    // Prepare detailed confirmation email
+    const user = await User.findById(userId);
+    const totalCost = payments.reduce((sum, p) => sum + p.amount, 0);
+    const scheduleLines = schedule.map(i =>
+      `- ${i.stayMonth}: €${i.amount} due ${i.dueDate.toDateString()}`
+    ).join('\n');
+
+    const mailOptionsUser = {
+      from: `"GHR Booking" <${VERIFIED_SENDER}>`,
+      to: user.email,
+      subject: `Booking Confirmation - ${newBooking._id}`,
+      text: `Hi ${user.name},
+
+Your booking is confirmed with the following details:
+
+•Booking ID: ${newBooking._id}
+•Building: ${buildingBlock}
+•Floor: ${floor}
+•Apartment: ${apartmentNumber}
+•Room Type: ${roomType}
+•Bed Space: ${bedSpace}
+•${bedNumber ? `Bed Number: ${bedNumber}\n` : ''}Room Number: ${roomNumber}
+•Stay Type: ${lengthOfStay}
+•${lengthOfStay === 'Flexible' ? `Check-In: ${payload.checkInDate.toDateString()}\nCheck-Out: ${payload.checkOutDate.toDateString()}\n` : ''}
+•Price/Night: €${rate}
+•Total Nights: ${payments.reduce((sum, p) => sum + p.nights, 0)}
+•Total Cost: €${totalCost}
+
+Deposit Paid: €300.00
+Date of Payment: ${moment().format('DD MMM YYYY')}
+
+Payment Schedule:
+${scheduleLines}
+
+Thank you for choosing Griffith Halls Residence.
+
+Best regards,
+Griffith Halls Residence
+      `
+    };
+
+    const mailOptionsAdmin = {
+      from: `"GHR Booking" <${VERIFIED_SENDER}>`,
+      to: VERIFIED_SENDER,
+      subject: `New Booking - ${newBooking._id}`,
+      text: `New booking by ${user.name} (${user.email}):\nBooking ID: ${newBooking._id}\nRoom Number: ${roomNumber}\nTotal Cost: €${totalCost}`
+    };
+
+    // Send emails
+    const [userInfo, adminInfo] = await Promise.all([
+      transporter.sendMail(mailOptionsUser),
+      transporter.sendMail(mailOptionsAdmin)
+    ]);
+
+    console.log('User email sent:', userInfo.messageId);
+    console.log('Admin email sent:', adminInfo.messageId);
+
+
+    res.status(201).json({ message: 'Booking created and emails sent', booking: newBooking });
+  } catch (err) {
+    console.error('Error booking & emailing:', err);
+    res.status(500).json({ message: 'Error booking room', error: err.message });
   }
 });
 
