@@ -7,7 +7,7 @@ import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
 const CreateAdmin = () => {
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  const API_URL =import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
   
   // State to hold the logged in admin's information
   const [adminUser, setAdminUser] = useState(null);
@@ -66,14 +66,13 @@ const CreateAdmin = () => {
       
       // Call the firebase-register endpoint to create the user in your backend
       await axios.post(
-        `${API_URL}/api/auth/firebase-register`,
+        `${API_URL}/api/auth/firebase-register/admin`,
         {
           idToken,
           name: formData.name,
           lastName: formData.lastName,
           gender: formData.gender,
           phone: formData.phone,
-          // Optionally include role if your backend supports it:
           role: "admin"
         },
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }

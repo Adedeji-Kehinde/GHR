@@ -16,7 +16,47 @@ const router = express.Router();
 const nodemailer = require('nodemailer');
 const admin = require('../utils/notificationService');
 
-router.post("/firebase-register", authenticateToken, async (req, res) => {
+// OPEN: anyone can self‑register as a regular user
+router.post("/firebase-register", async (req, res) => {
+  const { idToken, name, lastName, gender, phone } = req.body;
+
+  try {
+    // Verify Firebase ID token
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    const { email, uid } = decoded;
+
+    // Find or create user
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = new User({
+        email,
+        name,
+        lastName,
+        gender,
+        phone,
+        password: uid,     // store UID, but not used for login
+        role: "user",      // force “user” role
+        createdBy: null
+      });
+      await user.save();
+    }
+
+    // Issue your JWT
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(201).json({ token, user });
+  } catch (err) {
+    console.error("Firebase Register Error:", err);
+    res.status(401).json({ error: "Invalid Firebase ID token" });
+  }
+});
+
+// PROTECTED: only existing admins can hit this to create admins (or users)
+router.post("/firebase-register/admin", authenticateToken, async (req, res) => {
   const { idToken, name, lastName, gender, phone, role } = req.body;
   try {
     const decoded = await admin.auth().verifyIdToken(idToken);
@@ -48,6 +88,7 @@ router.post("/firebase-register", authenticateToken, async (req, res) => {
     res.status(401).json({ error: "Invalid Firebase ID token" });
   }
 });
+
 
 
 router.post("/firebase-login", async (req, res) => {
