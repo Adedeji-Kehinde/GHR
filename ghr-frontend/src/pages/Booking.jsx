@@ -30,11 +30,26 @@ function hasFreeBedOfType(room, type) {
 }
 
 const Booking = () => {
+  const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  const token = localStorage.getItem("token");
+
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
-  const navigate = useNavigate();
-  const API_URL =import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
-  const token = localStorage.getItem("token");
+
+  const [allRooms, setAllRooms] = useState([]);
+  const [lengthOfStay, setLengthOfStay] = useState("");
+  const [flatmates, setFlatmates] = useState("");
+  const [roomType, setRoomType] = useState("");
+  const [buildingBlock, setBuildingBlock] = useState("");
+  const [floor, setFloor] = useState("");
+  const [apartmentNumber, setApartmentNumber] = useState("");
+  const [checkInDateTime, setCheckInDateTime] = useState("");
+  const [checkOutDateTime, setCheckOutDateTime] = useState("");
+
+  const [uniqueBuildings, setUniqueBuildings] = useState([]);
+  const [filteredFloors, setFilteredFloors] = useState([]);
+  const [filteredApartments, setFilteredApartments] = useState([]);
 
   useEffect(() => {
     if (!token) {
@@ -43,56 +58,34 @@ const Booking = () => {
     }
     const fetchUser = async () => {
       try {
-        const res = await axios.get(`${API_URL}/api/auth/user`, {
+        const response = await axios.get(`${API_URL}/api/auth/user`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setUser(res.data);
-      } catch (err) {
-        console.error("Error fetching user:", err.response || err);
+        setUser(response.data);
+      } catch (error) {
+        console.error("Error fetching user:", error);
         navigate("/login");
       } finally {
         setLoadingUser(false);
       }
     };
     fetchUser();
-  }, [API_URL, token, navigate]);
+  }, [navigate, token, API_URL]);
 
-  // Booking form state (fixed durations only)
-  const [allRooms, setAllRooms] = useState([]);
-  const [lengthOfStay, setLengthOfStay] = useState("");
-  const [flatmates, setFlatmates] = useState("");
-  const [roomType, setRoomType] = useState("");
-  const [buildingBlock, setBuildingBlock] = useState("");
-  const [floor, setFloor] = useState("");
-  const [checkInDateTime, setCheckInDateTime] = useState("");
-  const [checkOutDateTime, setCheckOutDateTime] = useState("");
-
-
-  // Dropdown data
-  const [uniqueBuildings, setUniqueBuildings] = useState([]);
-  const [filteredFloors, setFilteredFloors] = useState([]);
-
-  // Fetch all rooms
   useEffect(() => {
     const fetchAllRooms = async () => {
       try {
-        if (!token) {
-          console.error("No token found; please login");
-          navigate("/login");
-          return;
-        }
-        const res = await axios.get(`${API_URL}/api/booking/rooms`, {
+        const response = await axios.get(`${API_URL}/api/booking/rooms`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setAllRooms(res.data || []);
+        setAllRooms(response.data || []);
       } catch (error) {
         console.error("Error fetching rooms:", error);
       }
     };
     fetchAllRooms();
-  }, [API_URL, token, navigate]);
+  }, [API_URL, token]);
 
-  // Get valid room types based on flatmates
   const getValidRoomTypes = () => {
     if (!flatmates) return ["Ensuite", "Twin Shared"];
     if (flatmates === "3") return ["Ensuite"];
@@ -100,71 +93,101 @@ const Booking = () => {
     return ["Ensuite", "Twin Shared"];
   };
 
-  // Adjust flatmate options if room type is Twin Shared
   const getValidFlatmateOptions = () => {
     const base = ["3", "4", "5", "6"];
-    if (roomType === "Twin Shared") return base.filter((val) => val !== "3");
+    if (roomType === "Twin Shared") {
+      return base.filter((val) => val !== "3");
+    }
     return base;
   };
 
-  // Update Building Block dropdown
   useEffect(() => {
     let filtered = allRooms;
     if (flatmates) {
-      filtered = filtered.filter(
-        (room) => calcRoomCapacity(room) === Number(flatmates)
-      );
+      filtered = filtered.filter(room => calcRoomCapacity(room) === Number(flatmates));
     }
     if (roomType) {
-      filtered = filtered.filter((room) => hasFreeBedOfType(room, roomType));
+      filtered = filtered.filter(room => hasFreeBedOfType(room, roomType));
     }
     const blocks = [...new Set(filtered.map((r) => r.buildingBlock))];
     blocks.sort();
     setUniqueBuildings(blocks);
+
     if (buildingBlock && !blocks.includes(buildingBlock)) {
       setBuildingBlock("");
       setFloor("");
+      setApartmentNumber("");
       setFilteredFloors([]);
+      setFilteredApartments([]);
     }
   }, [allRooms, flatmates, roomType, buildingBlock]);
 
-  // Update Floors dropdown
   useEffect(() => {
     if (!buildingBlock) {
       setFloor("");
       setFilteredFloors([]);
+      setApartmentNumber("");
+      setFilteredApartments([]);
       return;
     }
     let matching = allRooms;
     if (flatmates) {
-      matching = matching.filter(
-        (room) => calcRoomCapacity(room) === Number(flatmates)
-      );
+      matching = matching.filter(room => calcRoomCapacity(room) === Number(flatmates));
     }
     if (roomType) {
-      matching = matching.filter((room) => hasFreeBedOfType(room, roomType));
+      matching = matching.filter(room => hasFreeBedOfType(room, roomType));
     }
-    matching = matching.filter((r) => r.buildingBlock === buildingBlock);
+    matching = matching.filter(r => r.buildingBlock === buildingBlock);
     const floors = [...new Set(matching.map((r) => r.floor))];
     floors.sort((a, b) => a - b);
     setFilteredFloors(floors);
+
     if (floor && !floors.includes(Number(floor))) {
       setFloor("");
+      setApartmentNumber("");
+      setFilteredApartments([]);
     }
   }, [allRooms, flatmates, roomType, buildingBlock, floor]);
 
-  // Proceed to bed selection
+  useEffect(() => {
+    if (!buildingBlock || floor === "") {
+      setApartmentNumber("");
+      setFilteredApartments([]);
+      return;
+    }
+    let matches = allRooms;
+    if (flatmates) {
+      matches = matches.filter(room => calcRoomCapacity(room) === Number(flatmates));
+    }
+    if (roomType) {
+      matches = matches.filter(room => hasFreeBedOfType(room, roomType));
+    }
+    matches = matches.filter(
+      (r) =>
+        r.buildingBlock === buildingBlock &&
+        r.floor === Number(floor)
+    );
+    const aptNums = [...new Set(matches.map((m) => m.apartmentNumber))];
+    aptNums.sort((a, b) => a - b);
+    setFilteredApartments(aptNums);
+
+    if (apartmentNumber && !aptNums.includes(Number(apartmentNumber))) {
+      setApartmentNumber("");
+    }
+  }, [allRooms, flatmates, roomType, buildingBlock, floor, apartmentNumber]);
+
   const handleProceed = () => {
     localStorage.setItem("lengthOfStay", lengthOfStay);
     localStorage.setItem("flatmates", flatmates);
     localStorage.setItem("roomType", roomType);
     localStorage.setItem("buildingBlock", buildingBlock);
     localStorage.setItem("floor", floor);
+    localStorage.setItem("apartmentNumber", apartmentNumber);
+    localStorage.setItem("allRooms", JSON.stringify(allRooms));
     if (lengthOfStay === "Flexible") {
       localStorage.setItem("checkInDateTime", checkInDateTime);
       localStorage.setItem("checkOutDateTime", checkOutDateTime);
     }
-    // Apartment Number will be selected in the next phase (SelectBed)
     navigate("/selectBed");
   };
 
@@ -173,7 +196,8 @@ const Booking = () => {
   return (
     <>
       <UserHeader user={user} hideBookRoom={true} />
-      <h2>Room Preferences</h2>
+      <h2>Room Booking</h2>
+
       <label>Length of Stay</label>
       <select value={lengthOfStay} onChange={(e) => setLengthOfStay(e.target.value)}>
         <option value="">-- Select Duration --</option>
@@ -183,33 +207,25 @@ const Booking = () => {
         <option value="Full Year">Full Year</option>
         <option value="Flexible">Flexible</option>
       </select>
+
       {lengthOfStay === "Flexible" && (
         <>
-          <label>Check‑in Date & Time</label>
+          <label>Check-in Date</label>
           <input
             type="datetime-local"
             value={checkInDateTime}
-            min={new Date().toISOString().slice(0, 16)}
             onChange={(e) => setCheckInDateTime(e.target.value)}
+            min={new Date().toISOString().slice(0, 16)}
           />
-
-          <label>Check‑out Date & Time</label>
+          <label>Check-out Date</label>
           <input
             type="datetime-local"
             value={checkOutDateTime}
-            min={
-              checkInDateTime
-                ? new Date(new Date(checkInDateTime).setMonth(new Date(checkInDateTime).getMonth() + 2))
-                    .toISOString()
-                    .slice(0, 16)
-                : new Date().toISOString().slice(0, 16)
-            }
             onChange={(e) => setCheckOutDateTime(e.target.value)}
+            min={checkInDateTime || new Date().toISOString().slice(0, 16)}
           />
         </>
       )}
-
-
 
       <label>Number of Flatmates</label>
       <select
@@ -223,11 +239,10 @@ const Booking = () => {
       >
         <option value="">-- Select Flatmates --</option>
         {getValidFlatmateOptions().map((fm) => (
-          <option key={fm} value={fm}>
-            {fm}
-          </option>
+          <option key={fm} value={fm}>{fm}</option>
         ))}
       </select>
+
       <label>Room Type</label>
       <select
         value={roomType}
@@ -240,33 +255,34 @@ const Booking = () => {
       >
         <option value="">-- Select Room Type --</option>
         {getValidRoomTypes().map((type) => (
-          <option key={type} value={type}>
-            {type}
-          </option>
+          <option key={type} value={type}>{type}</option>
         ))}
       </select>
+
       <label>Building Block</label>
       <select value={buildingBlock} onChange={(e) => setBuildingBlock(e.target.value)}>
         <option value="">-- Select Building Block --</option>
         {uniqueBuildings.map((block) => (
-          <option key={block} value={block}>
-            {block}
-          </option>
+          <option key={block} value={block}>{block}</option>
         ))}
       </select>
+
       <label>Floor</label>
-      <select
-        value={floor}
-        onChange={(e) => setFloor(e.target.value)}
-        disabled={!buildingBlock}
-      >
+      <select value={floor} onChange={(e) => setFloor(e.target.value)} disabled={!buildingBlock}>
         <option value="">-- Select Floor --</option>
         {filteredFloors.map((f) => (
-          <option key={f} value={f}>
-            {f}
-          </option>
+          <option key={f} value={f}>{f}</option>
         ))}
       </select>
+
+      <label>Apartment Number</label>
+      <select value={apartmentNumber} onChange={(e) => setApartmentNumber(e.target.value)} disabled={floor === ""}>
+        <option value="">-- Select Apartment --</option>
+        {filteredApartments.map((apt) => (
+          <option key={apt} value={apt}>{apt}</option>
+        ))}
+      </select>
+
       <button
         onClick={handleProceed}
         disabled={
@@ -275,11 +291,13 @@ const Booking = () => {
           !roomType ||
           !buildingBlock ||
           floor === "" ||
+          !apartmentNumber ||
           (lengthOfStay === "Flexible" && (!checkInDateTime || !checkOutDateTime))
         }
       >
         Proceed to Bed Selection
       </button>
+
       <Footer />
     </>
   );
