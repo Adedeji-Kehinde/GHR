@@ -10,8 +10,13 @@ const app = express();
 
 // Middleware
 app.use(express.json()); // Parse JSON bodies
-app.use(cors({ origin: 'http://localhost:5173' })); // Enable CORS for cross-origin requests
-
+app.use(cors({
+  origin: [
+    'http://localhost:5173',               // dev
+    'https://ghr-wh8w.onrender.com'        // your deployed front‑end
+  ],
+  credentials: true
+}));
 // MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI, {
