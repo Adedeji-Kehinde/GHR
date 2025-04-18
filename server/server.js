@@ -8,29 +8,9 @@ dotenv.config();
 
 const app = express();
 
-// CORS whitelist
-const whitelist = [
-  'http://localhost:5173',
-  'https://ghr-wh8w.onrender.com'
-];
-const corsOptions = {
-  origin: function(origin, callback) {
-    // allow requests with no origin (e.g. mobile apps or curl)
-    if (!origin) return callback(null, true);
-    if (whitelist.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error(`CORS: Origin ${origin} not allowed`));
-    }
-  },
-  credentials: true,            // if you send cookies or auth headers
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization']
-};
-
-app.use(cors(corsOptions));
 // Middleware
 app.use(express.json()); // Parse JSON bodies
+app.use(cors({ origin: 'http://localhost:5173' })); // Enable CORS for cross-origin requests
 
 // MongoDB Connection
 mongoose
