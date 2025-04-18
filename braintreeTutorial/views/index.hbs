@@ -1,120 +1,180 @@
-<div id="dropin-wrapper">
-  <div id="checkout-message"></div>
-  <div id="dropin-container"></div>
-  <button id="submit-button">Submit payment</button>
-  <div id="paypal-button"></div>
-</div>
-<script>
-  const urlParams = new URLSearchParams(window.location.search);
-  const amount = urlParams.get('amount');
-  const paymentId = urlParams.get("paymentId"); // New parameter for backend Payment record
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Checkout</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://js.braintreegateway.com/web/dropin/1.33.4/js/dropin.min.js"></script>
+  <style>
+    /* Reset & base */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    /* Card container */
+    #dropin-wrapper {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 360px;
+      padding: 24px;
+      text-align: center;
+    }
+    #checkout-message {
+      margin-bottom: 16px;
+      font-size: 18px;
+      color: #444;
+    }
+    /* Drop‑in */
+    #dropin-container {
+      margin-bottom: 20px;
+    }
+    /* Button */
+    #submit-button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      width: 100%;
+    }
+    #submit-button:hover {
+      background-color: #0056b3;
+    }
+    /* Success & error states */
+    .success-message {
+      color: #155724;
+      background-color: #d4edda;
+      border: 1px solid #c3e6cb;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+    .error-message {
+      color: #721c24;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div id="dropin-wrapper">
+    <div id="checkout-message"></div>
+    <div id="dropin-container"></div>
+    <button id="submit-button">Submit payment</button>
+  </div>
 
-  document.getElementById('checkout-message').innerHTML =
-    `<p>You are paying a total of €${amount}</p>`;
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const amount = urlParams.get('amount');
+    const paymentId = urlParams.get("paymentId");
 
-  var threeDSecureParameters = {
-    amount: amount,
-    email: 'test@example.com',
-    billingAddress: {
-      givenName: 'Jill', // ASCII-printable characters required, else will throw a validation error
-      surname: 'Doe', // ASCII-printable characters required, else will throw a validation error
-      phoneNumber: '8101234567',
-      streetAddress: '555 Smith St.',
-      extendedAddress: '#5',
-      locality: 'Oakland',
-      region: 'CA', // ISO-3166-2 code
-      postalCode: '12345',
-      countryCodeAlpha2: 'US'
-    },
-    collectDeviceData: true,
-    additionalInformation: {
-      workPhoneNumber: '8101234567',
-      shippingGivenName: 'Jill',
-      shippingSurname: 'Doe',
-      shippingPhone: '8101234567',
-      shippingAddress: {
+    document.getElementById('checkout-message').innerHTML =
+      `<p>You are paying a total of €${amount}</p>`;
+
+    var threeDSecureParameters = {
+      amount: amount,
+      email: 'test@example.com',
+      billingAddress: {
+        givenName: 'Jill', // ASCII-printable characters required, else will throw a validation error
+        surname: 'Doe', // ASCII-printable characters required, else will throw a validation error
+        phoneNumber: '8101234567',
         streetAddress: '555 Smith St.',
         extendedAddress: '#5',
         locality: 'Oakland',
         region: 'CA', // ISO-3166-2 code
         postalCode: '12345',
         countryCodeAlpha2: 'US'
-      }
-    },
-  };
- 
-  var button = document.querySelector('#submit-button');
-  $.ajax({
-          type: "GET",
-          url: "checkout",
-        }).done(function(data) {
-          console.log(data)
-          var clientToken = data;
-    braintree.dropin.create({
-    // Insert your tokenization key here
-    authorization: clientToken,
-    container: '#dropin-container',
-    threeDSecure: true, // add 3DS
-    vaultManager: true,
-    paypal: {
-    flow: 'checkout',
-    amount: '10.00',
-    currency: 'USD',
-    buttonStyle: {
-      color: 'blue',
-      shape: 'rect',
-      size: 'medium'
-      } 
-    },
-    card: {
-    cardholderName: {
-      required: false
-      // to make cardholder name required
-      // required: true
-    }
-    }
-  }, function (createErr, instance) {
-    button.addEventListener('click', function () {
-      instance.requestPaymentMethod({
-          threeDSecure: threeDSecureParameters
-          },function (requestPaymentMethodErr, payload) {
-        // When the user clicks on the 'Submit payment' button this code will send the
-        // encrypted payment information in a variable called a payment method nonce
-        $.ajax({
-          type: 'POST',
-          url: 'checkout',
-          data: {'paymentMethodNonce': payload.nonce, amount: amount, paymentId: paymentId},
-        }).done(function(result) {
-          // Tear down the Drop-in UI
-          instance.teardown(function (teardownErr) {
-            if (teardownErr) {
-              console.error('Could not tear down Drop-in UI!');
-            } else {
-              console.info('Drop-in UI has been torn down!');
-              // Remove the 'Submit payment' button
-              $('#submit-button').remove();
+      },
+      collectDeviceData: true,
+      additionalInformation: {
+        workPhoneNumber: '8101234567',
+        shippingGivenName: 'Jill',
+        shippingSurname: 'Doe',
+        shippingPhone: '8101234567',
+        shippingAddress: {
+          streetAddress: '555 Smith St.',
+          extendedAddress: '#5',
+          locality: 'Oakland',
+          region: 'CA', // ISO-3166-2 code
+          postalCode: '12345',
+          countryCodeAlpha2: 'US'
+        }
+      },
+    };
+
+    var button = document.querySelector('#submit-button');
+    $.ajax({ type: "GET", url: "checkout" })
+      .done(function(clientToken) {
+        braintree.dropin.create({
+          authorization: clientToken,
+          container: '#dropin-container',
+          threeDSecure: true,
+          vaultManager: true,
+          paypal: {
+            flow: 'checkout',         // or "vault" if you want to vault the payment method
+            amount: amount,           // match the transaction amount
+            currency: 'EUR',          // or whatever your currency is
+            buttonStyle: {            // optional styling
+              color: 'blue',
+              shape: 'rect',
+              size: 'medium',
+              label: 'paypal'
             }
+          },
+          card: { cardholderName: { required: false } }
+        }, function (createErr, instance) {
+          button.addEventListener('click', function () {
+            instance.requestPaymentMethod({ threeDSecure: threeDSecureParameters },
+            function (requestPaymentMethodErr, payload) {
+              $.ajax({
+                type: 'POST',
+                url: 'checkout',
+                data: {
+                  paymentMethodNonce: payload.nonce,
+                  amount: amount,
+                  paymentId: paymentId
+                },
+              }).done(function(result) {
+                instance.teardown(function (teardownErr) {
+                  if (!teardownErr) $('#submit-button').remove();
+                });
+                if (result.success) {
+                  $('#dropin-wrapper').html(
+                    `<div class="success-message">
+                       <h2>Payment Successful!</h2>
+                       <p>Thank you. Redirecting back...</p>
+                     </div>`
+                  );
+                  if (window.opener) {
+                    window.opener.postMessage({ payment: 'success' }, '*');
+                  }
+                  setTimeout(() => window.close(), 2000);
+                } else {
+                  $('#checkout-message').html(
+                    `<div class="error-message">
+                       <h2>Payment Error</h2>
+                       <p>${result.error}</p>
+                     </div>`
+                  );
+                }
+              });
+            });
           });
- 
-          if (result.success) {
-            $('#checkout-message').html('<h1>Success</h1><p>Your Drop-in UI is working! Check your <a href="https://sandbox.braintreegateway.com/login">sandbox Control Panel</a> for your test transactions.</p><p>Redirecting back to the website...</p>');
-              // Notify the parent window of success (optional)
-              if (window.opener) {
-                window.opener.postMessage({ payment: 'success' }, '*');
-                console.log("postMessage 'payment_success' sent.");
-              }
-              
-              // Close the popup after a short delay
-              setTimeout(function(){
-                window.close();
-              }, 2000);
-          } else {
-            console.log(result);
-            $('#checkout-message').html('<h1>Error</h1><p>Check your console.</p>');
-          }
         });
-      })
       });
-    });
-  });
-</script>
+  </script>
+</body>
+</html>
