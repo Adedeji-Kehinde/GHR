@@ -17,7 +17,7 @@ import {
 } from "recharts";
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
-const HEADER_HEIGHT = 70; // your header height
+const HEADER_HEIGHT = 40; // your header height
 
 export default function AdminDashboard() {
   // ─── State ─────────────────────────────────────────────────────────────
@@ -228,7 +228,7 @@ export default function AdminDashboard() {
     main: {
       display:"flex",
       marginTop:HEADER_HEIGHT,
-      width:"100vw",
+      width:"90vw",
       height:`calc(100vh - ${HEADER_HEIGHT}px)`,
       overflowX:"hidden"
     },
