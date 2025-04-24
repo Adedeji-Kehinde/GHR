@@ -13,7 +13,7 @@ app.use(express.json()); // Parse JSON bodies
 app.use(cors({
   origin: [
     'http://localhost:5173',               // dev
-    'https://ghr-sigma.vercel.app/'        // your deployed front‑end
+    'https://ghr-sigma.vercel.app'        // your deployed front‑end
   ],
   credentials: true
 }));
