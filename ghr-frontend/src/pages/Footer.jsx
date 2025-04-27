@@ -14,17 +14,17 @@ const Footer = () => {
     boxSizing: "border-box",
   };
 
-  // Inner content container for spacing & alignment, similar to your header
   const innerFooterStyle = {
+    maxWidth: "1200px",
+    margin: "0 auto",
+    padding: "1.5rem 1rem",
     display: "flex",
+    flexWrap: "wrap",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "1rem 2rem",
-    maxWidth: "1200px",
-    margin: "0 auto", // center this content
+    gap: "2rem",
   };
 
-  // Left Section: "Contact Us" + social icons
   const leftSectionStyle = {
     display: "flex",
     alignItems: "center",
@@ -39,6 +39,7 @@ const Footer = () => {
     fontWeight: "bold",
     border: "none",
     cursor: "pointer",
+    whiteSpace: "nowrap",
   };
 
   const socialIconStyle = {
@@ -48,11 +49,11 @@ const Footer = () => {
     cursor: "pointer",
   };
 
-  // Right Section: Logo + text lines
   const rightSectionStyle = {
     display: "flex",
     alignItems: "center",
     gap: "1rem",
+    flexWrap: "wrap",
   };
 
   const footerLogoStyle = {
@@ -67,82 +68,95 @@ const Footer = () => {
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-start",
+    gap: "0.5rem",
   };
 
   const footerLineStyle = {
-    fontSize: "0.8rem",
+    fontSize: "0.85rem",
     color: "#555",
     margin: 0,
     lineHeight: "1.2",
   };
 
-  return (
-    <footer style={outerFooterStyle}>
-      <div style={innerFooterStyle}>
-        {/* Left Section */}
-        <div style={leftSectionStyle}>
-          <button
-            style={contactButtonStyle}
-            onClick={() => navigate("/contact-us")}
-          >
-            Contact Us
-          </button>
-          <img
-            src="/images/instagram.png"
-            alt="Instagram"
-            style={socialIconStyle}
-            onClick={() => window.open("https://instagram.com", "_blank")}
-          />
-          <img
-            src="/images/snapchat.png"
-            alt="Snapchat"
-            style={socialIconStyle}
-            onClick={() => window.open("https://snapchat.com", "_blank")}
-          />
-          <img
-            src="/images/linkedin.png"
-            alt="LinkedIn"
-            style={socialIconStyle}
-            onClick={() =>
-              window.open(
-                "https://www.linkedin.com/in/adedeji-abdulraheem/",
-                "_blank"
-              )
-            }
-          />
-          <img
-            src="/images/github.png"
-            alt="GitHub"
-            style={socialIconStyle}
-            onClick={() =>
-              window.open("https://github.com/Adedeji-Kehinde", "_blank")
-            }
-          />
-        </div>
+  // Keyframe animation for slight fade (optional, you can comment this out if you don't want)
+  const keyframesStyle = `
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  `;
 
-        {/* Right Section */}
-        <div style={rightSectionStyle}>
-          <img
-            src="/images/logo.png"
-            alt="Logo"
-            style={footerLogoStyle}
-            onClick={() => navigate("/")}
-          />
-          <div style={footerTextContainerStyle}>
-            <p style={footerLineStyle}>
-              © {new Date().getFullYear()} GHR Website. All rights reserved.
-            </p>
-            <p
-              style={{ ...footerLineStyle, cursor: "pointer" }}
-              onClick={() => navigate("/about")}
+  return (
+    <>
+      <style>{keyframesStyle}</style>
+
+      <footer style={outerFooterStyle}>
+        <div style={innerFooterStyle}>
+          {/* Left Section */}
+          <div style={leftSectionStyle}>
+            <button
+              style={contactButtonStyle}
+              onClick={() => navigate("/contact-us")}
             >
-              About Us
-            </p>
-            <p style={footerLineStyle}>Innovate. Inspire. Impact.</p>
+              Contact Us
+            </button>
+            <img
+              src="/images/instagram.png"
+              alt="Instagram"
+              style={socialIconStyle}
+              onClick={() => window.open("https://instagram.com", "_blank")}
+            />
+            <img
+              src="/images/snapchat.png"
+              alt="Snapchat"
+              style={socialIconStyle}
+              onClick={() => window.open("https://snapchat.com", "_blank")}
+            />
+            <img
+              src="/images/linkedin.png"
+              alt="LinkedIn"
+              style={socialIconStyle}
+              onClick={() =>
+                window.open(
+                  "https://www.linkedin.com/in/adedeji-abdulraheem/",
+                  "_blank"
+                )
+              }
+            />
+            <img
+              src="/images/github.png"
+              alt="GitHub"
+              style={socialIconStyle}
+              onClick={() =>
+                window.open("https://github.com/Adedeji-Kehinde", "_blank")
+              }
+            />
+          </div>
+
+          {/* Right Section */}
+          <div style={rightSectionStyle}>
+            <img
+              src="/images/logo.png"
+              alt="Logo"
+              style={footerLogoStyle}
+              onClick={() => navigate("/")}
+            />
+            <div style={footerTextContainerStyle}>
+              <p style={footerLineStyle}>
+                © {new Date().getFullYear()} GHR Website. All rights reserved.
+              </p>
+              <p
+                style={{ ...footerLineStyle, cursor: "pointer" }}
+                onClick={() => navigate("/about")}
+              >
+                About Us
+              </p>
+              <p style={footerLineStyle}>Innovate. Inspire. Impact.</p>
+            </div>
           </div>
         </div>
-      </div>
-    </footer>
+      </footer>
+    </>
   );
 };
 

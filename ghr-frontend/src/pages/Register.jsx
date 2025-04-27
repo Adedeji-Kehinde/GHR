@@ -95,7 +95,6 @@ const Register = () => {
       </div>
 
       <div className="register-right">
-        <div className="register-form-container">
           <h2>Create Account</h2>
           {error && <p className="error">{error}</p>}
           {loading && <p className="loading">Creating account...</p>}
@@ -188,9 +187,9 @@ const Register = () => {
           <p className="or-text">or</p>
 
           <button onClick={handleGoogleRegister} className="google-login-btn">
+            <img src="/images/google-icon.png" alt="Google Icon" className="google-icon" />
             Continue with Google
           </button>
-        </div>
       </div>
     </div>
   );

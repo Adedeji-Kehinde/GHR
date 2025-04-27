@@ -5,9 +5,22 @@ const UserHeader = ({ user, hideBookRoom }) => {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [learnMoreDropdownOpen, setLearnMoreDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const userDropdownRef = useRef(null);
   const learnMoreDropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      if (window.innerWidth > 768) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -18,7 +31,6 @@ const UserHeader = ({ user, hideBookRoom }) => {
         setLearnMoreDropdownOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () =>
       document.removeEventListener("mousedown", handleClickOutside);
@@ -36,22 +48,26 @@ const UserHeader = ({ user, hideBookRoom }) => {
     navigate("/user-profile");
   };
 
-  // "My Bookings" routes to "/home"
   const handleMyBookings = () => {
     navigate("/home");
   };
 
-  // Styles
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(prev => !prev);
+  };
+
+  // --- Styles ---
   const headerStyle = {
     position: "fixed",
     top: 0,
     left: 0,
     width: "100%",
     zIndex: 1000,
-    padding: "0.25rem 0",
+    padding: "0.5rem 0",
     boxSizing: "border-box",
     height: "80px",
     backgroundColor: "#fff",
+    borderBottom: "1px solid #eee",
   };
 
   const containerStyle = {
@@ -59,38 +75,61 @@ const UserHeader = ({ user, hideBookRoom }) => {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: "0 40px",
+    padding: "0 20px",
+  };
+
+  const logoMenuContainerStyle = {
+    display: "flex",
+    alignItems: "center",
+    gap: "1rem",
   };
 
   const logoStyle = {
-    height: "60px",
-    width: "60px",
+    height: "50px",
+    width: "50px",
     borderRadius: "50%",
     objectFit: "cover",
     cursor: "pointer",
   };
 
-  const navItemStyle = {
-    fontWeight: "bold",
+  const hamburgerButtonStyle = {
+    display: isMobile ? "flex" : "none",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
     cursor: "pointer",
   };
 
-  // Overall user info container
+  const navLinksContainerStyle = {
+    display: isMobile ? (isMobileMenuOpen ? "flex" : "none") : "flex",
+    flexDirection: isMobile ? "column" : "row",
+    position: isMobile ? "absolute" : "static",
+    top: "80px",
+    left: 0,
+    width: "100%",
+    backgroundColor: "#fff",
+    padding: isMobile ? "1rem 0" : "0",
+    boxShadow: isMobile ? "0px 4px 10px rgba(0,0,0,0.1)" : "none",
+    alignItems: "center",
+    justifyContent: isMobile ? "center" : "flex-end",
+    gap: "1rem",
+    zIndex: 999,
+  };
+
+  const navItemStyle = {
+    fontWeight: "bold",
+    cursor: "pointer",
+    padding: "0.5rem 1rem",
+  };
+
   const userInfoStyle = {
     display: "flex",
     alignItems: "center",
-    gap: "1rem",
-    marginRight: "80px",
+    gap: "0.5rem",
+    marginRight: "10px", // small margin so it doesn't touch screen edge
+    position: "relative",
   };
 
-  // Group container for greeting text and profile image with minimal gap.
-  const greetingGroupStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "0.25rem", // minimal gap between text and image
-  };
-
-  // Profile image (smaller than logo)
   const profilePicStyle = {
     height: "40px",
     width: "40px",
@@ -99,7 +138,6 @@ const UserHeader = ({ user, hideBookRoom }) => {
     cursor: "pointer",
   };
 
-  // Text style for greeting and "My Bookings"
   const userNameStyle = {
     fontWeight: "bold",
     whiteSpace: "nowrap",
@@ -108,24 +146,13 @@ const UserHeader = ({ user, hideBookRoom }) => {
 
   const dropdownStyle = {
     position: "absolute",
-    top: "100%",
+    top: "calc(100% + 10px)",
     right: 0,
     backgroundColor: "#fff",
     boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
     borderRadius: "4px",
-    marginTop: "0.5rem",
     zIndex: 1001,
-  };
-
-  const learnMoreDropdownStyle = {
-    position: "absolute",
-    top: "100%",
-    left: 0,
-    backgroundColor: "#fff",
-    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-    borderRadius: "4px",
-    marginTop: "0.5rem",
-    zIndex: 1001,
+    animation: "fadeSlideDown 0.3s ease",
   };
 
   const dropdownItemStyle = {
@@ -134,177 +161,165 @@ const UserHeader = ({ user, hideBookRoom }) => {
     whiteSpace: "nowrap",
   };
 
-  const bookRoomButtonStyle = {
-    padding: "0.5rem 1rem",
-    backgroundColor: "#007BFF",
-    color: "#fff",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer",
-  };
-
-  const navContainerStyle = {
-    borderRadius: "20px",
-    display: "flex",
-    alignItems: "center",
-    padding: "0.75rem 1.5rem",
-    width: "100%",
-    boxSizing: "border-box",
-    justifyContent: "space-between",
-  };
-
-  const leftNavGroupStyle = {
-    display: "flex",
-    gap: "1.5rem",
-    alignItems: "center",
-  };
-
-  const rightNavGroupStyle = {
-    display: "flex",
-    gap: "1.5rem",
-    alignItems: "center",
-    marginRight: "40px",
-  };
+  // Keyframe animation
+  const keyframesStyle = `
+    @keyframes fadeSlideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  `;
 
   return (
-    <header style={headerStyle}>
-      <div style={containerStyle}>
-        {/* Logo */}
-        <div onClick={() => navigate("/")}>
-          <img src="/images/logo.png" alt="Logo" style={logoStyle} />
-        </div>
-        {user ? (
-          <div style={userInfoStyle}>
-            {/* "My Bookings" text */}
-            <span style={userNameStyle} onClick={handleMyBookings}>
-              My Bookings
-            </span>
-            {/* Group for greeting text and profile image with minimal spacing */}
-            <div style={greetingGroupStyle}>
-              <span style={userNameStyle} onClick={() => setDropdownOpen((prev) => !prev)}>
-                Hello, {userName}
-              </span>
-              <img
-                src={userProfilePicture}
-                alt="Profile"
-                style={profilePicStyle}
-                onClick={() => setDropdownOpen((prev) => !prev)}
-              />
+    <>
+      <style>{keyframesStyle}</style> {/* Add animation keyframes directly */}
+
+      <header style={headerStyle}>
+        <div style={containerStyle}>
+          {/* Logo + Menu Button */}
+          <div style={logoMenuContainerStyle}>
+            <div onClick={() => navigate("/")}>
+              <img src="/images/logo.png" alt="Logo" style={logoStyle} />
             </div>
-            <div
-              ref={userDropdownRef}
-              style={{
-                position: "relative",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-              }}
-            >
-              {dropdownOpen && (
-                <div style={dropdownStyle}>
-                  <div
-                    style={dropdownItemStyle}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleProfile();
-                    }}
-                  >
-                    Profile
-                  </div>
-                  <div
-                    style={dropdownItemStyle}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLogout();
-                    }}
-                  >
-                    Logout
-                  </div>
-                </div>
-              )}
-            </div>
-            {!hideBookRoom && (
-              <button
-                style={bookRoomButtonStyle}
-                onClick={() => navigate("/booking")}
-              >
-                Book Room
-              </button>
-            )}
+
+            {/* Hamburger Button */}
+            <button style={hamburgerButtonStyle} onClick={toggleMobileMenu}>☰</button>
           </div>
-        ) : (
-          <div style={navContainerStyle}>
-            <div style={leftNavGroupStyle}>
-              <span style={navItemStyle} onClick={() => navigate("/about")}>
-                About
-              </span>
-              <span style={navItemStyle} onClick={() => navigate("/life-ghr")}>
-                Life@GHR
-              </span>
-              <span style={navItemStyle} onClick={() => navigate("/testimonials")}>
-                Testimonials
-              </span>
-              <div ref={learnMoreDropdownRef} style={{ position: "relative" }}>
-                <span
-                  style={navItemStyle}
-                  onClick={() => setLearnMoreDropdownOpen((prev) => !prev)}
-                >
-                  Learn more
+
+          {/* Navigation Links */}
+          <div style={navLinksContainerStyle}>
+            {user ? (
+              <div style={{
+                display: "flex",
+                flexDirection: isMobile ? "column" : "row",
+                alignItems: "center",
+                gap: "1rem",
+                marginRight: "10px",
+              }}>
+                {/* My Bookings */}
+                <span style={userNameStyle} onClick={handleMyBookings}>
+                  My Bookings
                 </span>
-                {learnMoreDropdownOpen && (
-                  <div style={learnMoreDropdownStyle}>
-                    <div
-                      style={dropdownItemStyle}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate("/privacy-policy");
-                      }}
-                    >
-                      Privacy Policy
+
+                {/* User Info */}
+                <div ref={userDropdownRef} style={userInfoStyle}>
+                  <span style={userNameStyle} onClick={() => setDropdownOpen(prev => !prev)}>
+                    Hello, {userName}
+                  </span>
+                  <img
+                    src={userProfilePicture}
+                    alt="Profile"
+                    style={profilePicStyle}
+                    onClick={() => setDropdownOpen(prev => !prev)}
+                  />
+                  {dropdownOpen && (
+                    <div style={dropdownStyle}>
+                      <div style={dropdownItemStyle} onClick={handleProfile}>
+                        Profile
+                      </div>
+                      <div style={dropdownItemStyle} onClick={handleLogout}>
+                        Logout
+                      </div>
                     </div>
-                    <div
-                      style={dropdownItemStyle}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate("/cancellation-policy");
-                      }}
-                    >
-                      Cancellation Policy
-                    </div>
-                    <div
-                      style={dropdownItemStyle}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate("/terms-and-conditions");
-                      }}
-                    >
-                      Terms and Conditions
-                    </div>
-                    <div
-                      style={dropdownItemStyle}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate("/faqs");
-                      }}
-                    >
-                      FAQs
-                    </div>
-                  </div>
+                  )}
+                </div>
+
+                {/* Book Room Button */}
+                {!hideBookRoom && (
+                  <button
+                    style={{
+                      padding: "0.5rem 1rem",
+                      backgroundColor: "#007BFF",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                      maxWidth: "150px",
+                    }}
+                    onClick={() => navigate("/booking")}
+                  >
+                    Book Room
+                  </button>
                 )}
               </div>
-            </div>
-            <div style={rightNavGroupStyle}>
-              <span style={navItemStyle} onClick={() => navigate("/login")}>
-                Login
-              </span>
-              <span style={navItemStyle} onClick={() => navigate("/register")}>
-                Register
-              </span>
-            </div>
+            ) : (
+              <div style={{
+                display: isMobile ? "flex" : "flex",
+                flexDirection: isMobile ? "column" : "row",
+                justifyContent: isMobile ? "center" : "space-between",
+                alignItems: "center",
+                width: isMobile ? "100%" : "80%",
+              }}>
+                {/* Left Group */}
+                <div style={{
+                  display: "flex",
+                  flexDirection: isMobile ? "column" : "row",
+                  gap: "1rem",
+                  alignItems: "center",
+                }}>
+                  <span style={navItemStyle} onClick={() => navigate("/about")}>
+                    About
+                  </span>
+                  <span style={navItemStyle} onClick={() => navigate("/life-ghr")}>
+                    Life@GHR
+                  </span>
+                  <span style={navItemStyle} onClick={() => navigate("/testimonials")}>
+                    Testimonials
+                  </span>
+                  {/* Learn More Dropdown */}
+                  <div ref={learnMoreDropdownRef} style={{ position: "relative" }}>
+                    <span
+                      style={navItemStyle}
+                      onClick={() => setLearnMoreDropdownOpen(prev => !prev)}
+                    >
+                      Learn More
+                    </span>
+                    {learnMoreDropdownOpen && (
+                      <div style={dropdownStyle}>
+                        <div style={dropdownItemStyle} onClick={() => navigate("/privacy-policy")}>
+                          Privacy Policy
+                        </div>
+                        <div style={dropdownItemStyle} onClick={() => navigate("/cancellation-policy")}>
+                          Cancellation Policy
+                        </div>
+                        <div style={dropdownItemStyle} onClick={() => navigate("/terms-and-conditions")}>
+                          Terms and Conditions
+                        </div>
+                        <div style={dropdownItemStyle} onClick={() => navigate("/faqs")}>
+                          FAQs
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Group */}
+                <div style={{
+                  display: "flex",
+                  flexDirection: isMobile ? "column" : "row",
+                  gap: "0.5rem",
+                  alignItems: "center",
+                  marginRight: "10px",
+                }}>
+                  <span style={navItemStyle} onClick={() => navigate("/login")}>
+                    Login
+                  </span>
+                  <span style={navItemStyle} onClick={() => navigate("/register")}>
+                    Register
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </header>
+        </div>
+      </header>
+    </>
   );
 };
 

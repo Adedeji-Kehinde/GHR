@@ -1,13 +1,13 @@
-
 /* Overall container spans the full viewport */
 .login-page {
   display: flex;
+  min-height: 100vh;
 }
 
-/* Left side: occupies 25% of the screen, with a stretched background image */
+/* Left side: fixed image */
 .login-left {
   background-image: url('/images/login.jpeg');
-  background-size: 100% 100%; /* Stretches the image to fill the container */
+  background-size: 100% 100%;
   position: fixed;
   left: 0;
   top: 0;
@@ -19,96 +19,17 @@
   align-items: center;
 }
 
-/* Text container on the left side with no background overlay */
+/* Welcome text on the left */
 .text-container {
   text-align: center;
   color: #fff;
-  /* Subtle text shadow for readability */
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
 }
 
-/* Right side: occupies 60% of the screen; placed to the right of the fixed sidebar */
-.login-right {
-  width: 100%;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 40px;
-  box-sizing: border-box;
-  margin-left: 400px; 
-  margin-top: 70px;
-  height: 70vh;
-}
-
-/* Wrapper to center the login form */
-.login-form-wrapper {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  flex: 1;
-}
-
-/* Container for the form */
-.login-form-container {
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.login-form-container h2 {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.login-form-container form {
-  display: flex;
-  flex-direction: column;
-}
-
-.login-form-container input {
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.login-form-container button {
-  padding: 10px;
-  background: #007BFF;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.login-form-container button:disabled {
-  background: #6c757d;
-  cursor: not-allowed;
-}
-
-.login-form-container label {
-  font-size: 0.8rem; 
-  color: #333;
-  text-align: left;
-  display: block;
-}
-
-
-.error {
-  color: red;
-  text-align: center;
-  margin-bottom: 15px;
-}
-
-.loading {
-  text-align: center;
-  margin-bottom: 15px;
-}
-
-/* Logo at the bottom center */
+/* Logo inside left panel */
 .logo-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
 }
 
 .logo-container img {
@@ -117,4 +38,180 @@
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #ccc;
+}
+
+/* Right side (Login form side) */
+.login-right {
+  width: 100%;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  margin-left: 400px; 
+  align-content: center;
+  animation: fadeIn 1s ease-out;
+}
+
+/* Inner form container */
+.form-container {
+  max-width: 500px; /* 🚀 Increased from 400px to 500px */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+}
+
+/* Heading */
+.form-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Form layout */
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+form label {
+  font-size: 0.9rem;
+  margin-bottom: 0.3rem;
+  color: #333;
+}
+
+form input {
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+form button {
+  padding: 10px;
+  background-color: #007BFF;
+  color: #fff;
+  border: none;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+form button:hover {
+  background-color: #0056b3;
+}
+
+form button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* Error or loading message */
+.error, .loading {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.error {
+  color: red;
+}
+
+/* Divider and "OR" text */
+.divider {
+  margin: 2rem 0 1rem 0;
+  border: none;
+  border-top: 1px solid #ccc;
+}
+
+.or-text {
+  text-align: center;
+  color: #777;
+  margin-bottom: 1rem;
+}
+
+/* Google Button */
+.google-login-btn {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  background-color: white;
+  color: #333;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.google-login-btn:hover {
+  background-color: #f7f7f7;
+}
+
+/* Google icon inside button */
+.google-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
+}
+
+/* ------------- Mobile View -------------- */
+@media (max-width: 768px) {
+  .login-page {
+    flex-direction: column;
+  }
+
+  .login-left {
+    display: none; /* Hide image on mobile */
+  }
+
+  .login-right {
+    margin-left: 0;
+    width: 100%;
+    padding: 2rem 1rem;
+    height: auto;
+  }
+
+  .form-container {
+    padding: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .form-container h2 {
+    font-size: 1.8rem;
+  }
+
+  form input, form button {
+    font-size: 1rem;
+  }
+
+  .google-login-btn {
+    font-size: 1rem;
+  }
+}
+
+/* Even smaller phones */
+@media (max-width: 480px) {
+  .form-container {
+    padding: 1rem;
+  }
+
+  .form-container h2 {
+    font-size: 1.5rem;
+  }
+
+  form input, form button, .google-login-btn {
+    font-size: 0.9rem;
+  }
+}
+
+/* Fade animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

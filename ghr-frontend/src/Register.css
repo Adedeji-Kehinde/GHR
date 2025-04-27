@@ -1,14 +1,14 @@
-
-/* Overall container spans the full viewport */
+/* Overall container spans full viewport */
 .register-page {
     display: flex;
     min-height: 100vh;
-}
+  }
   
-/* Left side: occupies 40% of the screen with a stretched background image */
-.register-left {
-    background-image: url('/images/register.jpg'); /* Use your desired image */
-    background-size: 100% 100%;
+  /* Left side */
+  .register-left {
+    background-image: url('/images/register.jpg');
+    background-size: cover;
+    background-position: center;
     position: fixed;
     left: 0;
     top: 0;
@@ -18,131 +18,199 @@
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-}
+  }
   
-/* Text container on the left side, aligned to the top */
-.text-container {
-    align-self: flex-start;
-    margin: 20px;
-    text-align: left;
+  /* Welcome text */
+  .text-container {
+    text-align: center;
     color: #fff;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
-}
+    margin-top: 2rem;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
+  }
   
-/* Logo container at the bottom of the left side */
-.logo-container {
-    margin-bottom: 20px;
-}
+  /* Logo at bottom */
+  .logo-container {
+    margin-bottom: 2rem;
+  }
   
-/* Right side: occupies the remaining area; placed to the right of the fixed sidebar */
-.register-right {
-    margin-left: 400px;
-    width: 80%;
+  .logo-container img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ccc;
+  }
+  
+  /* Right side */
+  .register-right {
+    margin-left: 40%;
+    width: 60%;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
+    padding: 4rem 6rem;
     box-sizing: border-box;
-}
-  
-/* Container for the registration form and choices */
-.register-form-container {
-    max-width: 500px; 
-    width: 100%;
-}
-  
-.register-form-container h2 {
-    text-align: center;
-    margin-bottom: 20px;
-}
-  
-/* Two-column grid for form fields with extra gap */
-.form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 50px; 
-    margin-bottom: 20px;
-}
-  
-.register-form-container form {
-    display: flex;
-    flex-direction: column;
-}
-  
-.register-form-container input,
-.register-form-container select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-  
-.register-form-container button {
-    padding: 10px;
-    background: #007BFF;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-  
-.register-form-container button:disabled {
-    background: #6c757d;
-    cursor: not-allowed;
-}
-
-.register-form-container label {
-    font-size: 0.8rem; /* Reduced font size */
-    color: #333;
-    text-align: left;
-    display: block;
+    background-color: #fff;
+    animation: fadeIn 1s ease-out;
   }
   
+  /* Heading inside register-right */
+  .register-right h2 {
+    text-align: left;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
   
-.error {
+  /* Form */
+  form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  /* Two-column grid for form fields */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 20px;
+  }
+  
+  form label {
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+    color: #333;
+  }
+  
+  form input,
+  form select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+  }
+  
+  form button {
+    padding: 12px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    font-size: 1.1rem;
+    transition: background-color 0.3s ease;
+  }
+  
+  form button:hover {
+    background-color: #0056b3;
+  }
+  
+  form button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+  }
+  
+  /* Google login button */
+  .google-login-btn {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    background: #fff;
+    color: #333;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+  }
+  
+  .google-login-btn:hover {
+    background-color: #f7f7f7;
+  }
+  
+  /* Error/success/loading */
+  .error {
     color: red;
     text-align: center;
     margin-bottom: 15px;
-}
+  }
   
-.success {
+  .success {
     color: green;
     text-align: center;
     margin-bottom: 15px;
-}
+  }
   
-.loading {
+  .loading {
     text-align: center;
     margin-bottom: 15px;
-}
+  }
   
-/* Buttons for the choice step */
-.choice-buttons {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-}
-  
-.choice-buttons button {
-    flex: 1;
-    margin: 0 10px;
-    padding: 10px;
-    background: #007BFF;
-    color: #fff;
+  /* Divider */
+  .divider {
+    margin: 2rem 0;
     border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
+    border-top: 1px solid #ccc;
+  }
   
-/* Optional: styling for the admin role read-only field */
-.role-field {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-}
+  .or-text {
+    text-align: center;
+    color: #777;
+    margin-bottom: 1rem;
+  }
   
-.role-field label {
-    margin-right: 10px;
-    font-weight: bold;
-}
-
+  /* 📱 Mobile responsiveness */
+  @media (max-width: 768px) {
+    .register-page {
+      flex-direction: column;
+    }
+  
+    .register-left {
+      display: none;
+    }
+  
+    .register-right {
+      margin-left: 0;
+      width: 100%;
+      padding: 3rem 2rem;
+    }
+  
+    .form-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+  
+    .register-right h2 {
+      text-align: center;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .register-right {
+      padding: 2rem 1rem;
+    }
+  
+    .register-right h2 {
+      font-size: 1.5rem;
+    }
+  
+    form input, form select, form button, .google-login-btn {
+      font-size: 0.9rem;
+    }
+  }
+  
+  /* Animation */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  

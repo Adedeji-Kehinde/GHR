@@ -16,7 +16,7 @@ const Login = () => {
   const [unverifiedUser, setUnverifiedUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const API_URL =import.meta.env.VITE_API_BASE_URL ||  "http://localhost:8000";
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -25,29 +25,19 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // Sign in using Firebase Authentication
       const userCred = await signInWithEmailAndPassword(auth, email, password);
-      
-      // Reload user data
       await userCred.user.reload();
-      
-      // Get the idToken to send to your backend
       const idToken = await userCred.user.getIdToken();
-      
-      // Call your backend's firebase-login endpoint to log the user in
       const res = await axios.post(`${API_URL}/api/auth/firebase-login`, { idToken });
-      
       const role = res.data.user.role;
-      
-      // If the email is not verified and the user is not an admin, block login
+
       if (!userCred.user.emailVerified && role !== "admin") {
         setError("Please verify your email before logging in.");
         setUnverifiedUser(userCred.user);
         setLoading(false);
         return;
       }
-      
-      // Save the JWT token and navigate accordingly
+
       localStorage.setItem("token", res.data.token);
       navigate(role === "admin" ? "/admin-dashboard" : "/home");
     } catch (err) {
@@ -98,16 +88,16 @@ const Login = () => {
     }
   };
 
-  // Style object for clickable text
   const clickableTextStyle = {
     fontSize: "0.8rem",
-    textAlign: "left",
     color: "#007bff",
-    cursor: "pointer"
+    cursor: "pointer",
+    textAlign: "left",
   };
 
   return (
     <div className="login-page">
+      {/* Left Side */}
       <div className="login-left">
         <div className="text-container">
           <h1>Welcome Home</h1>
@@ -117,60 +107,61 @@ const Login = () => {
           <img src="/images/logo.png" alt="Griffith Halls Logo" />
         </div>
       </div>
-      <div className="login-right">
-        <div className="login-form-wrapper">
-          <div className="login-form-container">
-            <h2>Login</h2>
-            {error && <p className="error">{error}</p>}
-            {loading && <p className="loading">Logging in...</p>}
-            <form onSubmit={handleLogin}>
-              <label htmlFor="login-email">Email</label>
-              <input
-                id="login-email"
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              {/* Only show verification link if error indicates missing verification */}
-              {error === "Please verify your email before logging in." && (
-                <p 
-                  style={clickableTextStyle}
-                  onClick={handleResendVerification}
-                >
-                  Resend Verification Email
-                </p>
-              )}
 
-              <label htmlFor="login-password">Password</label>
-              <input
-                id="login-password"
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <p 
-                style={clickableTextStyle}
-                onClick={handleForgotPassword}
-              >
-                Forgot password?
+      {/* Right Side */}
+      <div className="login-right">
+        <div className="form-container">
+          <h2>Login</h2>
+          {error && <p className="error">{error}</p>}
+          {loading && <p className="loading">Logging in...</p>}
+          <form onSubmit={handleLogin}>
+            <label htmlFor="login-email">Email</label>
+            <input
+              id="login-email"
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            {error === "Please verify your email before logging in." && (
+              <p style={clickableTextStyle} onClick={handleResendVerification}>
+                Resend Verification Email
               </p>
-              <button type="submit" disabled={loading}>
-                {loading ? "Logging in..." : "Login"}
-              </button>
-            </form>
-            <p>
-              Don't have an account? <Link to="/register">Create Account</Link>
+            )}
+
+            <label htmlFor="login-password">Password</label>
+            <input
+              id="login-password"
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <p style={clickableTextStyle} onClick={handleForgotPassword}>
+              Forgot password?
             </p>
-            <hr className="divider" />
-            <p className="or-text">or</p>
-            <button onClick={handleGoogleLogin} className="google-login-btn">
-              Continue with Google
+
+            <button type="submit" disabled={loading}>
+              {loading ? "Logging in..." : "Login"}
             </button>
-          </div>
+          </form>
+
+          <p>
+            Don't have an account?{" "}
+            <Link to="/register" style={{ color: "#6c63ff" }}>
+              Create Account
+            </Link>
+          </p>
+
+          <hr className="divider" />
+          <p className="or-text">or</p>
+
+          <button onClick={handleGoogleLogin} className="google-login-btn">
+            <img src="/images/google-icon.png" alt="Google Icon" className="google-icon" />
+            Continue with Google
+          </button>
         </div>
       </div>
     </div>
