@@ -1,10 +1,11 @@
 /* Booking Page CSS */
 
 .booking-page {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-    overflow-x: hidden;
+  width: 100vw;
+  margin-top: 80px; /* To avoid overlapping header */
+  padding: 2rem;
+  box-sizing: border-box;
+  overflow-x: hidden;
   }
   
   .booking-page h1 {

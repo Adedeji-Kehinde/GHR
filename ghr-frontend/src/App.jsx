@@ -47,7 +47,7 @@ import "./ContactUs.css";
 import "./MyBookingDetails.css";
 import "./Loading.css";
 import "./SelectBed.css";
-import "./UserProfilePage.css";
+import "./userProfilePage.css";
 function App() {
   return (
     <Router>
