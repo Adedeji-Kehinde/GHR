@@ -6,17 +6,19 @@
 
 /* Left side: fixed image */
 .login-left {
-  background-image: url('/images/login.jpeg');
-  background-size: 100% 100%;
   position: fixed;
-  left: 0;
   top: 0;
-  width: 40%;
-  height: 100%;
+  left: 0;
+  width: 40vw;
+  height: 100vh;
+  background-image: url('/images/login.jpeg');
+  background-size: cover;
+  background-position: center;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
+  animation: fadeIn 1s ease-out;
 }
 
 /* Welcome text on the left */
@@ -42,12 +44,17 @@
 
 /* Right side (Login form side) */
 .login-right {
-  width: 100%;
-  flex-direction: column;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 60vw;
+  height: 100vh;
+  display: flex;
   justify-content: center;
+  align-items: center;
   box-sizing: border-box;
-  margin-left: 400px; 
-  align-content: center;
+  background-color: #fff;
+  padding: 2rem;
   animation: fadeIn 1s ease-out;
 }
 

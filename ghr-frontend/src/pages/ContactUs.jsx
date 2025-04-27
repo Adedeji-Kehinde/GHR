@@ -5,11 +5,20 @@ import UserHeader from "./UserHeader";
 import Footer from "./Footer";
 
 const ContactUs = () => {
-  // User authentication state (for header display)
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
+  const [submissionStatus, setSubmissionStatus] = useState(null);
   const navigate = useNavigate();
-const API_URL = import.meta.env.VITE_API_BASE_URL ||"http://localhost:8000";
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+
+  // Fetch user details if token exists
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -21,7 +30,6 @@ const API_URL = import.meta.env.VITE_API_BASE_URL ||"http://localhost:8000";
           setUser(response.data);
         } catch (error) {
           console.error("Error fetching user:", error);
-          // Optionally, you might clear the token or navigate to login
         } finally {
           setLoadingUser(false);
         }
@@ -32,37 +40,17 @@ const API_URL = import.meta.env.VITE_API_BASE_URL ||"http://localhost:8000";
     }
   }, [API_URL]);
 
-  // Form state for contact submission
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    message: "",
-  });
-
-  const [submissionStatus, setSubmissionStatus] = useState(null); // null, 'success', or 'error'
-
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({...formData, [e.target.name]: e.target.value});
   };
 
-  // Post the form data to the backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        `${API_URL}/api/auth/contactus`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      console.log("Message posted:", response.data);
+      await axios.post(`${API_URL}/api/auth/contactus`, formData, {
+        headers: { "Content-Type": "application/json" },
+      });
       setSubmissionStatus("success");
-      // Optionally, display a success message or redirect the user
       setFormData({
         firstName: "",
         lastName: "",
@@ -76,152 +64,72 @@ const API_URL = import.meta.env.VITE_API_BASE_URL ||"http://localhost:8000";
     }
   };
 
-  // Layout styles
-  const containerStyle = {
-    marginTop: "80px", // avoid overlap with fixed header
-    display: "flex",
-    alignItems: "flex-start",
-    justifyContent: "center",
-    minHeight: "calc(100vh - 80px - 100px)", // adjust for header and footer heights
-    padding: "2rem",
-  };
+  // Animate Info Cards on Scroll
+  useEffect(() => {
+    const cards = document.querySelectorAll(".contact-info-box");
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+        }
+      });
+    }, { threshold: 0.3 });
 
-  const leftSectionStyle = {
-    flex: 3,
-    paddingRight: "2rem",
-    borderRight: "2px solid #ddd", // vertical divider
-  };
+    cards.forEach((card) => observer.observe(card));
 
-  const rightSectionStyle = {
-    flex: 1,
-    paddingLeft: "2rem",
-  };
-
-  const titleStyle = {
-    fontSize: "1.5rem",
-    fontWeight: "bold",
-    marginBottom: "0.5rem",
-  };
-
-  const titleDividerStyle = {
-    border: "none",
-    borderBottom: "1px solid #ddd",
-    marginBottom: "1rem",
-    width: "100%",
-  };
-
-  const infoGridStyle = {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr", // two columns
-    gridGap: "20px",
-  };
-
-  const boxStyle = {
-    backgroundColor: "#f8f8f8",
-    width: "200px",
-    height: "200px",
-    padding: "1rem",
-    textAlign: "center",
-    borderRadius: "8px",
-    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-  };
-
-  const iconStyle = {
-    width: "40px",
-    height: "40px",
-    marginBottom: "0.5rem",
-  };
-
-  const infoTextStyle = {
-    fontSize: "0.9rem",
-    color: "#555",
-  };
-
-  const formStyle = {
-    display: "flex",
-    flexDirection: "column",
-    marginTop: "1rem",
-  };
-
-  const inputStyle = {
-    padding: "0.5rem",
-    marginBottom: "1rem",
-    fontSize: "1rem",
-  };
-
-  const buttonStyle = {
-    padding: "0.75rem 1.5rem",
-    backgroundColor: "#007BFF",
-    color: "#fff",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer",
-    fontSize: "1rem",
-  };
+    return () => {
+      cards.forEach((card) => observer.unobserve(card));
+    };
+  }, []);
 
   return (
     <>
-      <UserHeader user={user} />
-      <div style={containerStyle}>
-        {/* Left Section: Info Boxes */}
-        <div style={leftSectionStyle}>
-          <h1 style={titleStyle}>Get More Info</h1>
-          <hr style={titleDividerStyle} />
-          <div style={infoGridStyle}>
-            {/* Phone Number Box */}
-            <div style={boxStyle}>
-              <img src="/images/phone.png" alt="Phone" style={iconStyle} />
-              <div style={{ fontWeight: "bold", marginBottom: "0.25rem" }}>
-                Phone Number
-              </div>
-              <div style={infoTextStyle}>+353899666753</div>
+      <UserHeader user={user}  hideBookRoom/>
+      
+      <div className="contact-page-wrapper">
+        {/* Left Side - Info */}
+        <div className="contact-info-section">
+          <h1>Get More Info</h1>
+          <div className="contact-divider"></div>
+          <div className="contact-info-grid">
+            {/* Phone */}
+            <div className="contact-info-box">
+              <img src="/images/phone.png" alt="Phone" />
+              <div className="contact-info-title">Phone Number</div>
+              <div className="contact-info-text">+353899666753</div>
             </div>
-            {/* Email Box */}
-            <div style={boxStyle}>
-              <img src="/images/email.png" alt="Email" style={iconStyle} />
-              <div style={{ fontWeight: "bold", marginBottom: "0.25rem" }}>
-                Email
-              </div>
-              <div style={infoTextStyle}>contact@ghrwebsite.com</div>
+            {/* Email */}
+            <div className="contact-info-box">
+              <img src="/images/email.png" alt="Email" />
+              <div className="contact-info-title">Email</div>
+              <div className="contact-info-text">contact@ghrwebsite.com</div>
             </div>
-            {/* Location Box */}
-            <div style={boxStyle}>
-              <img src="/images/location.png" alt="Location" style={iconStyle} />
-              <div style={{ fontWeight: "bold", marginBottom: "0.25rem" }}>
-                Location
-              </div>
-              <div style={infoTextStyle}>
-                Griffith halls of residence,
-                <br />
-                South Circular Road,
-                <br />
-                Dublin 8, Dublin, Ireland
+            {/* Location */}
+            <div className="contact-info-box">
+              <img src="/images/location.png" alt="Location" />
+              <div className="contact-info-title">Location</div>
+              <div className="contact-info-text">
+                Griffith Halls of Residence,<br />
+                South Circular Road, Dublin 8, Ireland
               </div>
             </div>
-            {/* Working Hours Box */}
-            <div style={boxStyle}>
-              <img src="/images/clock.png" alt="Working Hours" style={iconStyle} />
-              <div style={{ fontWeight: "bold", marginBottom: "0.25rem" }}>
-                Working Hours
-              </div>
-              <div style={infoTextStyle}>
-                Monday - Friday 9-5
-                <br />
-                Break: 1-2pm each day
+            {/* Working Hours */}
+            <div className="contact-info-box">
+              <img src="/images/clock.png" alt="Working Hours" />
+              <div className="contact-info-title">Working Hours</div>
+              <div className="contact-info-text">
+                Monday - Friday 9AM - 5PM<br />
+                Break: 1PM - 2PM
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Section: Contact Form */}
-        <div style={rightSectionStyle}>
-          <h1 style={titleStyle}>Contact Us</h1>
-          <hr style={titleDividerStyle} />
-          <form onSubmit={handleSubmit} style={formStyle}>
+        {/* Right Side - Contact Form */}
+        <div className="contact-form-section">
+          <h1>Contact Us</h1>
+          <div className="contact-divider"></div>
+          <form className="contact-form" onSubmit={handleSubmit}>
             <label htmlFor="firstName">First Name:</label>
             <input
               type="text"
@@ -229,7 +137,6 @@ const API_URL = import.meta.env.VITE_API_BASE_URL ||"http://localhost:8000";
               name="firstName"
               value={formData.firstName}
               onChange={handleChange}
-              style={inputStyle}
               required
             />
 
@@ -240,7 +147,6 @@ const API_URL = import.meta.env.VITE_API_BASE_URL ||"http://localhost:8000";
               name="lastName"
               value={formData.lastName}
               onChange={handleChange}
-              style={inputStyle}
               required
             />
 
@@ -251,7 +157,6 @@ const API_URL = import.meta.env.VITE_API_BASE_URL ||"http://localhost:8000";
               name="email"
               value={formData.email}
               onChange={handleChange}
-              style={inputStyle}
               required
             />
 
@@ -262,7 +167,6 @@ const API_URL = import.meta.env.VITE_API_BASE_URL ||"http://localhost:8000";
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              style={inputStyle}
               required
             />
 
@@ -273,26 +177,21 @@ const API_URL = import.meta.env.VITE_API_BASE_URL ||"http://localhost:8000";
               rows="5"
               value={formData.message}
               onChange={handleChange}
-              style={inputStyle}
               required
-            />
+            ></textarea>
 
-            <button type="submit" style={buttonStyle}>
-              Submit
-            </button>
+            <button type="submit">Submit</button>
           </form>
+
           {submissionStatus === "success" && (
-            <p style={{ color: "green", marginTop: "1rem" }}>
-              Your message has been sent successfully.
-            </p>
+            <p className="contact-success">Your message has been sent successfully!</p>
           )}
           {submissionStatus === "error" && (
-            <p style={{ color: "red", marginTop: "1rem" }}>
-              There was an error sending your message. Please try again later.
-            </p>
+            <p className="contact-error">There was an error sending your message. Please try again later.</p>
           )}
         </div>
       </div>
+
       <Footer />
     </>
   );

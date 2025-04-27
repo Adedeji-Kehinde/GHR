@@ -1,0 +1,132 @@
+/* Main wrapper */
+.select-bed-page {
+    margin-top: 80px;
+    padding: 2rem;
+  }
+  
+  /* Data Summary Cards (Top) */
+  .data-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .data-card {
+    border: 1px solid #ccc;
+    padding: 1rem;
+    border-radius: 8px;
+    background: #fff;
+    flex: 1 1 160px;
+    min-width: 140px;
+    text-align: center;
+  }
+  
+  /* Apartment Header */
+  .apartment-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 2rem 0 0.5rem;
+  }
+  
+  .apartment-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+  
+  /* Bed Grid */
+  .bed-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  /* Bed Card */
+  .bed-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    border-radius: 8px;
+    background: #fff;
+    height: 240px;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    border: 1px solid #ccc;
+  }
+  
+  .bed-card:hover {
+    transform: scale(1.03);
+  }
+  
+  .bed-card.selected {
+    border: 2px solid #007bff;
+    background: #e6f0ff;
+  }
+  
+  .bed-card.disabled {
+    background: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  
+  /* Bed Card content */
+  .bed-card img {
+    width: 30px;
+    height: 30px;
+    margin-bottom: 0.5rem;
+  }
+  
+  .bed-card strong {
+    font-size: 1.2rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .bed-card p {
+    font-size: 0.95rem;
+    margin: 0.2rem 0;
+    color: #555;
+  }
+  
+  /* Proceed Button */
+  .proceed-button {
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+    background: red;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .proceed-button:hover {
+    background-color: #a30000;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .bed-grid {
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    }
+  
+    .bed-card {
+      height: 200px;
+    }
+  
+    .apartment-header h3 {
+      font-size: 1.3rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .data-summary {
+      flex-direction: column;
+    }
+  }
+  

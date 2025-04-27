@@ -40,7 +40,13 @@ import "./App.css";
 import "./styles.css";
 import "./login.css";
 import "./Register.css";
-
+import "./MainPage.css";
+import "./Home.css";
+import "./Booking.css";
+import "./ContactUs.css";
+import "./MyBookingDetails.css";
+import "./Loading.css";
+import "./SelectBed.css";
 function App() {
   return (
     <Router>

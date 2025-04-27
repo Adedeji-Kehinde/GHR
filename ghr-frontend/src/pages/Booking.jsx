@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import UserHeader from "./UserHeader";
 import Footer from "./Footer";
-
+import AOS from "aos";
+import "aos/dist/aos.css";
+import Loading from "./Loading";
 // -- HELPER FUNCTIONS --
 function calcRoomCapacity(room) {
   let total = 0;
@@ -62,14 +64,30 @@ const Booking = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(response.data);
+  
+        // 🎯 Now fetch the user's bookings
+        const bookingsRes = await axios.get(`${API_URL}/api/booking/bookings`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+  
+        const userBookings = bookingsRes.data.filter(
+          (b) => (b.userId === response.data._id || (b.userId && b.userId._id === response.data._id)) 
+            && b.status === "Booked"
+        );
+  
+        if (userBookings.length > 0) {
+          // 🛑 Redirect user if they already have an active booking
+          navigate("/home");
+        }
       } catch (error) {
-        console.error("Error fetching user:", error);
+        console.error("Error fetching user or bookings:", error);
         navigate("/login");
       } finally {
         setLoadingUser(false);
       }
     };
     fetchUser();
+    AOS.init({ duration: 1000 });
   }, [navigate, token, API_URL]);
 
   useEffect(() => {
@@ -191,113 +209,122 @@ const Booking = () => {
     navigate("/selectBed");
   };
 
-  if (loadingUser) return <p>Loading...</p>;
+  if (loadingUser) return <Loading icon="/images/logo.png" text="Loading Booking selections..." />;
 
   return (
     <>
       <UserHeader user={user} hideBookRoom={true} />
-      <h2>Room Booking</h2>
+      <div className="booking-page" style={{ marginTop: "80px", padding: "2rem" }}>
+        <h1 data-aos="fade-down">Room Booking</h1>
 
-      <label>Length of Stay</label>
-      <select value={lengthOfStay} onChange={(e) => setLengthOfStay(e.target.value)}>
-        <option value="">-- Select Duration --</option>
-        <option value="Summer">Summer</option>
-        <option value="First Semester">First Semester</option>
-        <option value="Second Semester">Second Semester</option>
-        <option value="Full Year">Full Year</option>
-        <option value="Flexible">Flexible</option>
-      </select>
+        {/* Stay Duration Section */}
+        <section data-aos="fade-up" style={{ marginBottom: "2rem" }}>
+          <h2>Stay Duration</h2>
+          <label>Length of Stay</label>
+          <select value={lengthOfStay} onChange={(e) => setLengthOfStay(e.target.value)}>
+            <option value="">-- Select Duration --</option>
+            <option value="Summer">Summer</option>
+            <option value="First Semester">First Semester</option>
+            <option value="Second Semester">Second Semester</option>
+            <option value="Full Year">Full Year</option>
+            <option value="Flexible">Flexible</option>
+          </select>
 
-      {lengthOfStay === "Flexible" && (
-        <>
-          <label>Check-in Date</label>
-          <input
-            type="datetime-local"
-            value={checkInDateTime}
-            onChange={(e) => setCheckInDateTime(e.target.value)}
-            min={new Date().toISOString().slice(0, 16)}
-          />
-          <label>Check-out Date</label>
-          <input
-            type="datetime-local"
-            value={checkOutDateTime}
-            onChange={(e) => setCheckOutDateTime(e.target.value)}
-            min={checkInDateTime || new Date().toISOString().slice(0, 16)}
-          />
-        </>
-      )}
+          {lengthOfStay === "Flexible" && (
+            <>
+              <label>Check-in Date</label>
+              <input
+                type="datetime-local"
+                value={checkInDateTime}
+                onChange={(e) => setCheckInDateTime(e.target.value)}
+                min={new Date().toISOString().slice(0, 16)}
+              />
+              <label>Check-out Date</label>
+              <input
+                type="datetime-local"
+                value={checkOutDateTime}
+                onChange={(e) => setCheckOutDateTime(e.target.value)}
+                min={checkInDateTime || new Date().toISOString().slice(0, 16)}
+              />
+            </>
+          )}
+        </section>
 
-      <label>Number of Flatmates</label>
-      <select
-        value={flatmates}
-        onChange={(e) => {
-          setFlatmates(e.target.value);
-          if (e.target.value === "3" && roomType === "Twin Shared") {
-            setRoomType("");
-          }
-        }}
-      >
-        <option value="">-- Select Flatmates --</option>
-        {getValidFlatmateOptions().map((fm) => (
-          <option key={fm} value={fm}>{fm}</option>
-        ))}
-      </select>
+        {/* Flatmates and Room Type Section */}
+        <section data-aos="fade-up" style={{ marginBottom: "2rem" }}>
+          <h2>Flat & Room Type</h2>
+          <label>Number of Flatmates</label>
+          <select value={flatmates} onChange={(e) => setFlatmates(e.target.value)}>
+            <option value="">-- Select Flatmates --</option>
+            {getValidFlatmateOptions().map((fm) => (
+              <option key={fm} value={fm}>{fm}</option>
+            ))}
+          </select>
 
-      <label>Room Type</label>
-      <select
-        value={roomType}
-        onChange={(e) => {
-          setRoomType(e.target.value);
-          if (e.target.value === "Twin Shared" && flatmates === "3") {
-            setFlatmates("");
-          }
-        }}
-      >
-        <option value="">-- Select Room Type --</option>
-        {getValidRoomTypes().map((type) => (
-          <option key={type} value={type}>{type}</option>
-        ))}
-      </select>
+          <label>Room Type</label>
+          <select value={roomType} onChange={(e) => setRoomType(e.target.value)}>
+            <option value="">-- Select Room Type --</option>
+            {getValidRoomTypes().map((type) => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
+        </section>
 
-      <label>Building Block</label>
-      <select value={buildingBlock} onChange={(e) => setBuildingBlock(e.target.value)}>
-        <option value="">-- Select Building Block --</option>
-        {uniqueBuildings.map((block) => (
-          <option key={block} value={block}>{block}</option>
-        ))}
-      </select>
+        {/* Building Selection Section */}
+        <section data-aos="fade-up" style={{ marginBottom: "2rem" }}>
+          <h2>Select Building</h2>
+          <label>Building Block</label>
+          <select value={buildingBlock} onChange={(e) => setBuildingBlock(e.target.value)}>
+            <option value="">-- Select Building Block --</option>
+            {uniqueBuildings.map((block) => (
+              <option key={block} value={block}>{block}</option>
+            ))}
+          </select>
 
-      <label>Floor</label>
-      <select value={floor} onChange={(e) => setFloor(e.target.value)} disabled={!buildingBlock}>
-        <option value="">-- Select Floor --</option>
-        {filteredFloors.map((f) => (
-          <option key={f} value={f}>{f}</option>
-        ))}
-      </select>
+          <label>Floor</label>
+          <select value={floor} onChange={(e) => setFloor(e.target.value)} disabled={!buildingBlock}>
+            <option value="">-- Select Floor --</option>
+            {filteredFloors.map((f) => (
+              <option key={f} value={f}>{f}</option>
+            ))}
+          </select>
 
-      <label>Apartment Number</label>
-      <select value={apartmentNumber} onChange={(e) => setApartmentNumber(e.target.value)} disabled={floor === ""}>
-        <option value="">-- Select Apartment --</option>
-        {filteredApartments.map((apt) => (
-          <option key={apt} value={apt}>{apt}</option>
-        ))}
-      </select>
+          <label>Apartment Number</label>
+          <select value={apartmentNumber} onChange={(e) => setApartmentNumber(e.target.value)} disabled={!floor}>
+            <option value="">-- Select Apartment --</option>
+            {filteredApartments.map((apt) => (
+              <option key={apt} value={apt}>{apt}</option>
+            ))}
+          </select>
+        </section>
 
-      <button
-        onClick={handleProceed}
-        disabled={
-          !lengthOfStay ||
-          !flatmates ||
-          !roomType ||
-          !buildingBlock ||
-          floor === "" ||
-          !apartmentNumber ||
-          (lengthOfStay === "Flexible" && (!checkInDateTime || !checkOutDateTime))
-        }
-      >
-        Proceed to Bed Selection
-      </button>
-
+        {/* Proceed Button */}
+        <div style={{ textAlign: "center", marginTop: "2rem" }}>
+          <button
+            onClick={handleProceed}
+            disabled={
+              !lengthOfStay ||
+              !flatmates ||
+              !roomType ||
+              !buildingBlock ||
+              floor === "" ||
+              !apartmentNumber ||
+              (lengthOfStay === "Flexible" && (!checkInDateTime || !checkOutDateTime))
+            }
+            style={{
+              padding: "1rem 2rem",
+              backgroundColor: "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              fontSize: "1.2rem",
+              cursor: "pointer",
+            }}
+          >
+            Proceed to Bed Selection
+          </button>
+        </div>
+      </div>
       <Footer />
     </>
   );

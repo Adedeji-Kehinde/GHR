@@ -6,14 +6,14 @@
   
   /* Left side */
   .register-left {
-    background-image: url('/images/register.jpg');
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 40vw;
+    height: 100vh;
+    background-image: url('/images/register.jpg'); /* Your chosen image */
     background-size: cover;
     background-position: center;
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 40%;
-    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -43,10 +43,10 @@
   
   /* Right side */
   .register-right {
-    margin-left: 40%;
+    position: absolute;
+    right: 0;
     width: 60%;
     min-height: 100vh;
-    display: flex;
     flex-direction: column;
     justify-content: center;
     padding: 4rem 6rem;

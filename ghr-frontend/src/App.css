@@ -1,8 +1,3 @@
-#root {
-  margin: auto ;
-  padding: 2rem;
-  text-align: center;
-}
 
 .logo {
   height: 6em;
@@ -32,6 +27,17 @@
   }
 }
 
+/* Now handle dark mode */
+@media (prefers-color-scheme: dark) {
+  body, html, #root {
+    color: black; /* Light text */
+  }
+
+  h1, h2, h3, p, label, button {
+    color: black; /* Light text in dark mode */
+  }
+
+}
 .card {
   padding: 2em;
 }

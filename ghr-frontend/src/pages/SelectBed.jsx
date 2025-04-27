@@ -3,7 +3,9 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import UserHeader from "./UserHeader";
 import Footer from "./Footer";
-
+import AOS from "aos";
+import "aos/dist/aos.css"; 
+import Loading from "./Loading";
 // Helper Functions
 function calcRoomCapacity(room) {
   let total = 0;
@@ -30,24 +32,33 @@ function hasFreeBedOfType(room, type) {
 }
 
 function getBedDisplayDetails(roomType) {
-  if (roomType === "Ensuite") {
-    return { bedSize: "Small Double", roomSize: "16m²" };
-  } else if (roomType === "Twin Shared") {
-    return { bedSize: "Single", roomSize: "14m²" };
-  }
+  if (roomType === "Ensuite") return { bedSize: "Small Double", roomSize: "16m²" };
+  if (roomType === "Twin Shared") return { bedSize: "Single", roomSize: "14m²" };
   return { bedSize: "", roomSize: "" };
 }
 
 const SelectBed = () => {
   const navigate = useNavigate();
-  const API_URL =import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
   const token = localStorage.getItem("token");
 
-  // ---------------------
-  // USER AUTHENTICATION
-  // ---------------------
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
+
+  const [roomsData, setRoomsData] = useState([]);
+  const [allBookings, setAllBookings] = useState([]);
+
+  const [selectedApartmentNumber, setSelectedApartmentNumber] = useState("");
+  const [selectedBedSpace, setSelectedBedSpace] = useState("");
+  const [selectedBedNumber, setSelectedBedNumber] = useState("");
+
+  const buildingBlock = localStorage.getItem("buildingBlock");
+  const floor = localStorage.getItem("floor");
+  const flatmates = localStorage.getItem("flatmates");
+  const roomType = localStorage.getItem("roomType");
+  const lengthOfStay = localStorage.getItem("lengthOfStay");
+  const checkInDate = localStorage.getItem("checkInDateTime");
+  const checkOutDate = localStorage.getItem("checkOutDateTime");
 
   useEffect(() => {
     if (!token) {
@@ -68,45 +79,21 @@ const SelectBed = () => {
       }
     };
     fetchUser();
+    AOS.init({ duration: 1000 });
   }, [navigate, token, API_URL]);
 
-  // ---------------------
-  // FETCHED BOOKING DETAILS
-  // ---------------------
-  const buildingBlock = localStorage.getItem("buildingBlock");
-  const floor = localStorage.getItem("floor");
-  const flatmates = localStorage.getItem("flatmates");
-  const roomType = localStorage.getItem("roomType");
-  const lengthOfStay = localStorage.getItem("lengthOfStay");
-  const checkInDate = localStorage.getItem("checkInDateTime");
-  const checkOutDate = localStorage.getItem("checkOutDateTime");
-  
-  // ---------------------
-  // ROOMS & SELECTION STATE
-  // ---------------------
-  const [roomsData, setRoomsData] = useState([]);
-  const [selectedApartmentNumber, setSelectedApartmentNumber] = useState("");
-  const [selectedBedSpace, setSelectedBedSpace] = useState("");
-  const [selectedBedNumber, setSelectedBedNumber] = useState("");
-  const [bookingData, setBookingData] = useState(null);
-  // ---------------------
-  // OCCUPANT BOOKINGS
-  // ---------------------
-  const [allBookings, setAllBookings] = useState([]);
-
-  // Load all room data from localStorage
   useEffect(() => {
     const allRoomsStr = localStorage.getItem("allRooms");
-    if (!allRoomsStr) return;
-    try {
-      const parsedRooms = JSON.parse(allRoomsStr);
-      setRoomsData(parsedRooms);
-    } catch (err) {
-      console.error("Error parsing allRooms from localStorage:", err);
+    if (allRoomsStr) {
+      try {
+        const parsedRooms = JSON.parse(allRoomsStr);
+        setRoomsData(parsedRooms);
+      } catch (err) {
+        console.error("Error parsing rooms data:", err);
+      }
     }
   }, []);
 
-  // Fetch all bookings (populated with occupant data)
   useEffect(() => {
     const fetchBookings = async () => {
       if (!token) return;
@@ -116,15 +103,12 @@ const SelectBed = () => {
         });
         setAllBookings(res.data);
       } catch (error) {
-        console.error("Error fetching all bookings:", error);
+        console.error("Error fetching bookings:", error);
       }
     };
     fetchBookings();
   }, [API_URL, token]);
 
-  // ---------------------
-  // FILTER APARTMENTS
-  // ---------------------
   const filteredApartments = roomsData
     .filter((room) => room.buildingBlock === buildingBlock)
     .filter((room) => room.floor === Number(floor))
@@ -138,52 +122,29 @@ const SelectBed = () => {
     })
     .sort((a, b) => a.apartmentNumber - b.apartmentNumber);
 
-  // ---------------------
-  // CLICK HANDLERS
-  // ---------------------
   const isBedAvailable = (buildingBlock, floor, apartmentNumber, bedSpaceKey, bedNum) => {
-    const room = roomsData.find(
-      (r) =>
-        r.buildingBlock === buildingBlock &&
-        r.floor === floor &&
-        r.apartmentNumber === apartmentNumber
-    );
-    if (!room) return false;
-    const bedSpaceData = room.bedSpaces[bedSpaceKey];
-    if (!bedSpaceData || bedSpaceData.roomType !== roomType) return false;
-    if (bedSpaceData.roomType === "Ensuite") {
-      if (bedSpaceData.bed1) return false;
-    }
-    if (bedSpaceData.roomType === "Twin Shared") {
-      if (bedNum === "1" && bedSpaceData.bed1) return false;
-      if (bedNum === "2" && bedSpaceData.bed2) return false;
-    }
-    const occupantBooking = allBookings.find((b) => {
-      return (
+    const occupant = allBookings.find(
+      (b) =>
         b.buildingBlock === buildingBlock &&
         b.floor === floor &&
         b.apartmentNumber === apartmentNumber &&
         b.bedSpace === bedSpaceKey &&
         b.bedNumber === bedNum &&
         b.status === "Booked"
-      );
-    });
-    return !occupantBooking;
+    );
+    return !occupant;
   };
 
   const getBedOccupantInfo = (buildingBlock, floor, apartmentNumber, bedSpaceKey, bedNum) => {
-    const occupantBooking = allBookings.find((b) => {
-      return (
+    return allBookings.find(
+      (b) =>
         b.buildingBlock === buildingBlock &&
         b.floor === floor &&
         b.apartmentNumber === apartmentNumber &&
         b.bedSpace === bedSpaceKey &&
         b.bedNumber === bedNum &&
         b.status === "Booked"
-      );
-    });
-    if (!occupantBooking) return null;
-    return occupantBooking.userId;
+    )?.userId;
   };
 
   const handleBedSelection = (apartmentNumber, bedSpaceKey, bedNum, disabled) => {
@@ -193,7 +154,6 @@ const SelectBed = () => {
     setSelectedBedNumber(bedNum);
   };
 
-  // Finalize booking with the selected bed.
   const handleBooking = async () => {
     if (!selectedApartmentNumber || !selectedBedSpace || !selectedBedNumber) {
       alert("Please select an apartment and bed.");
@@ -217,26 +177,21 @@ const SelectBed = () => {
   };
 
   const openPaymentPopup = (amount) => {
-    // Open the popup pointing to the payment sub‑app URL
     const popup = window.open(
-      `${API_URL}/payment?amount=${amount}`, // pass the amount as query param
-      'Payment',
-      'width=500,height=500'
+      `${API_URL}/payment?amount=${amount}`,
+      "Payment",
+      "width=500,height=500"
     );
-    window.addEventListener('message', async (event) => {
+    window.addEventListener("message", async (event) => {
       const { payment } = event.data;
       if (payment === "success") {
         if (window.bookingInProgress) return;
         window.bookingInProgress = true;
-      
         try {
           const bookingData = JSON.parse(localStorage.getItem("pendingBooking"));
-          const res = await axios.post(`${API_URL}/api/booking/bookings`, bookingData, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+          await axios.post(`${API_URL}/api/booking/bookings`, bookingData, {
+            headers: { Authorization: `Bearer ${token}` },
           });
-      
           alert("Booking complete!");
           navigate("/home");
         } catch (error) {
@@ -245,140 +200,105 @@ const SelectBed = () => {
         } finally {
           window.bookingInProgress = false;
         }
-      }else if (payment === "failure") {
+      } else if (payment === "failure") {
         alert("Payment failed. Please try again.");
       }
     });
   };
-  
-  const isCardSelected = (apartmentNumber, bedSpaceKey, bedNum) =>
-    selectedApartmentNumber === apartmentNumber.toString() &&
-    selectedBedSpace === bedSpaceKey &&
+
+  const isCardSelected = (aptNum, bedSpace, bedNum) =>
+    selectedApartmentNumber === aptNum.toString() &&
+    selectedBedSpace === bedSpace &&
     selectedBedNumber === bedNum;
 
-  if (loadingUser) return <p>Loading...</p>;
-
-  // ---------------------
-  // STYLES
-  // ---------------------
-  const dataCardStyle = {
-    border: "1px solid #ccc",
-    padding: "1rem",
-    borderRadius: "8px",
-    background: "#fff",
-    flex: "1 1 160px",
-    minWidth: "140px",
-  };
-
-  const bedGridStyle = {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-    gap: "1rem",
-    marginBottom: "1rem",
-  };
-
-  const bedCardStyle = (disabled, selected) => ({
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    border: selected ? "2px solid #007bff" : "1px solid #ccc",
-    padding: "1rem",
-    borderRadius: "8px",
-    background: disabled ? "#f5f5f5" : "#fff",
-    cursor: disabled ? "not-allowed" : "pointer",
-    height: "240px",
-  });
-
-  const apartmentHeaderStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "0.5rem",
-    margin: "1.5rem 0 0.25rem",
-  };
+    if (loadingUser) return <Loading icon="/images/logo.png" text="Loading Available Beds..." />;
 
   return (
     <>
-      <UserHeader user={user}hideBookRoom={true} />
-      <h2>Select Bed</h2>
-      {/* Display selection summary */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", marginBottom: "1rem" }}>
-        <div style={dataCardStyle}><strong>Block:</strong> {buildingBlock}</div>
-        <div style={dataCardStyle}><strong>Floor:</strong> {floor}</div>
-        <div style={dataCardStyle}><strong>Flatmates:</strong> {flatmates}</div>
-        <div style={dataCardStyle}><strong>Room Type:</strong> {roomType}</div>
-        <div style={dataCardStyle}><strong>Length of Stay:</strong> {lengthOfStay}</div>
-      </div>
-      {filteredApartments.length === 0 ? (
-        <p>No available apartments found for your criteria.</p>
-      ) : (
-        filteredApartments.map((apt) => {
-          const aptNum = apt.apartmentNumber;
-          const bedSpaces = apt.bedSpaces || {};
-          const bedItems = [];
-          for (const key of ["A", "B", "C"]) {
-            const spaceData = bedSpaces[key];
-            if (!spaceData) continue;
-            if (spaceData.roomType !== roomType) continue;
-            if (spaceData.roomType === "Ensuite") {
-              const occupant = getBedOccupantInfo(apt.buildingBlock, apt.floor, aptNum, key, "1");
-              const disabled = occupant ? true : !isBedAvailable(apt.buildingBlock, apt.floor, aptNum, key, "1");
-              bedItems.push({ bedSpace: key, bedNumber: "1", disabled, occupant });
-            } else if (spaceData.roomType === "Twin Shared") {
-              const occupant1 = getBedOccupantInfo(apt.buildingBlock, apt.floor, aptNum, key, "1");
-              const disabled1 = occupant1 ? true : !isBedAvailable(apt.buildingBlock, apt.floor, aptNum, key, "1");
-              bedItems.push({ bedSpace: key, bedNumber: "1", disabled: disabled1, occupant: occupant1 });
-              const occupant2 = getBedOccupantInfo(apt.buildingBlock, apt.floor, aptNum, key, "2");
-              const disabled2 = occupant2 ? true : !isBedAvailable(apt.buildingBlock, apt.floor, aptNum, key, "2");
-              bedItems.push({ bedSpace: key, bedNumber: "2", disabled: disabled2, occupant: occupant2 });
+      <UserHeader user={user} hideBookRoom={true} />
+      <div className="select-bed-page" data-aos="fade-up">
+        <h2 data-aos="fade-down">Select Bed</h2>
+
+        {/* Booking Summary */}
+        <div className="data-summary" data-aos="fade-up">
+          <div className="data-card" ><strong>Block:</strong> {buildingBlock}</div>
+          <div className="data-card"><strong>Floor:</strong> {floor}</div>
+          <div className="data-card"><strong>Flatmates:</strong> {flatmates}</div>
+          <div className="data-card"><strong>Room Type:</strong> {roomType}</div>
+          <div className="data-card"><strong>Length of Stay:</strong> {lengthOfStay}</div>
+        </div>
+
+        {/* Apartments */}
+        {filteredApartments.length === 0 ? (
+          <p>No available apartments found for your criteria.</p>
+        ) : (
+          filteredApartments.map((apt) => {
+            const aptNum = apt.apartmentNumber;
+            const bedSpaces = apt.bedSpaces || {};
+            const bedItems = [];
+
+            for (const key of ["A", "B", "C"]) {
+              const space = bedSpaces[key];
+              if (!space || space.roomType !== roomType) continue;
+              if (space.roomType === "Ensuite") {
+                const disabled = !isBedAvailable(apt.buildingBlock, apt.floor, aptNum, key, "1");
+                const occupant = getBedOccupantInfo(apt.buildingBlock, apt.floor, aptNum, key, "1");
+                bedItems.push({ bedSpace: key, bedNumber: "1", disabled, occupant });
+              } else if (space.roomType === "Twin Shared") {
+                ["1", "2"].forEach((bedNum) => {
+                  const disabled = !isBedAvailable(apt.buildingBlock, apt.floor, aptNum, key, bedNum);
+                  const occupant = getBedOccupantInfo(apt.buildingBlock, apt.floor, aptNum, key, bedNum);
+                  bedItems.push({ bedSpace: key, bedNumber: bedNum, disabled, occupant });
+                });
+              }
             }
-          }
-          if (bedItems.length === 0) return null;
-          return (
-            <div key={aptNum}>
-              <div style={apartmentHeaderStyle}>
-                <img src="/images/apartment.png" alt="Apartment icon" style={{ width: "24px", height: "24px" }} />
-                <h3 style={{ margin: 0 }}>Apartment {aptNum}</h3>
+
+            if (bedItems.length === 0) return null;
+
+            return (
+              <div key={aptNum} data-aos="fade-right">
+                <div className="apartment-header" data-aos="fade-right">
+                  <img src="/images/apartment.png" alt="Apartment icon" width="24" height="24" />
+                  <h3 data-aos="fade-right">Apartment {aptNum}</h3>
+                </div>
+                <p style={{ color: "#777", marginBottom: "1rem" }}>
+                  Co-ed | Smoking not allowed | Pets not allowed
+                </p>
+
+                <div className="bed-grid" data-aos="fade-right">
+                  {bedItems.map(({ bedSpace, bedNumber, disabled, occupant }) => {
+                    const selected = isCardSelected(aptNum, bedSpace, bedNumber);
+                    const { bedSize, roomSize } = getBedDisplayDetails(roomType);
+                    return (
+                      <div data-aos="fade-right"
+                        key={`${aptNum}-${bedSpace}-${bedNumber}`}
+                        className={`bed-card ${disabled ? "disabled" : ""} ${selected ? "selected" : ""}`}
+                        onClick={() => handleBedSelection(aptNum, bedSpace, bedNumber, disabled)}
+                      >
+                        <img src="/images/bed.png" alt="Bed" />
+                        <strong>Bed {bedSpace}{bedNumber}</strong>
+                        <p>Bed size: {bedSize}</p>
+                        <p>Room size: {roomSize}</p>
+                        {occupant && (
+                          <p>Occupant: {occupant.name} {occupant.gender && `(${occupant.gender})`}</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-              <p style={{ color: "#777", margin: "0 0 0.5rem" }}>
-                Co-ed | Smoking not allowed | Pets not allowed
-              </p>
-              <div style={bedGridStyle}>
-                {bedItems.map(({ bedSpace, bedNumber, disabled, occupant }) => {
-                  const selected = isCardSelected(aptNum, bedSpace, bedNumber);
-                  const { bedSize, roomSize } = getBedDisplayDetails(bedSpaces[bedSpace].roomType);
-                  return (
-                    <div
-                      key={`${aptNum}-${bedSpace}-${bedNumber}`}
-                      style={bedCardStyle(disabled, selected)}
-                      onClick={() => handleBedSelection(aptNum, bedSpace, bedNumber, disabled)}
-                    >
-                      <img src="/images/bed.png" alt="Bed icon" style={{ width: "30px", height: "30px", marginBottom: "0.5rem" }} />
-                      <strong>
-                        Bed {bedSpace}{bedNumber}
-                      </strong>
-                      <p style={{ margin: "0.25rem 0 0" }}>Bed size: {bedSize}</p>
-                      <p style={{ margin: 0 }}>Room size: {roomSize}</p>
-                      {occupant && (
-                        <p style={{ margin: "0.5rem 0 0", color: "#555" }}>
-                          Occupant: {occupant.name} {occupant.gender ? `(${occupant.gender})` : ""}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })
-      )}
-      <button
-        onClick={handleBooking}
-        disabled={!selectedApartmentNumber || !selectedBedSpace || !selectedBedNumber}
-        style={{ padding: "0.75rem 1.5rem", fontSize: "1rem", marginTop: "1rem", marginBottom: "2rem" }}
-      >
-        Proceed to Payment Plan
-      </button>
+            );
+          })
+        )}
+
+        <button
+          className="proceed-button"
+          onClick={handleBooking}
+          disabled={!selectedApartmentNumber || !selectedBedSpace || !selectedBedNumber}
+        >
+          Proceed to Payment Plan
+        </button>
+      </div>
       <Footer />
     </>
   );

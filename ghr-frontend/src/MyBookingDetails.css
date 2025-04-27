@@ -1,0 +1,154 @@
+/* Main wrapper */
+.my-booking-details-wrapper {
+    width: 100vw;
+    margin-top: 80px; /* To avoid overlapping header */
+    padding: 2rem;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+  
+  /* Main section titles */
+  .main-section-title {
+    font-size: 2rem;
+    font-weight: bold;
+    text-align: left;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Sub-section titles */
+  .sub-section-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: left;
+    margin: 2rem 0 1rem 0;
+  }
+  
+  /* Booking Details two-column layout */
+  .booking-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  
+  /* Booking detail item */
+  .booking-detail-item {
+    background: #f8f8f8;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  /* Icon inside booking detail */
+  .booking-detail-icon {
+    width: 30px;
+    height: 30px;
+  }
+  
+  /* Payment section layout */
+  .payment-section {
+    margin-top: 2rem;
+  }
+  
+  /* Payment card base */
+  .payment-card {
+    border-radius: 8px;
+    padding: 1rem;
+    font-size: 1rem;
+    min-width: 250px;
+    margin-bottom: 1rem;
+    box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+  }
+  
+  /* Upcoming payment card */
+  .upcoming-payment {
+    border: 2px solid #007bff;
+    background: #e6f0ff;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+  .upcoming-payment:hover {
+    transform: scale(1.03);
+  }
+  
+  /* Future payment card */
+  .future-payment {
+    border: 2px solid red;
+    background: #ffe6e6;
+  }
+  
+  /* Payment cards container */
+  .payment-cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  /* Summary cards (total paid, unpaid, contract) */
+  .summary-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  
+  .summary-card {
+    flex: 1 1 200px;
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0px 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  /* Payment schedule table */
+  .payment-schedule-table {
+    width: 100%;
+    margin-top: 2rem;
+    border-collapse: collapse;
+  }
+  
+  .payment-schedule-table th,
+  .payment-schedule-table td {
+    padding: 10px;
+    text-align: left;
+    font-size: 1rem;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .payment-schedule-table thead {
+    background-color: #f0f0f0;
+  }
+  
+  /* Mobile responsiveness */
+  @media (max-width: 768px) {
+    .booking-details-grid {
+      grid-template-columns: 1fr;
+    }
+  
+    .payment-cards-container {
+      flex-direction: column;
+    }
+  
+    .summary-cards {
+      flex-direction: column;
+    }
+  
+    .payment-schedule-table th,
+    .payment-schedule-table td {
+      font-size: 0.9rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .main-section-title {
+      font-size: 1.5rem;
+    }
+    .sub-section-title {
+      font-size: 1.2rem;
+    }
+  }
+  

@@ -9,7 +9,7 @@ const BookingDetails = () => {
   const navigate = useNavigate();
   // Retrieve the full booking object passed via navigation state
   const { booking } = location.state || {};
-  const API_URL =import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  const API_URL = "http://localhost:8000";
   const token = localStorage.getItem("token");
 
   // Fetch admin details for header display
@@ -33,8 +33,8 @@ const BookingDetails = () => {
   }
 
   // Destructure non-editable fields from the booking object
-  const { userName, userRoom, buildingBlock, floor, apartmentNumber, bedSpace, bedNumber, roomType } = booking;
-
+  const { userName, buildingBlock, floor, apartmentNumber, bedSpace, bedNumber, roomType } = booking;
+  const roomNumber = `${buildingBlock}${floor}${String(apartmentNumber).padStart(2, '0')}${bedSpace}${bedNumber || ''}`;
   // Editable fields: status and lengthOfStay
   const [status, setStatus] = useState(booking.status);
   const [lengthOfStay, setLengthOfStay] = useState(booking.lengthOfStay);
@@ -121,7 +121,7 @@ const BookingDetails = () => {
           </div>
           <div style={boxStyle}>
             <label style={labelStyle}>Room Number</label>
-            <div>{userRoom}</div>
+            <div>{roomNumber}</div>
           </div>
           <div style={boxStyle}>
             <label style={labelStyle}>Building Block</label>
