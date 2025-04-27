@@ -2,6 +2,7 @@
 .register-page {
     display: flex;
     min-height: 100vh;
+    overflow-x: hidden;
   }
   
   /* Left side */

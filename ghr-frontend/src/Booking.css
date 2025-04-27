@@ -4,6 +4,7 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
+    overflow-x: hidden;
   }
   
   .booking-page h1 {

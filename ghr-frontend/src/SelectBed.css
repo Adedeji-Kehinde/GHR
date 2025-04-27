@@ -2,6 +2,7 @@
 .select-bed-page {
     margin-top: 80px;
     padding: 2rem;
+    overflow-x: hidden;
   }
   
   /* Data Summary Cards (Top) */

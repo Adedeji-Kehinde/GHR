@@ -1,8 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import AOS from "aos";
+import "aos/dist/aos.css";
 import UserHeader from "./UserHeader";
 import Footer from "./Footer";
+import Loading from "./Loading";
 
 const countries = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", 
@@ -40,13 +43,12 @@ const UserProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [editingGreeting, setEditingGreeting] = useState(false);
   const [editingPersonal, setEditingPersonal] = useState(false);
-  // We now store each emergency contact with an "isEditing" property.
   const [emergencyContacts, setEmergencyContacts] = useState([]);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const navigate = useNavigate();
-  const API_URL =import.meta.env.VITE_API_BASE_URL ||"http://localhost:8000";
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
   const fileInputRef = useRef(null);
 
-  // Editable state for personal info (including greeting fields)
   const [personalInfo, setPersonalInfo] = useState({
     name: "",
     lastName: "",
@@ -58,10 +60,14 @@ const UserProfilePage = () => {
     university: "",
     yearOfStudy: "",
     course: "",
-    degree: ""
+    degree: "",
   });
 
   useEffect(() => {
+    AOS.init({ duration: 1000 });
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
@@ -86,9 +92,8 @@ const UserProfilePage = () => {
           university: response.data.university || "",
           yearOfStudy: response.data.yearOfStudy || "",
           course: response.data.course || "",
-          degree: response.data.degree || ""
+          degree: response.data.degree || "",
         });
-        // Initialize emergency contacts; add isEditing:false to each.
         setEmergencyContacts(
           (response.data.emergencyContacts || []).map((contact) => ({
             ...contact,
@@ -103,6 +108,8 @@ const UserProfilePage = () => {
       }
     };
     fetchUser();
+
+    return () => window.removeEventListener('resize', handleResize);
   }, [navigate, API_URL]);
 
   const savePersonalInfo = async () => {
@@ -137,10 +144,8 @@ const UserProfilePage = () => {
     }
   };
 
-  // Profile picture update handlers.
   const handleProfilePicClick = () => {
-    const confirmEdit = window.confirm("Do you want to change your profile image?");
-    if (confirmEdit) {
+    if (window.confirm("Do you want to change your profile image?")) {
       fileInputRef.current.click();
     }
   };
@@ -170,7 +175,6 @@ const UserProfilePage = () => {
     }
   };
 
-  // Calculate progress based on filled fields.
   const calculateProgress = () => {
     const personalFields = Object.values(personalInfo);
     const emergencyFields = emergencyContacts.flatMap((contact) => Object.values(contact).filter(val => typeof val === "string"));
@@ -183,18 +187,7 @@ const UserProfilePage = () => {
 
   const computedProgress = calculateProgress();
 
-  if (loading) {
-    return (
-      <>
-        <UserHeader user={user} hideBookRoom={true} />
-        <div style={{ padding: "20px", textAlign: "center", marginTop: "120px" }}>
-          <p>Loading user details...</p>
-        </div>
-        <Footer />
-      </>
-    );
-  }
-
+  if (loading) return <Loading icon="/images/logo.png" text="Loading Your Bookings..." />;
   const {
     name,
     university = "N/A",
@@ -206,117 +199,9 @@ const UserProfilePage = () => {
   } = user;
   const userEmail = user.email || "N/A";
   const formattedDob = personalInfo.dob;
-
-  // Inline styles for layout.
-  const containerStyle = {
-    maxWidth: "1800px",
-    margin: "120px auto 40px auto",
-    padding: "0 40px",
-    fontFamily: "'Open Sans', sans-serif",
-    color: "#333",
-    textAlign: "left",
-  };
-
-  const sectionTitleStyle = {
-    fontSize: "1.4rem",
-    fontWeight: "600",
-    margin: "20px 0 10px",
-    borderBottom: "1px solid #ddd",
-    paddingBottom: "5px",
-  };
-
-  const editTextStyle = {
-    textAlign: "left",
-    fontSize: "0.9rem",
-    color: "#007bff",
-    cursor: "pointer",
-    marginTop: "5px",
-  };
-
-  const dividerStyle = {
-    margin: "30px 0",
-    border: "none",
-    borderTop: "1px solid #ddd",
-  };
-
-  const rowStyle = {
-    display: "flex",
-    gap: "20px",
-    marginBottom: "10px",
-    flexWrap: "nowrap",
-    overflowX: "auto",
-    textAlign: "left",
-  };
-
-  const fieldStyle = {
-    display: "flex",
-    alignItems: "center",
-    flex: "1",
-    minWidth: "180px",
-  };
-
-  const inputStyle = {
-    padding: "5px",
-    fontSize: "1rem",
-    flex: "1",
-  };
-
-  const mainHeadingStyle = {
-    fontSize: "2rem",
-    fontWeight: "bold",
-    marginBottom: "10px",
-  };
-
-  const subHeadingStyle = {
-    fontSize: "1rem",
-    marginBottom: "20px",
-    color: "#555",
-  };
-
-  const contentRowStyle = {
-    display: "flex",
-    gap: "120px",
-    alignItems: "flex-start",
-    flexWrap: "nowrap",
-  };
-
-  const leftColumnStyle = {
-    flex: "1 1 800px",
-  };
-
-  const rightColumnStyle = {
-    flex: "1 1 800px",
-    marginLeft: "auto",
-    textAlign: "left",
-    border: "1px solid #ddd",
-    borderRadius: "8px",
-    padding: "20px",
-  };
-
-  const progressContainerStyle = {
-    width: "100%",
-    border: "1px solid #ddd",
-    borderRadius: "20px",
-    backgroundColor: "#f3f3f3",
-    overflow: "hidden",
-    margin: "10px 0",
-  };
-
-  const progressBarStyle = {
-    width: `${computedProgress}%`,
-    height: "10px",
-    backgroundColor: "#28a745",
-  };
-
-  // Helper component for displaying an icon with tooltip and value.
   const InfoField = ({ icon, label, value }) => (
-    <div style={fieldStyle}>
-      <img
-        src={`/images/${icon}`}
-        alt={label}
-        title={label}
-        style={{ width: "20px", verticalAlign: "middle", marginRight: "5px" }}
-      />
+    <div className="info-field">
+      <img src={`/images/${icon}`} alt={label} title={label} />
       <span>{value}</span>
     </div>
   );
@@ -324,49 +209,45 @@ const UserProfilePage = () => {
   return (
     <>
       <UserHeader user={user} hideBookRoom={true} />
-      <div style={containerStyle}>
-        {/* Greeting and Subheading Section */}
-        <div>
+      <div className="user-profile-container">
+        <div className="greeting-section">
           {editingGreeting ? (
             <>
-              <h1 style={mainHeadingStyle}>Hi, I'm {name}</h1>
-              <div style={subHeadingStyle}>
-                <div style={rowStyle}>
-                  <div style={fieldStyle}>
-                    <img src="/images/university.png" alt="University" title="University" style={{ width: "20px", marginRight: "5px" }} />
+              <h1 className="main-heading">Hi, I'm {personalInfo.name}</h1>
+              <div className="sub-heading">
+                {/* Editable University Section */}
+                <div className="row">
+                  <div className="field">
+                    <img src="/images/university.png" alt="University" />
                     <input
                       type="text"
-                      style={inputStyle}
                       value={personalInfo.university}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, university: e.target.value })}
                     />
                   </div>
                 </div>
-                <div style={rowStyle}>
-                  <div style={fieldStyle}>
+                <div className="row">
+                  <div className="field">
                     <input
                       type="text"
-                      style={inputStyle}
                       value={personalInfo.yearOfStudy}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, yearOfStudy: e.target.value })}
                       placeholder="Year of Study"
                     />
                   </div>
-                  <div style={fieldStyle}>
+                  <div className="field">
                     <input
                       type="text"
-                      style={inputStyle}
                       value={personalInfo.course}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, course: e.target.value })}
                       placeholder="Course"
                     />
                   </div>
                 </div>
-                <div style={rowStyle}>
-                  <div style={fieldStyle}>
+                <div className="row">
+                  <div className="field">
                     <input
                       type="text"
-                      style={inputStyle}
                       value={personalInfo.degree}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, degree: e.target.value })}
                       placeholder="Degree"
@@ -374,159 +255,156 @@ const UserProfilePage = () => {
                   </div>
                 </div>
               </div>
-              <div style={editTextStyle} onClick={() => {
-                savePersonalInfo();
-                setEditingGreeting(false);
-              }}>
+              <div className="edit-text" onClick={() => { savePersonalInfo(); setEditingGreeting(false); }}>
                 Save
               </div>
             </>
           ) : (
             <>
-              <h1 style={mainHeadingStyle}>Hi, I'm {name}</h1>
-              <div style={subHeadingStyle}>
+              <h1 className="main-heading">Hi, I'm {personalInfo.name}</h1>
+              <div className="sub-heading">
                 <InfoField icon="university.png" label="University" value={personalInfo.university} />
                 <br />
-                Year of Study: {personalInfo.yearOfStudy} &nbsp;|&nbsp; Course: {personalInfo.course} &nbsp;|&nbsp; Degree: {personalInfo.degree}
+                Year of Study: {personalInfo.yearOfStudy} | Course: {personalInfo.course} | Degree: {personalInfo.degree}
               </div>
-              <div style={editTextStyle} onClick={() => setEditingGreeting(true)}>
+              <div className="edit-text" onClick={() => setEditingGreeting(true)}>
                 Edit
               </div>
             </>
           )}
         </div>
 
-        <hr style={dividerStyle} />
+        <hr className="divider" />
 
-        {/* Main content row with left and right columns */}
-        <div style={contentRowStyle}>
-          {/* Left Column: Personal & Emergency Info */}
-          <div style={leftColumnStyle}>
-            <h2 style={sectionTitleStyle}>Personal Information</h2>
-            {editingPersonal ? (
-              <>
-                <div style={rowStyle}>
-                  <div style={fieldStyle}>
-                    <img src="/images/user.png" alt="Name" title="Name" style={{ width: "20px", marginRight: "5px" }} />
-                    <input
-                      type="text"
-                      style={inputStyle}
-                      value={personalInfo.name}
-                      onChange={(e) => setPersonalInfo({ ...personalInfo, name: e.target.value })}
-                      placeholder="First Name"
-                    />
-                  </div>
-                  <div style={fieldStyle}>
-                    <input
-                      type="text"
-                      style={inputStyle}
-                      value={personalInfo.lastName}
-                      onChange={(e) => setPersonalInfo({ ...personalInfo, lastName: e.target.value })}
-                      placeholder="Last Name"
-                    />
-                  </div>
-                </div>
-                <div style={rowStyle}>
-                  <div style={fieldStyle}>
-                    <img src="/images/phone.png" alt="Phone" title="Phone" style={{ width: "20px", marginRight: "5px" }} />
-                    <input
-                      type="text"
-                      style={inputStyle}
-                      value={personalInfo.phone}
-                      onChange={(e) => setPersonalInfo({ ...personalInfo, phone: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div style={rowStyle}>
-                  <div style={fieldStyle}>
-                    <img src="/images/calendar.png" alt="DOB" title="DOB" style={{ width: "20px", marginRight: "5px" }} />
-                    <input
-                      type="date"
-                      style={inputStyle}
-                      value={personalInfo.dob}
-                      onChange={(e) => setPersonalInfo({ ...personalInfo, dob: e.target.value })}
-                    />
-                  </div>
-                  <div style={fieldStyle}>
-                    <img src="/images/gender.png" alt="Gender" title="Gender" style={{ width: "20px", marginRight: "5px" }} />
-                    <select
-                      style={inputStyle}
-                      value={personalInfo.gender}
-                      onChange={(e) => setPersonalInfo({ ...personalInfo, gender: e.target.value })}
-                    >
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                </div>
-                <div style={rowStyle}>
-                  <div style={fieldStyle}>
-                    <img src="/images/location.png" alt="Address" title="Address" style={{ width: "20px", marginRight: "5px" }} />
-                    <input
-                      type="text"
-                      style={inputStyle}
-                      value={personalInfo.address}
-                      onChange={(e) => setPersonalInfo({ ...personalInfo, address: e.target.value })}
-                    />
-                  </div>
-                  <div style={fieldStyle}>
-                    <img src="/images/nationality.png" alt="Nationality" title="Nationality" style={{ width: "20px", marginRight: "5px" }} />
-                    <select
-                      style={inputStyle}
-                      value={personalInfo.nationality}
-                      onChange={(e) => setPersonalInfo({ ...personalInfo, nationality: e.target.value })}
-                    >
-                      <option value="">Select Country</option>
-                      {countries.map((country) => (
-                        <option key={country} value={country}>
-                          {country}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <div style={rowStyle}>
-                  <InfoField icon="user.png" label="Name" value={`${personalInfo.name} ${personalInfo.lastName}`} />
-                  <InfoField icon="phone.png" label="Phone" value={personalInfo.phone} />
-                </div>
-                <div style={rowStyle}>
-                  <InfoField icon="calendar.png" label="DOB" value={formattedDob} />
-                  <InfoField icon="gender.png" label="Gender" value={personalInfo.gender} />
-                </div>
-                <div style={rowStyle}>
-                  <InfoField icon="location.png" label="Address" value={personalInfo.address} />
-                  <InfoField icon="nationality.png" label="Nationality" value={personalInfo.nationality} />
-                </div>
-              </>
-            )}
-            <div style={editTextStyle} onClick={() => {
-              if (editingPersonal) {
-                savePersonalInfo();
-                setEditingPersonal(false);
-              } else {
-                setEditingPersonal(true);
-              }
-            }}>
-              {editingPersonal ? "Save" : "Edit"}
-            </div>
+        <div className="content-row">
+          {/* Left Column */}
+          <div className="left-column">
+          <h2 className="section-title">Personal Information</h2>
 
-            <hr style={dividerStyle} />
+          {editingPersonal ? (
+            <>
+              <div className="row">
+                <div className="field">
+                  <img src="/images/user.png" alt="Name" />
+                  <input
+                    type="text"
+                    value={personalInfo.name}
+                    onChange={(e) => setPersonalInfo({ ...personalInfo, name: e.target.value })}
+                    placeholder="First Name"
+                  />
+                </div>
+                <div className="field">
+                  <input
+                    type="text"
+                    value={personalInfo.lastName}
+                    onChange={(e) => setPersonalInfo({ ...personalInfo, lastName: e.target.value })}
+                    placeholder="Last Name"
+                  />
+                </div>
+              </div>
 
-            {/* Emergency Contact Section */}
-            <h2 style={sectionTitleStyle}>Emergency Contact</h2>
-            {emergencyContacts.map((contact, index) => (
-              <div key={index} style={{ marginBottom: "10px", borderBottom: "1px dashed #ccc", paddingBottom: "10px" }}>
-                {contact.isEditing ? (
-                  <>
-                    <div style={{ marginBottom: "5px" }}>
-                      <span style={{ fontWeight: "600", marginRight: "5px" }}>Name:</span>
+              <div className="row">
+                <div className="field">
+                  <img src="/images/phone.png" alt="Phone" />
+                  <input
+                    type="text"
+                    value={personalInfo.phone}
+                    onChange={(e) => setPersonalInfo({ ...personalInfo, phone: e.target.value })}
+                    placeholder="Phone Number"
+                  />
+                </div>
+              </div>
+
+              <div className="row">
+                <div className="field">
+                  <img src="/images/calendar.png" alt="DOB" />
+                  <input
+                    type="date"
+                    value={personalInfo.dob}
+                    onChange={(e) => setPersonalInfo({ ...personalInfo, dob: e.target.value })}
+                  />
+                </div>
+                <div className="field">
+                  <img src="/images/gender.png" alt="Gender" />
+                  <select
+                    value={personalInfo.gender}
+                    onChange={(e) => setPersonalInfo({ ...personalInfo, gender: e.target.value })}
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="row">
+                <div className="field">
+                  <img src="/images/location.png" alt="Address" />
+                  <input
+                    type="text"
+                    value={personalInfo.address}
+                    onChange={(e) => setPersonalInfo({ ...personalInfo, address: e.target.value })}
+                    placeholder="Address"
+                  />
+                </div>
+                <div className="field">
+                  <img src="/images/nationality.png" alt="Nationality" />
+                  <select
+                    value={personalInfo.nationality}
+                    onChange={(e) => setPersonalInfo({ ...personalInfo, nationality: e.target.value })}
+                  >
+                    <option value="">Select Country</option>
+                    {countries.map((country) => (
+                      <option key={country} value={country}>
+                        {country}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="edit-text" onClick={() => { savePersonalInfo(); setEditingPersonal(false); }}>
+                Save
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="row">
+                <InfoField icon="user.png" label="Name" value={`${personalInfo.name} ${personalInfo.lastName}`} />
+                <InfoField icon="phone.png" label="Phone" value={personalInfo.phone} />
+              </div>
+
+              <div className="row">
+                <InfoField icon="calendar.png" label="DOB" value={personalInfo.dob} />
+                <InfoField icon="gender.png" label="Gender" value={personalInfo.gender} />
+              </div>
+
+              <div className="row">
+                <InfoField icon="location.png" label="Address" value={personalInfo.address} />
+                <InfoField icon="nationality.png" label="Nationality" value={personalInfo.nationality} />
+              </div>
+
+              <div className="edit-text" onClick={() => setEditingPersonal(true)}>
+                Edit
+              </div>
+            </>
+          )}
+
+          <hr className="divider" />
+
+          {/* Emergency Contact Section */}
+          <h2 className="section-title">Emergency Contact</h2>
+
+          {emergencyContacts.map((contact, index) => (
+            <div key={index} className="emergency-contact-card">
+              {contact.isEditing ? (
+                <>
+                  <div className="row">
+                    <div className="field">
                       <input
                         type="text"
-                        style={inputStyle}
+                        placeholder="Name"
                         value={contact.name}
                         onChange={(e) => {
                           const newContacts = [...emergencyContacts];
@@ -535,11 +413,10 @@ const UserProfilePage = () => {
                         }}
                       />
                     </div>
-                    <div style={{ marginBottom: "5px" }}>
-                      <span style={{ fontWeight: "600", marginRight: "5px" }}>Email:</span>
+                    <div className="field">
                       <input
                         type="email"
-                        style={inputStyle}
+                        placeholder="Email"
                         value={contact.email}
                         onChange={(e) => {
                           const newContacts = [...emergencyContacts];
@@ -548,11 +425,13 @@ const UserProfilePage = () => {
                         }}
                       />
                     </div>
-                    <div style={{ marginBottom: "5px" }}>
-                      <span style={{ fontWeight: "600", marginRight: "5px" }}>Phone:</span>
+                  </div>
+
+                  <div className="row">
+                    <div className="field">
                       <input
                         type="text"
-                        style={inputStyle}
+                        placeholder="Phone"
                         value={contact.phone}
                         onChange={(e) => {
                           const newContacts = [...emergencyContacts];
@@ -561,11 +440,10 @@ const UserProfilePage = () => {
                         }}
                       />
                     </div>
-                    <div style={{ marginBottom: "5px" }}>
-                      <span style={{ fontWeight: "600", marginRight: "5px" }}>Address:</span>
+                    <div className="field">
                       <input
                         type="text"
-                        style={inputStyle}
+                        placeholder="Address"
                         value={contact.address}
                         onChange={(e) => {
                           const newContacts = [...emergencyContacts];
@@ -574,10 +452,11 @@ const UserProfilePage = () => {
                         }}
                       />
                     </div>
-                    <div style={{ marginBottom: "5px" }}>
-                      <span style={{ fontWeight: "600", marginRight: "5px" }}>Relation:</span>
+                  </div>
+
+                  <div className="row">
+                    <div className="field">
                       <select
-                        style={inputStyle}
                         value={contact.relation}
                         onChange={(e) => {
                           const newContacts = [...emergencyContacts];
@@ -585,6 +464,7 @@ const UserProfilePage = () => {
                           setEmergencyContacts(newContacts);
                         }}
                       >
+                        <option value="">Select Relation</option>
                         <option value="Guardian">Guardian</option>
                         <option value="Guarantor">Guarantor</option>
                         <option value="Mother">Mother</option>
@@ -594,100 +474,69 @@ const UserProfilePage = () => {
                         <option value="Other">Other</option>
                       </select>
                     </div>
-                    <div style={editTextStyle} onClick={() => {
-                      const newContacts = [...emergencyContacts];
-                      newContacts[index].isEditing = false;
-                      setEmergencyContacts(newContacts);
-                      saveEmergencyContacts();
-                    }}>
-                      Save
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div style={{ marginBottom: "5px" }}>
-                      <span style={{ fontWeight: "600", marginRight: "5px" }}>Name:</span> {contact.name}
-                    </div>
-                    <div style={{ marginBottom: "5px" }}>
-                      <span style={{ fontWeight: "600", marginRight: "5px" }}>Email:</span> {contact.email}
-                    </div>
-                    <div style={{ marginBottom: "5px" }}>
-                      <span style={{ fontWeight: "600", marginRight: "5px" }}>Phone:</span> {contact.phone}
-                    </div>
-                    <div style={{ marginBottom: "5px" }}>
-                      <span style={{ fontWeight: "600", marginRight: "5px" }}>Address:</span> {contact.address}
-                    </div>
-                    <div style={{ marginBottom: "5px" }}>
-                      <span style={{ fontWeight: "600", marginRight: "5px" }}>Relation:</span> {contact.relation}
-                    </div>
-                    <div style={editTextStyle} onClick={() => {
-                      const newContacts = [...emergencyContacts];
-                      newContacts[index].isEditing = true;
-                      setEmergencyContacts(newContacts);
-                    }}>
-                      Edit
-                    </div>
-                  </>
-                )}
-              </div>
-            ))}
-            <div style={{ marginTop: "5px" }}>
-              <span
-                style={{ ...editTextStyle, cursor: "pointer" }}
-                onClick={() => {
-                  // Append a new empty emergency contact with isEditing set to true.
-                  setEmergencyContacts((prev) => [
-                    ...prev,
-                    { name: "", email: "", phone: "", address: "", relation: "Other", isEditing: true },
-                  ]);
-                }}
-              >
-                +Add
-              </span>
-            </div>
-          </div>
+                  </div>
 
-          {/* Right Column: Profile Photo, Completion Bar, Student ID & Email */}
-          <div style={rightColumnStyle}>
-            <div style={{ marginBottom: "20px", textAlign: "center" }}>
-              <div
-                style={{
-                  width: "150px",
-                  height: "150px",
-                  borderRadius: "50%",
-                  overflow: "hidden",
-                  margin: "0 auto",
-                  cursor: "pointer"
-                }}
-                onClick={handleProfilePicClick}
-              >
-                <img
-                  src={profileImageUrl}
-                  alt="Profile"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
-                />
+                  <div className="edit-text" onClick={() => {
+                    const newContacts = [...emergencyContacts];
+                    newContacts[index].isEditing = false;
+                    setEmergencyContacts(newContacts);
+                    saveEmergencyContacts();
+                  }}>
+                    Save
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div><strong>Name:</strong> {contact.name}</div>
+                  <div><strong>Email:</strong> {contact.email}</div>
+                  <div><strong>Phone:</strong> {contact.phone}</div>
+                  <div><strong>Address:</strong> {contact.address}</div>
+                  <div><strong>Relation:</strong> {contact.relation}</div>
+
+                  <div className="edit-text" onClick={() => {
+                    const newContacts = [...emergencyContacts];
+                    newContacts[index].isEditing = true;
+                    setEmergencyContacts(newContacts);
+                  }}>
+                    Edit
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+
+          <div className="add-contact">
+            <span
+              className="edit-text"
+              onClick={() =>
+                setEmergencyContacts((prev) => [
+                  ...prev,
+                  { name: "", email: "", phone: "", address: "", relation: "Other", isEditing: true },
+                ])
+              }
+            >
+              + Add Emergency Contact
+            </span>
+          </div>
+        </div>
+
+          {/* Right Column */}
+          <div className="right-column">
+            <div className="profile-picture" onClick={handleProfilePicClick}>
+              <img src={user.profileImageUrl} alt="Profile" />
+              <input type="file" accept="image/*" ref={fileInputRef} style={{ display: "none" }} onChange={handleProfilePicChange} />
+            </div>
+
+            <div className="progress-section">
+              <div className="progress-label">Profile Completion</div>
+              <div className="progress-bar-container">
+                <div className="progress-bar" style={{ width: `${computedProgress}%` }} />
               </div>
-              <input
-                type="file"
-                accept="image/*"
-                ref={fileInputRef}
-                style={{ display: "none" }}
-                onChange={handleProfilePicChange}
-              />
             </div>
-            <div style={{ textAlign: "center", fontWeight: "600", marginBottom: "5px" }}>
-              Profile Completion
-            </div>
-            <div style={progressContainerStyle}>
-              <div style={progressBarStyle} title={`${computedProgress}%`}></div>
-            </div>
-            <hr style={dividerStyle} />
-            <div style={{ marginTop: "10px", textAlign: "left" }}>
-              <InfoField icon="email.png" label="Email" value={userEmail} />
+
+            <hr className="divider" />
+            <div className="email-info">
+              <InfoField icon="email.png" label="Email" value={user.email || "N/A"} />
             </div>
           </div>
         </div>
