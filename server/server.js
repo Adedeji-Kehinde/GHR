@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const path = require("path");
 
 // Load environment variables from .env file
 dotenv.config();
@@ -41,6 +42,12 @@ app.use("/api/booking", bookingRoutes); // Mount booking routes under "/api/book
 const paymentRoutes = require("./routes/paymentRecord");
 app.use("/api/payment", paymentRoutes);
 
+// APK Download Route
+app.get('/downloads/ghr-app.apk', (req, res) => {
+  const apkPath = path.join(__dirname, '../app/release/app-release.apk');
+  res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+  res.download(apkPath, 'ghr-app.apk');
+});
 
 // const generateBuildingsAndRooms = require('./utils/generateRooms');
 

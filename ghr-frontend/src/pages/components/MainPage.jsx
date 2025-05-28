@@ -276,6 +276,25 @@ const MainPage = () => {
                 Access your accommodation details, make payments, and manage your stay right from your phone.
               </p>
               
+              <a 
+                href="/downloads/ghr-app.apk"
+                style={{
+                  display: "inline-block",
+                  padding: "12px 24px",
+                  backgroundColor: "#4CAF50",
+                  color: "#fff",
+                  textDecoration: "none",
+                  borderRadius: "5px",
+                  fontWeight: "bold",
+                  marginBottom: "2rem",
+                  transition: "background-color 0.3s ease"
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = "#45a049"}
+                onMouseLeave={(e) => e.target.style.backgroundColor = "#4CAF50"}
+              >
+                Download Android App
+              </a>
+              
               <div style={{
                 display: "flex",
                 justifyContent: "center",
