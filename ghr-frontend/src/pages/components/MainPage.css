@@ -145,3 +145,40 @@ button:hover {
     button { font-size: 0.9rem; padding: 8px 16px; }
     .amenity-card { width: 120px; }
 }
+
+.mobile-app-images {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.mobile-app-images img {
+  max-width: 200px;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border: 8px solid #333;
+  background-color: #333;
+}
+
+@media (max-width: 900px) {
+  .mobile-app-images {
+    gap: 1rem;
+  }
+  .mobile-app-images img {
+    max-width: 45vw;
+  }
+}
+
+@media (max-width: 600px) {
+  .mobile-app-images {
+    gap: 0.5rem;
+  }
+  .mobile-app-images img {
+    max-width: 90vw;
+    border-width: 4px;
+  }
+}

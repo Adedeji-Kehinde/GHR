@@ -283,7 +283,7 @@ const MainPage = () => {
                 flexWrap: "wrap"
               }}>
                 <a 
-                  href="/downloads/ghr-app.apk" 
+                  href="/downloads/GHR_apk.apk" 
                   download
                   style={{
                     display: "inline-flex",
@@ -338,18 +338,13 @@ const MainPage = () => {
               justifyContent: "center",
               marginTop: "1rem"
             }}>
-              <div style={{
-                textAlign: "center",
-                flex: "0 1 auto",
-                display: "flex",
-                gap: "2rem",
-                justifyContent: "center"
-              }}>
+              <div className="mobile-app-images">
                 <img 
                   src="/images/app.png" 
                   alt="GHR Mobile App Screen 1" 
                   style={{
                     maxWidth: "200px",
+                    width: "100%",
                     height: "auto",
                     borderRadius: "12px",
                     boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
@@ -362,6 +357,7 @@ const MainPage = () => {
                   alt="GHR Mobile App Screen 2" 
                   style={{
                     maxWidth: "200px",
+                    width: "100%",
                     height: "auto",
                     borderRadius: "12px",
                     boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
@@ -374,6 +370,7 @@ const MainPage = () => {
                   alt="GHR Mobile App Screen 3" 
                   style={{
                     maxWidth: "200px",
+                    width: "100%",
                     height: "auto",
                     borderRadius: "12px",
                     boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
@@ -386,6 +383,7 @@ const MainPage = () => {
                   alt="GHR Mobile App Screen 4" 
                   style={{
                     maxWidth: "200px",
+                    width: "100%",
                     height: "auto",
                     borderRadius: "12px",
                     boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
