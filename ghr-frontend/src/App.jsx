@@ -1,53 +1,68 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import CreateAdmin from "./admin/CreateAdmin";
-import UserProfilePage from "./pages/UserProfilePage";
-import Home from "./pages/Home";
-import AboutUs from "./pages/AboutUs";
-import TestimonialPage from "./pages/TestimonialPage";
-import TestimonialsManagement from "./admin/TestimonialManagement";
-import LifeAtGHR from "./pages/LifeAtGHR";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import CancellationPolicy from "./pages/CancellationPolicy";
-import TermsAndConditions from "./pages/TermsAndConditions";
-import FAQs from "./pages/FAQs";
-import ContactUs from "./pages/ContactUs";
-import ContactUsManagement from "./admin/ContactUsManagement";
-import ContactUsDetails from "./admin/ContactUsDetails";
-import MyBookingDetails from "./pages/MyBookingDetails";
-import Booking from "./pages/Booking";
-import SelectBed from "./pages/SelectBed";
-import AdminDashboard from "./admin/AdminDashboard";
-import Deliveries from "./admin/Deliveries";
-import AddDelivery from "./admin/AddDelivery";
-import Enquiry from "./admin/Enquiry";
-import EnquiryDetails from "./admin/EnquiryDetails";
-import Maintenance from "./admin/Maintenace";
-import MaintenanceDetailsPage from "./admin/MaintenanceDetails";
-import AddMaintenance from "./admin/AddMaintenance";
-import BookingManagement from "./admin/BookingManagement";
-import BookingDetails from "./admin/BookingDetails";
-import MainPage from "./pages/MainPage";
-import AnnouncementManagement from "./admin/Announcement";
-import AddAnnouncement from "./admin/AddAnnouncement";
-import AnnouncementDetails from "./admin/AnnouncementDetails";
-import ManageAdmin from "./admin/ManageAdmin";
-import AdminDetailsPage from "./admin/AdminDetails";
+// Auth Pages
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import CreateAdmin from "./admin/auth/CreateAdmin";
+import ManageAdmin from "./admin/auth/ManageAdmin";
+import AdminDetailsPage from "./admin/auth/AdminDetails";
 
+// User Pages
+import UserProfilePage from "./pages/profile/UserProfilePage";
+import Home from "./pages/components/Home";
+import AboutUs from "./pages/about/AboutUs";
+import TestimonialPage from "./pages/testimonials/TestimonialPage";
+import LifeAtGHR from "./pages/about/LifeAtGHR";
+import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
+import CancellationPolicy from "./pages/legal/CancellationPolicy";
+import TermsAndConditions from "./pages/legal/TermsAndConditions";
+import FAQs from "./pages/legal/FAQs";
+import ContactUs from "./pages/contact/ContactUs";
+import MyBookingDetails from "./pages/booking/MyBookingDetails";
+import Booking from "./pages/booking/Booking";
+import SelectBed from "./pages/booking/SelectBed";
+import MainPage from "./pages/components/MainPage";
 
+// Common Components
+import UserHeader from "./pages/components/UserHeader";
+import Footer from "./pages/components/Footer";
+import Loading from "./pages/components/Loading";
+
+// Admin Components
+import AdminHeader from "./admin/components/AdminHeader";
+import AdminTabs from "./admin/components/AdminTabs";
+import AdminDashboard from "./admin/components/AdminDashboard";
+
+// Admin Pages
+import TestimonialsManagement from "./admin/testimonials/TestimonialManagement";
+import ContactUsManagement from "./admin/contact/ContactUsManagement";
+import ContactUsDetails from "./admin/contact/ContactUsDetails";
+import BookingManagement from "./admin/booking/BookingManagement";
+import BookingDetails from "./admin/booking/BookingDetails";
+import Deliveries from "./admin/delivery/Deliveries";
+import AddDelivery from "./admin/delivery/AddDelivery";
+import Enquiry from "./admin/enquiry/Enquiry";
+import EnquiryDetails from "./admin/enquiry/EnquiryDetails";
+import Maintenance from "./admin/maintenance/Maintenance";
+import MaintenanceDetailsPage from "./admin/maintenance/MaintenanceDetails";
+import AddMaintenance from "./admin/maintenance/AddMaintenance";
+import AnnouncementManagement from "./admin/announcement/Announcement";
+import AddAnnouncement from "./admin/announcement/AddAnnouncement";
+import AnnouncementDetails from "./admin/announcement/AnnouncementDetails";
+
+// Styles
 import "./App.css";
 import "./styles.css";
-import "./login.css";
-import "./Register.css";
-import "./MainPage.css";
-import "./Home.css";
-import "./Booking.css";
-import "./ContactUs.css";
-import "./MyBookingDetails.css";
-import "./Loading.css";
-import "./SelectBed.css";
-import "./userProfilePage.css";
+import "./pages/auth/login.css";
+import "./pages/auth/Register.css";
+import "./pages/components/MainPage.css";
+import "./pages/components/Home.css";
+import "./pages/booking/Booking.css";
+import "./pages/contact/ContactUs.css";
+import "./pages/booking/MyBookingDetails.css";
+import "./pages/components/Loading.css";
+import "./pages/booking/SelectBed.css";
+import "./pages/profile/userProfilePage.css";
+
 function App() {
   return (
     <Router>

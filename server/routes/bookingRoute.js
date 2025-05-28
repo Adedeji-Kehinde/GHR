@@ -270,33 +270,36 @@ router.put('/bookings/:bookingId', authenticateToken, async (req, res) => {
 });
 
 // Delete a booking by its ID, and also delete associated Payment documents.
+// DELETE a booking by its ID, and only free up bed if it was still active
 router.delete('/bookings/:bookingId', authenticateToken, async (req, res) => {
   try {
     const bookingId = req.params.bookingId;
-    if (!bookingId) {
-      return res.status(400).json({ message: 'Booking ID is required' });
-    }
-
-    const booking = await Booking.findById(bookingId);
+    const booking = await Booking.findById(bookingId).populate('userId');
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
-    // Free the bed and clear the user's room number
-    await freeUpBed(booking);
-    
-    // Delete all Payment records associated with this booking
-    await Payment.deleteMany({ bookingId: booking._id });
+    // ONLY free the bed and clear the user.roomNumber if this booking was still Booked
+    if (booking.status === 'Booked') {
+      await freeUpBed(booking);
+    }
 
-    // Now delete the booking itself
+    // Remove associated payments
+    await Payment.deleteMany({ bookingId: booking._id });
+    // Delete the booking
     await Booking.findByIdAndDelete(bookingId);
 
-    res.json({ message: 'Booking and associated payments deleted, bed freed, and user room number cleared successfully' });
+    return res.json({
+      message: booking.status === 'Booked'
+        ? 'Booking deleted, bed freed, and user room number cleared.'
+        : 'Booking deleted successfully.'
+    });
   } catch (error) {
     console.error('Error deleting booking:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    return res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+
 
 // Get all rooms
 router.get('/rooms', authenticateToken, async (req, res) => {

@@ -199,27 +199,55 @@ private suspend fun performFirebaseLogin(
 ) {
     try {
         val firebaseAuth = FirebaseAuth.getInstance()
-        // Sign in with Firebase using Email/Password
         val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
-        // Get the Firebase ID token
         val idTokenResult = authResult.user?.getIdToken(true)?.await()
+
         if (idTokenResult != null) {
-            // Call your backend's Firebase login endpoint
-            val response = authApi.firebaseLogin(FirebaseLoginRequest(idTokenResult.token!!))
-            if (response.token != null) {
-                // Store the token in SharedPreferences
-                val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-                sharedPreferences.edit().putString("authToken", response.token).apply()
-                Toast.makeText(context, "Login Successful", Toast.LENGTH_LONG).show()
-                // Navigate based on user role (adjust according to your response)
-                // For simplicity, assuming role info is in response.message (update as needed)
-                if (response.message == "admin") {
-                    navController.navigate("AdminDashboard")
+            try {
+                val response = authApi.firebaseLogin(FirebaseLoginRequest(idTokenResult.token!!))
+                if (response.token != null) {
+                    // If the user role is admin, block login
+                    if (response.message == "admin") {
+                        Toast.makeText(context, "Admins cannot log in with this app.", Toast.LENGTH_LONG).show()
+                        return
+                    }
+
+                    val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                    sharedPreferences.edit().putString("authToken", response.token).apply()
+
+                    // 🔥 Now check the user's bookings
+                    val retrofit = Retrofit.Builder()
+                        .baseUrl("https://ghr-1.onrender.com")
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build()
+
+                    val bookingApi = retrofit.create(BookingApi::class.java)
+                    val userProfileApi = retrofit.create(UserProfileApi::class.java)
+
+                    // Get user's profile to get their user ID
+                    val userProfile = userProfileApi.getUserProfile("Bearer ${response.token}")
+
+                    // Now get bookings
+                    val bookings = bookingApi.getBookings("Bearer ${response.token}")
+
+                    // Check if the user has at least one booking with status "Booked"
+                    val hasActiveBooking = bookings.any { booking ->
+                        booking.userReference.id == userProfile.id && booking.status == "Booked"
+                    }
+
+                    if (hasActiveBooking) {
+                        Toast.makeText(context, "Login Successful", Toast.LENGTH_LONG).show()
+                        navController.navigate("HomePage")
+                    } else {
+                        Toast.makeText(context, "No active booking found. Please complete make a booking to access App features.", Toast.LENGTH_LONG).show()
+                        // Optionally clear the token
+                        sharedPreferences.edit().remove("authToken").apply()
+                    }
                 } else {
-                    navController.navigate("HomePage")
+                    Toast.makeText(context, "Error: ${response.message}", Toast.LENGTH_LONG).show()
                 }
-            } else {
-                Toast.makeText(context, "Error: ${response.message}", Toast.LENGTH_LONG).show()
+            } catch (e: retrofit2.HttpException) {
+                Toast.makeText(context, "Login failed: ${e.message()}", Toast.LENGTH_LONG).show()
             }
         } else {
             Toast.makeText(context, "Error: Unable to get Firebase ID token", Toast.LENGTH_LONG).show()

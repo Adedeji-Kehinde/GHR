@@ -1,0 +1,156 @@
+.life-page-wrapper {
+    width: 100vw;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+    background-color: #fafafa;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.life-header {
+    width: 100%;
+    background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%);
+    padding: 4rem 0;
+    text-align: center;
+    color: white;
+    margin-top: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.life-header-content {
+    width: 100%;
+    max-width: 1200px;
+    padding: 0 2rem;
+    margin: 0 auto;
+}
+
+.life-header h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.life-header h2 {
+    font-size: 1.5rem;
+    opacity: 0.9;
+    margin-bottom: 1rem;
+}
+
+.life-header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.life-content {
+    width: 100%;
+    padding: 4rem 2rem;
+    display: flex;
+    justify-content: center;
+}
+
+.content-wrapper {
+    width: 100%;
+    max-width: 1200px;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.feature-box {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.feature-box h3 {
+    color: #0072ff;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.feature-box p {
+    color: #333;
+    line-height: 1.6;
+    font-size: 1.05rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .life-header {
+        padding: 3rem 0;
+    }
+
+    .life-header-content {
+        padding: 0 1.5rem;
+    }
+
+    .life-content {
+        padding: 2rem 1.5rem;
+    }
+
+    .life-header h1 {
+        font-size: 2rem;
+    }
+
+    .life-header h2 {
+        font-size: 1.25rem;
+    }
+
+    .grid-container {
+        grid-template-columns: 1fr;
+    }
+
+    .feature-box {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .life-header {
+        padding: 2rem 0;
+    }
+
+    .life-header-content,
+    .life-content {
+        padding: 0 1rem;
+    }
+
+    .life-content {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+
+    .life-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .feature-box {
+        padding: 1.25rem;
+    }
+
+    .feature-box h3 {
+        font-size: 1.2rem;
+    }
+
+    .feature-box p {
+        font-size: 1rem;
+    }
+} 
