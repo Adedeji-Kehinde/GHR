@@ -29,7 +29,7 @@ mongoose
     process.exit(1); // Exit the process with failure
   });
 
-// Serve static files from the "downloads" directory
+// Serve static files from the downloads directory with proper MIME type
 app.use('/downloads', express.static(path.join(__dirname, '../ghr-frontend/public/downloads'), {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.apk')) {
