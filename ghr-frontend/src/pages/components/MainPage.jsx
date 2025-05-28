@@ -276,25 +276,6 @@ const MainPage = () => {
                 Access your accommodation details, make payments, and manage your stay right from your phone.
               </p>
               
-              <a 
-                href="/downloads/ghr-app.apk"
-                style={{
-                  display: "inline-block",
-                  padding: "12px 24px",
-                  backgroundColor: "#4CAF50",
-                  color: "#fff",
-                  textDecoration: "none",
-                  borderRadius: "5px",
-                  fontWeight: "bold",
-                  marginBottom: "2rem",
-                  transition: "background-color 0.3s ease"
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = "#45a049"}
-                onMouseLeave={(e) => e.target.style.backgroundColor = "#4CAF50"}
-              >
-                Download Android App
-              </a>
-              
               <div style={{
                 display: "flex",
                 justifyContent: "center",
@@ -302,7 +283,7 @@ const MainPage = () => {
                 flexWrap: "wrap"
               }}>
                 <a 
-                  href="/downloads/GHR_apk.apk" 
+                  href="/downloads/ghr-app.apk" 
                   download
                   style={{
                     display: "inline-flex",
@@ -357,13 +338,18 @@ const MainPage = () => {
               justifyContent: "center",
               marginTop: "1rem"
             }}>
-              <div className="mobile-app-images">
+              <div style={{
+                textAlign: "center",
+                flex: "0 1 auto",
+                display: "flex",
+                gap: "2rem",
+                justifyContent: "center"
+              }}>
                 <img 
                   src="/images/app.png" 
                   alt="GHR Mobile App Screen 1" 
                   style={{
                     maxWidth: "200px",
-                    width: "100%",
                     height: "auto",
                     borderRadius: "12px",
                     boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
@@ -376,7 +362,6 @@ const MainPage = () => {
                   alt="GHR Mobile App Screen 2" 
                   style={{
                     maxWidth: "200px",
-                    width: "100%",
                     height: "auto",
                     borderRadius: "12px",
                     boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
@@ -389,7 +374,6 @@ const MainPage = () => {
                   alt="GHR Mobile App Screen 3" 
                   style={{
                     maxWidth: "200px",
-                    width: "100%",
                     height: "auto",
                     borderRadius: "12px",
                     boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
@@ -402,7 +386,6 @@ const MainPage = () => {
                   alt="GHR Mobile App Screen 4" 
                   style={{
                     maxWidth: "200px",
-                    width: "100%",
                     height: "auto",
                     borderRadius: "12px",
                     boxShadow: "0 4px 12px rgba(0,0,0,0.15)",

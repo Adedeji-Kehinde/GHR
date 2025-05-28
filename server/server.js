@@ -2,8 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
-const path = require("path");
-
+const path = require('path');
 // Load environment variables from .env file
 dotenv.config();
 
@@ -30,6 +29,15 @@ mongoose
     process.exit(1); // Exit the process with failure
   });
 
+// Serve static files from the "downloads" directory
+app.use('/downloads', express.static(path.join(__dirname, '../ghr-frontend/public/downloads'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.apk')) {
+      res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+    }
+  }
+}));
+  
 // Routes
 const authRoutes = require("./routes/auth"); // Import auth routes
 app.use("/api/auth", authRoutes); // Mount auth routes under "/api/auth"
@@ -41,13 +49,6 @@ const bookingRoutes = require("./routes/bookingRoute"); // Import booking routes
 app.use("/api/booking", bookingRoutes); // Mount booking routes under "/api/booking"
 const paymentRoutes = require("./routes/paymentRecord");
 app.use("/api/payment", paymentRoutes);
-
-// APK Download Route
-app.get('/downloads/ghr-app.apk', (req, res) => {
-  const apkPath = path.join(__dirname, '../app/release/app-release.apk');
-  res.setHeader('Content-Type', 'application/vnd.android.package-archive');
-  res.download(apkPath, 'ghr-app.apk');
-});
 
 // const generateBuildingsAndRooms = require('./utils/generateRooms');
 
