@@ -3,6 +3,7 @@ import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import AdminHeader from "../components/AdminHeader";
 import AdminTabs from "../components/AdminTabs";
+import './AdminManagement.css';
 
 const AdminDetailsPage = () => {
   const location = useLocation();
@@ -133,109 +134,9 @@ const AdminDetailsPage = () => {
     }
   };
 
-  // Styles matching other admin pages
-  const styles = {
-    content: {
-      marginTop: 40,
-      margin: 40,
-      padding: '2rem',
-      width: "90vw",
-      background: '#f8f9fa',
-    },
-    section: {
-      backgroundColor: "#fff",
-    padding: "2rem",
-      borderRadius: "8px",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-      marginBottom: "2rem"
-    },
-    formGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(2, 1fr)",
-      gap: "1.5rem",
-      marginBottom: "1.5rem"
-    },
-    formGroup: {
-      marginBottom: "1.5rem"
-    },
-    label: {
-      display: "block",
-      marginBottom: "0.5rem",
-      fontWeight: "500",
-      color: "#495057"
-    },
-    input: {
-      width: "100%",
-      padding: "0.75rem",
-      borderRadius: "4px",
-      border: "1px solid #ced4da",
-      fontSize: "1rem",
-      transition: "border-color 0.15s ease-in-out",
-      "&:focus": {
-        borderColor: "#80bdff",
-        outline: "none"
-      }
-    },
-    readOnlyInput: {
-      backgroundColor: "#f8f9fa",
-      cursor: "not-allowed"
-    },
-    buttonGroup: {
-      display: "flex",
-      gap: "1rem",
-      justifyContent: "flex-end",
-      marginTop: "1.5rem"
-    },
-    button: {
-      padding: "0.75rem 1.5rem",
-      borderRadius: "4px",
-      border: "none",
-      cursor: "pointer",
-      fontSize: "1rem",
-      fontWeight: "500",
-      transition: "background-color 0.15s ease-in-out"
-    },
-    primaryButton: {
-      backgroundColor: "#28a745",
-      color: "#fff",
-      "&:hover": {
-        backgroundColor: "#218838"
-      }
-    },
-    dangerButton: {
-      backgroundColor: "#dc3545",
-      color: "#fff",
-      "&:hover": {
-        backgroundColor: "#c82333"
-      }
-    },
-    cancelButton: {
-      backgroundColor: "#6c757d",
-      color: "#fff",
-      "&:hover": {
-        backgroundColor: "#5a6268"
-      }
-    },
-    message: {
-      padding: "1rem",
-      borderRadius: "4px",
-      marginBottom: "1rem"
-    },
-    successMessage: {
-      backgroundColor: "#d4edda",
-      color: "#155724",
-      border: "1px solid #c3e6cb"
-    },
-    errorMessage: {
-      backgroundColor: "#f8d7da",
-      color: "#721c24",
-      border: "1px solid #f5c6cb"
-    }
-  };
-
   if (loading) return (
-    <div style={styles.content}>
-      <div style={styles.section}>
+    <div className="admin-management-content">
+      <div className="admin-management-section">
         <p>Loading admin details...</p>
       </div>
     </div>
@@ -250,81 +151,81 @@ const AdminDetailsPage = () => {
       />
       <AdminTabs />
       
-      <div style={styles.content}>
+      <div className="admin-management-content">
         {updateMessage && (
-          <div style={{...styles.message, ...styles.successMessage}}>
+          <div className="admin-management-message success">
             {updateMessage}
           </div>
         )}
         {error && (
-          <div style={{...styles.message, ...styles.errorMessage}}>
+          <div className="admin-management-message error">
             {error}
           </div>
         )}
 
         {/* Personal Information Section */}
-        <div style={styles.section}>
-          <h2 style={{marginBottom: "1.5rem"}}>Personal Information</h2>
+        <div className="admin-management-section">
+          <h2 className="admin-management-title">Personal Information</h2>
         <form onSubmit={handleUpdateDetails}>
-            <div style={styles.formGrid}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>First Name</label>
+            <div className="admin-management-form-grid">
+              <div className="admin-management-form-group">
+                <label className="admin-management-label">First Name</label>
             <input 
               type="text" 
               name="name" 
               value={formData.name} 
               onChange={handleInputChange} 
               required 
-                  style={styles.input}
+                  className="admin-management-input"
             />
           </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Last Name</label>
+              <div className="admin-management-form-group">
+                <label className="admin-management-label">Last Name</label>
             <input 
               type="text" 
               name="lastName" 
               value={formData.lastName} 
               onChange={handleInputChange} 
               required 
-                  style={styles.input}
+                  className="admin-management-input"
             />
           </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Email</label>
+              <div className="admin-management-form-group">
+                <label className="admin-management-label">Email</label>
             <input 
               type="email" 
               name="email" 
               value={formData.email} 
               onChange={handleInputChange} 
               required 
-                  style={styles.input}
+                  className="admin-management-input"
             />
           </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Phone</label>
+              <div className="admin-management-form-group">
+                <label className="admin-management-label">Phone</label>
             <input 
               type="text" 
               name="phone" 
               value={formData.phone} 
               onChange={handleInputChange} 
               required 
-                  style={styles.input}
+                  className="admin-management-input"
             />
           </div>
             </div>
           {createdByName && (
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Created By</label>
+              <div className="admin-management-form-group">
+                <label className="admin-management-label">Created By</label>
                 <input 
                   type="text" 
                   value={createdByName} 
                   readOnly 
-                  style={{...styles.input, ...styles.readOnlyInput}}
+                  className="admin-management-input"
                 />
               </div>
             )}
-            <div style={styles.buttonGroup}>
-              <button type="submit" style={{...styles.button, ...styles.primaryButton}}>
+            <div className="admin-management-button-group">
+              <button type="submit" className="admin-management-btn primary">
                 Update Details
               </button>
             </div>
@@ -332,35 +233,35 @@ const AdminDetailsPage = () => {
         </div>
 
         {/* Password Change Section */}
-        <div style={styles.section}>
-          <h2 style={{marginBottom: "1.5rem"}}>Change Password</h2>
+        <div className="admin-management-section">
+          <h2 className="admin-management-title">Change Password</h2>
         <form onSubmit={handleChangePassword}>
-            <div style={styles.formGrid}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>New Password</label>
+            <div className="admin-management-form-grid">
+              <div className="admin-management-form-group">
+                <label className="admin-management-label">New Password</label>
             <input 
               type="password" 
               name="newPassword" 
               value={passwordData.newPassword} 
               onChange={handlePasswordChange} 
               required 
-                  style={styles.input}
+                  className="admin-management-input"
             />
           </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Confirm Password</label>
+              <div className="admin-management-form-group">
+                <label className="admin-management-label">Confirm Password</label>
             <input 
               type="password" 
               name="confirmPassword" 
               value={passwordData.confirmPassword} 
               onChange={handlePasswordChange} 
               required 
-                  style={styles.input}
+                  className="admin-management-input"
             />
           </div>
             </div>
-            <div style={styles.buttonGroup}>
-              <button type="submit" style={{...styles.button, ...styles.primaryButton}}>
+            <div className="admin-management-button-group">
+              <button type="submit" className="admin-management-btn primary">
                 Change Password
               </button>
             </div>
@@ -368,21 +269,21 @@ const AdminDetailsPage = () => {
         </div>
 
         {/* Danger Zone Section */}
-        <div style={{...styles.section, backgroundColor: "#fff5f5"}}>
-          <h2 style={{marginBottom: "1.5rem", color: "#dc3545"}}>Danger Zone</h2>
+        <div className="admin-management-section" style={{ backgroundColor: "#fff5f5" }}>
+          <h2 className="admin-management-title" style={{ color: "#dc3545" }}>Danger Zone</h2>
           <p style={{marginBottom: "1.5rem", color: "#6b7280"}}>
             Once you delete an admin account, there is no going back. Please be certain.
           </p>
-          <div style={styles.buttonGroup}>
+          <div className="admin-management-button-group">
         <button
           onClick={handleDeleteAdmin}
-              style={{...styles.button, ...styles.dangerButton}}
+              className="admin-management-btn danger"
         >
               Delete Admin Account
         </button>
             <button 
               onClick={() => navigate(-1)} 
-              style={{...styles.button, ...styles.cancelButton}}
+              className="admin-management-btn cancel"
             >
           Back
         </button>

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import AdminHeader from "../components/AdminHeader";
 import AdminTabs from "../components/AdminTabs";
+import './maintenance.css';
 
 const AddMaintenance = () => {
   const [admin, setAdmin] = useState(null);
@@ -93,135 +94,9 @@ const AddMaintenance = () => {
     }
   };
 
-  // Styles matching other admin pages
-  const styles = {
-    content: {
-      marginTop: 40,
-      margin: 40,
-      padding: '2rem',
-      width: "90vw",
-      background: '#f8f9fa',
-    },
-    section: {
-      backgroundColor: "#fff",
-      padding: "2rem",
-      borderRadius: "8px",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-      marginBottom: "2rem",
-    },
-    searchSection: {
-      backgroundColor: "#fff",
-      padding: "2rem",
-      borderRadius: "8px",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-      marginBottom: "2rem",
-    },
-    selectedUser: {
-      backgroundColor: '#e3f2fd',
-      color: '#1976d2',
-      padding: '1rem',
-      borderRadius: '4px',
-      marginBottom: '1rem',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '1rem',
-      fontSize: '1.1rem',
-      fontWeight: '500',
-    },
-    searchInput: {
-      width: "100%",
-      padding: "0.75rem",
-      fontSize: "1.1rem",
-      borderRadius: "4px",
-      border: "1px solid #ced4da",
-      marginBottom: "0.5rem",
-    },
-    searchResults: {
-      maxHeight: "200px",
-      overflowY: "auto",
-      border: "1px solid #ced4da",
-      borderRadius: "4px",
-      backgroundColor: "#fff",
-      marginTop: "0.5rem",
-    },
-    searchResultItem: {
-      padding: "0.75rem",
-      cursor: "pointer",
-      borderBottom: "1px solid #ced4da",
-      transition: "background-color 0.2s",
-      "&:hover": {
-        backgroundColor: "#f8f9fa",
-      },
-    },
-    formGroup: {
-      marginBottom: "1.5rem",
-    },
-    label: {
-      display: "block",
-      marginBottom: "0.5rem",
-      fontWeight: "500",
-      color: "#495057",
-      fontSize: "1.1rem",
-    },
-    input: {
-      width: "100%",
-      padding: "0.75rem",
-      fontSize: "1.1rem",
-      borderRadius: "4px",
-      border: "1px solid #ced4da",
-    },
-    select: {
-      width: "100%",
-      padding: "0.75rem",
-      fontSize: "1.1rem",
-      borderRadius: "4px",
-      border: "1px solid #ced4da",
-      backgroundColor: "#fff",
-    },
-    textarea: {
-      width: "100%",
-      padding: "0.75rem",
-      fontSize: "1.1rem",
-      borderRadius: "4px",
-      border: "1px solid #ced4da",
-      minHeight: "150px",
-      resize: "vertical",
-    },
-    buttonGroup: {
-      display: "flex",
-      gap: "1rem",
-      justifyContent: "flex-end",
-      marginTop: "2rem",
-    },
-    button: {
-      padding: "0.75rem 1.5rem",
-      fontSize: "1.1rem",
-      borderRadius: "4px",
-      border: "none",
-      cursor: "pointer",
-      fontWeight: "500",
-      transition: "background-color 0.2s",
-    },
-    primaryButton: {
-      backgroundColor: "#007bff",
-      color: "#fff",
-      "&:hover": {
-        backgroundColor: "#0056b3",
-      },
-    },
-    errorMessage: {
-      backgroundColor: "#f8d7da",
-      color: "#721c24",
-      padding: "1rem",
-      borderRadius: "4px",
-      marginBottom: "1rem",
-      fontSize: "1.1rem",
-    },
-  };
-
   if (!admin) return (
-    <div style={styles.content}>
-      <div style={styles.section}>
+    <div className="add-maintenance-content">
+      <div className="add-maintenance-section">
         <p>Loading admin details...</p>
       </div>
     </div>
@@ -236,20 +111,20 @@ const AddMaintenance = () => {
       />
       <AdminTabs />
       
-      <div style={styles.content}>
+      <div className="add-maintenance-content">
         {error && (
-          <div style={styles.errorMessage}>
+          <div className="add-maintenance-error-message">
             {error}
           </div>
         )}
 
         <form onSubmit={handleAddMaintenance}>
           {/* Search Section */}
-          <div style={styles.searchSection}>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Search Recipient</label>
+          <div className="add-maintenance-search-section">
+            <div className="add-maintenance-form-group">
+              <label className="add-maintenance-label">Search Recipient</label>
               {newMaintenance.roomNumber && (
-                <div style={styles.selectedUser}>
+                <div className="add-maintenance-selected-user">
                   <span>Selected: {userSearchQuery}</span>
                 </div>
               )}
@@ -258,15 +133,15 @@ const AddMaintenance = () => {
                 placeholder="Search by name or room number..."
                 value={userSearchQuery}
                 onChange={handleUserSearchChange}
-                style={styles.searchInput}
+                className="add-maintenance-search-input"
               />
               {userSearchQuery && !newMaintenance.roomNumber && (
-                <div style={styles.searchResults}>
+                <div className="add-maintenance-search-results">
                   {filteredUsers.map((user) => (
                     <div
                       key={user._id}
                       onClick={() => handleSelectUser(user)}
-                      style={styles.searchResultItem}
+                      className="add-maintenance-search-result-item"
                     >
                       {user.name} {user.lastName} | {user.roomNumber}
                     </div>
@@ -278,14 +153,14 @@ const AddMaintenance = () => {
 
           {/* Maintenance Details Section */}
           {newMaintenance.roomNumber && (
-            <div style={styles.section}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Category</label>
+            <div className="add-maintenance-section">
+              <div className="add-maintenance-form-group">
+                <label className="add-maintenance-label">Category</label>
                 <select
                   name="category"
                   value={newMaintenance.category}
                   onChange={handleNewMaintenanceChange}
-                  style={styles.select}
+                  className="add-maintenance-select"
                 >
                   {[
                     "Appliances",
@@ -303,43 +178,43 @@ const AddMaintenance = () => {
                 </select>
               </div>
 
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Description</label>
+              <div className="add-maintenance-form-group">
+                <label className="add-maintenance-label">Description</label>
                 <textarea
                   name="description"
                   value={newMaintenance.description}
                   onChange={handleNewMaintenanceChange}
                   required
                   placeholder="Please describe the maintenance issue..."
-                  style={styles.textarea}
+                  className="add-maintenance-textarea"
                 />
               </div>
 
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Room Access</label>
+              <div className="add-maintenance-form-group">
+                <label className="add-maintenance-label">Room Access</label>
                 <select
                   name="roomAccess"
                   value={newMaintenance.roomAccess}
                   onChange={handleNewMaintenanceChange}
-                  style={styles.select}
+                  className="add-maintenance-select"
                 >
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
                 </select>
               </div>
 
-              <div style={styles.buttonGroup}>
+              <div className="add-maintenance-button-group">
                 <button
                   type="button"
                   onClick={() => navigate(-1)}
-                  style={{...styles.button, backgroundColor: "#6c757d", color: "#fff"}}
+                  className="add-maintenance-button add-maintenance-cancel-button"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  style={{...styles.button, ...styles.primaryButton}}
+                  className="add-maintenance-button add-maintenance-primary-button"
                 >
                   {loading ? "Adding..." : "Add Maintenance Request"}
                 </button>

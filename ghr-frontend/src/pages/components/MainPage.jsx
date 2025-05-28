@@ -262,10 +262,7 @@ const MainPage = () => {
             gap: "2rem"
           }}>
             <div style={{ maxWidth: "600px" }}>
-              <h2 style={{ 
-                marginBottom: "1rem",
-                color: "#2c3e50"
-              }}>
+              <h2 className="mobile-app-title" style={{ textAlign: "center", marginBottom: "1rem", color: "#2c3e50" }}>
                 Get the GHR Mobile App
               </h2>
               <p style={{
@@ -330,70 +327,11 @@ const MainPage = () => {
               </p>
             </div>
 
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "2rem",
-              flexWrap: "wrap",
-              justifyContent: "center",
-              marginTop: "1rem"
-            }}>
-              <div style={{
-                textAlign: "center",
-                flex: "0 1 auto",
-                display: "flex",
-                gap: "2rem",
-                justifyContent: "center"
-              }}>
-                <img 
-                  src="/images/app.png" 
-                  alt="GHR Mobile App Screen 1" 
-                  style={{
-                    maxWidth: "200px",
-                    height: "auto",
-                    borderRadius: "12px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                    border: "8px solid #333",
-                    backgroundColor: "#333"
-                  }}
-                />
-                <img 
-                  src="/images/app1.png" 
-                  alt="GHR Mobile App Screen 2" 
-                  style={{
-                    maxWidth: "200px",
-                    height: "auto",
-                    borderRadius: "12px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                    border: "8px solid #333",
-                    backgroundColor: "#333"
-                  }}
-                />
-                <img 
-                  src="/images/app2.png" 
-                  alt="GHR Mobile App Screen 3" 
-                  style={{
-                    maxWidth: "200px",
-                    height: "auto",
-                    borderRadius: "12px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                    border: "8px solid #333",
-                    backgroundColor: "#333"
-                  }}
-                />
-                <img 
-                  src="/images/app3.png" 
-                  alt="GHR Mobile App Screen 4" 
-                  style={{
-                    maxWidth: "200px",
-                    height: "auto",
-                    borderRadius: "12px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                    border: "8px solid #333",
-                    backgroundColor: "#333"
-                  }}
-                />
-              </div>
+            <div className="mobile-app-images">
+              <img src="/images/app.png" alt="GHR Mobile App Screen 1" />
+              <img src="/images/app1.png" alt="GHR Mobile App Screen 2" />
+              <img src="/images/app2.png" alt="GHR Mobile App Screen 3" />
+              <img src="/images/app3.png" alt="GHR Mobile App Screen 4" />
             </div>
           </div>
         </section>

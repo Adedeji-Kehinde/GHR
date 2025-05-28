@@ -8,6 +8,7 @@ import plusImage from '/images/plusImage.png';
 import deleteImage from '/images/deleteImage.png';
 import Loading from '../../pages/components/Loading';
 import bookedIcon from '/images/booked.png';
+import './maintenance.css';
 
 const MaintenanceManagement = () => {
   const [admin, setAdmin] = useState(null);
@@ -80,16 +81,16 @@ const MaintenanceManagement = () => {
 
   const filteredMaintenance = useMemo(() => {
     return maintenanceRequests.filter((request) => {
-    const query = searchQuery.toLowerCase();
+      const query = searchQuery.toLowerCase();
       const searchMatches = (
-      request.requestId.toString().includes(query) ||
-      (request.roomNumber && request.roomNumber.toLowerCase().includes(query)) ||
-      (request.category && request.category.toLowerCase().includes(query)) ||
-      (request.description && request.description.toLowerCase().includes(query)) ||
-      (request.roomAccess && request.roomAccess.toLowerCase().includes(query)) ||
-      (request.status && request.status.toLowerCase().includes(query)) ||
-      (request.enquirerName && request.enquirerName.toLowerCase().includes(query))
-    );
+        request.requestId.toString().includes(query) ||
+        (request.roomNumber && request.roomNumber.toLowerCase().includes(query)) ||
+        (request.category && request.category.toLowerCase().includes(query)) ||
+        (request.description && request.description.toLowerCase().includes(query)) ||
+        (request.roomAccess && request.roomAccess.toLowerCase().includes(query)) ||
+        (request.status && request.status.toLowerCase().includes(query)) ||
+        (request.enquirerName && request.enquirerName.toLowerCase().includes(query))
+      );
       const statusMatches = currentFilter === "All" || request.status === currentFilter;
       return searchMatches && statusMatches;
     });
@@ -139,124 +140,6 @@ const MaintenanceManagement = () => {
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
   if (!admin) return <Loading icon="/images/maintenance.png" text="Loading maintenance details..." />;
 
-  // Styles matching BookingManagement.jsx
-  const styles = {
-    content: {
-      marginTop: 40,
-      margin: 40,
-      padding: '2rem',
-      width: "90vw",
-      background: '#f8f9fa',
-    },
-    topBoxes: {
-      display: 'flex',
-      gap: 16,
-      marginBottom: 24
-    },
-    box: selected => ({
-      flex: 1,
-      display: 'flex',
-      alignItems: 'center',
-      padding: 16,
-      borderRadius: 5,
-      border: selected ? '2px solid #007bff' : '1px solid #ccc',
-      background: '#fff',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      cursor: 'pointer',
-      gap: 16,
-      whiteSpace: 'nowrap'
-    }),
-    icon: {
-      width: 40,
-      height: 40,
-      flexShrink: 0
-    },
-    textContainer: {
-      display: 'flex',
-      flexDirection: 'column',
-      lineHeight: 1.2
-    },
-    title: {
-      margin: 0,
-      fontSize: 14,
-      fontWeight: 'bold'
-    },
-    count: {
-      margin: 0,
-      fontSize: 18,
-      color: '#333'
-    },
-    filterBar: {
-      display: 'flex',
-      gap: 16,
-      marginBottom: 16,
-      alignItems: 'center'
-    },
-    search: {
-      width: '75%',
-      padding: 8,
-      fontSize: 14
-    },
-    addBtn: {
-      width: '25%',
-      padding: 8,
-      fontSize: 14,
-      background: '#007bff',
-      color: '#fff',
-      border: 'none',
-      borderRadius: 4,
-      cursor: 'pointer'
-    },
-    tableCard: {
-      background: '#fff',
-      borderRadius: 5,
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      overflowY: 'auto',
-      maxHeight: 400,
-      padding: 16
-    },
-    table: {
-      width: '100%',
-      borderCollapse: 'collapse',
-      textAlign: 'left',
-      fontSize: 14
-    },
-    th: {
-      padding: 8,
-      borderBottom: '2px solid #ddd',
-      fontWeight: 'bold'
-    },
-    td: {
-      padding: 8,
-      borderBottom: '1px solid #eee'
-    }
-  };
-
-  // Add standardized status styles
-  const statusStyles = {
-    "Pending": {
-      backgroundColor: '#fff3e0',  // Light orange
-      color: '#e65100',
-      padding: '4px 8px',
-      borderRadius: '4px',
-      fontWeight: 'bold'
-    },
-    "In Process": {
-      backgroundColor: '#e3f2fd',  // Light blue
-      color: '#1976d2',
-      padding: '4px 8px',
-      borderRadius: '4px',
-      fontWeight: 'bold'
-    },
-    "Completed": {
-      backgroundColor: '#e8f5e9',  // Light green
-      color: '#2e7d32',
-      padding: '4px 8px',
-      borderRadius: '4px',
-      fontWeight: 'bold'
-    }
-  };
-
   return (
     <>
       <AdminHeader
@@ -266,57 +149,57 @@ const MaintenanceManagement = () => {
       />
       <AdminTabs />
 
-      <div style={styles.content}>
+      <div className="maintenance-management-content">
         {/* Top cards */}
-        <div style={styles.topBoxes}>
+        <div className="maintenance-management-top-boxes">
           <div
-            style={styles.box(currentFilter === "All")}
+            className={`maintenance-management-box ${currentFilter === "All" ? "selected" : ""}`}
             onClick={() => setCurrentFilter("All")}
           >
-            <img src={bookedIcon} alt="" style={styles.icon}/>
-            <div style={styles.textContainer}>
-              <p style={styles.title}>All Requests</p>
-              <p style={styles.count}>{countAll}</p>
+            <img src={bookedIcon} alt="" className="maintenance-management-icon"/>
+            <div className="maintenance-management-text-container">
+              <p className="maintenance-management-title">All Requests</p>
+              <p className="maintenance-management-count">{countAll}</p>
             </div>
           </div>
           <div
-            style={styles.box(currentFilter === "In Process")}
+            className={`maintenance-management-box ${currentFilter === "In Process" ? "selected" : ""}`}
             onClick={() => setCurrentFilter("In Process")}
           >
-            <img src={bookedIcon} alt="" style={styles.icon}/>
-            <div style={styles.textContainer}>
-              <p style={styles.title}>In Process</p>
-              <p style={styles.count}>{countInProcess}</p>
+            <img src={bookedIcon} alt="" className="maintenance-management-icon"/>
+            <div className="maintenance-management-text-container">
+              <p className="maintenance-management-title">In Process</p>
+              <p className="maintenance-management-count">{countInProcess}</p>
             </div>
           </div>
           <div
-            style={styles.box(currentFilter === "Completed")}
+            className={`maintenance-management-box ${currentFilter === "Completed" ? "selected" : ""}`}
             onClick={() => setCurrentFilter("Completed")}
           >
-            <img src={bookedIcon} alt="" style={styles.icon}/>
-            <div style={styles.textContainer}>
-              <p style={styles.title}>Completed</p>
-              <p style={styles.count}>{countCompleted}</p>
+            <img src={bookedIcon} alt="" className="maintenance-management-icon"/>
+            <div className="maintenance-management-text-container">
+              <p className="maintenance-management-title">Completed</p>
+              <p className="maintenance-management-count">{countCompleted}</p>
             </div>
           </div>
         </div>
 
         {/* Search + Add New */}
-        <div style={styles.filterBar}>
-        <input
-          type="text"
-          placeholder="Search maintenance requests..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-            style={styles.search}
+        <div className="maintenance-management-filter-bar">
+          <input
+            type="text"
+            placeholder="Search maintenance requests..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="maintenance-management-search"
           />
           <button
-            style={styles.addBtn}
+            className="maintenance-management-add-btn"
             onClick={() => navigate('/add-maintenance')}
           >
             Add New Request
           </button>
-        {selectedMaintenanceIds.length > 0 && (
+          {selectedMaintenanceIds.length > 0 && (
             <img 
               src={deleteImage} 
               alt="Delete Selected" 
@@ -324,62 +207,62 @@ const MaintenanceManagement = () => {
               style={{ width: 24, height: 24, cursor: 'pointer' }}
             />
           )}
-          </div>
+        </div>
 
         {/* Maintenance table */}
-        <div style={styles.tableCard}>
-          <table style={styles.table}>
-          <thead>
-            <tr>
-                <th style={styles.th}>
+        <div className="maintenance-management-table-card">
+          <table className="maintenance-management-table">
+            <thead>
+              <tr>
+                <th className="maintenance-management-th">
                   <input
                     type="checkbox"
                     checked={filteredMaintenance.length > 0 && selectedMaintenanceIds.length === filteredMaintenance.length}
                     onChange={handleSelectAll}
                   />
-              </th>
-                <th style={styles.th}>Request ID</th>
-                <th style={styles.th}>Room Number</th>
-                <th style={styles.th}>Category</th>
-                <th style={styles.th}>Description</th>
-                <th style={styles.th}>Room Access</th>
-                <th style={styles.th}>Status</th>
-                <th style={styles.th}>Enquirer Name</th>
-                <th style={styles.th}>Created At</th>
-                <th style={styles.th}>Completed At</th>
-            </tr>
-          </thead>
-          <tbody>
+                </th>
+                <th className="maintenance-management-th">Request ID</th>
+                <th className="maintenance-management-th">Room Number</th>
+                <th className="maintenance-management-th">Category</th>
+                <th className="maintenance-management-th">Description</th>
+                <th className="maintenance-management-th">Room Access</th>
+                <th className="maintenance-management-th">Status</th>
+                <th className="maintenance-management-th">Enquirer Name</th>
+                <th className="maintenance-management-th">Created At</th>
+                <th className="maintenance-management-th">Completed At</th>
+              </tr>
+            </thead>
+            <tbody>
               {filteredMaintenance.map((request) => (
-              <tr
-                key={request._id}
-                onClick={() => navigate('/maintenance-details', { state: { maintenance: request } })}
-                style={{ cursor: "pointer" }}
-              >
-                  <td style={styles.td} onClick={e => e.stopPropagation()}>
-                  <input 
+                <tr
+                  key={request._id}
+                  onClick={() => navigate('/maintenance-details', { state: { maintenance: request } })}
+                  style={{ cursor: "pointer" }}
+                >
+                  <td className="maintenance-management-td" onClick={e => e.stopPropagation()}>
+                    <input 
                       type="checkbox"
-                    checked={selectedMaintenanceIds.includes(request._id)}
+                      checked={selectedMaintenanceIds.includes(request._id)}
                       onChange={(e) => toggleSelectRow(e, request._id)}
-                  />
-                </td>
-                  <td style={styles.td}>{request.requestId}</td>
-                  <td style={styles.td}>{request.roomNumber}</td>
-                  <td style={styles.td}>{request.category}</td>
-                  <td style={styles.td}>{request.description}</td>
-                  <td style={styles.td}>{request.roomAccess}</td>
-                  <td style={styles.td}>
-                    <span style={statusStyles[request.status] || {}}>
+                    />
+                  </td>
+                  <td className="maintenance-management-td">{request.requestId}</td>
+                  <td className="maintenance-management-td">{request.roomNumber}</td>
+                  <td className="maintenance-management-td">{request.category}</td>
+                  <td className="maintenance-management-td">{request.description}</td>
+                  <td className="maintenance-management-td">{request.roomAccess}</td>
+                  <td className="maintenance-management-td">
+                    <span className={`status-${request.status.toLowerCase().replace(' ', '-')}`}>
                       {request.status}
                     </span>
                   </td>
-                  <td style={styles.td}>{request.enquirerName}</td>
-                  <td style={styles.td}>{new Date(request.createdAt).toLocaleString()}</td>
-                  <td style={styles.td}>{request.completedAt ? new Date(request.completedAt).toLocaleString() : "N/A"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  <td className="maintenance-management-td">{request.enquirerName}</td>
+                  <td className="maintenance-management-td">{new Date(request.createdAt).toLocaleString()}</td>
+                  <td className="maintenance-management-td">{request.completedAt ? new Date(request.completedAt).toLocaleString() : "N/A"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </>

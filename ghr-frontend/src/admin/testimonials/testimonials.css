@@ -1,0 +1,120 @@
+/* Testimonials Management Styles */
+.testimonials-management-content {
+  margin-top: 40px;
+  margin: 40px;
+  padding: 2rem;
+  width: 90vw;
+  background: #f8f9fa;
+}
+
+.testimonials-management-top-boxes {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.testimonials-management-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  cursor: pointer;
+  gap: 16px;
+  white-space: nowrap;
+}
+
+.testimonials-management-box.selected {
+  border: 2px solid #007bff;
+}
+
+.testimonials-management-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.testimonials-management-text-container {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.testimonials-management-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.testimonials-management-count {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.testimonials-management-filter-bar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+.testimonials-management-search {
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+}
+
+.testimonials-management-table-card {
+  background: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow-y: auto;
+  max-height: 400px;
+  padding: 16px;
+}
+
+.testimonials-management-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.testimonials-management-th {
+  padding: 8px;
+  border-bottom: 2px solid #ddd;
+  font-weight: bold;
+}
+
+.testimonials-management-td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.testimonials-management-action-icon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+/* Status styles */
+.status-pending {
+  background-color: #fff3e0;
+  color: #e65100;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.status-approved {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+} 

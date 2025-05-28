@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './booking.css';
 
 // Import your images. Adjust paths as needed.
 import buildingBlockIcon from '/images/building-block.png';
@@ -19,18 +20,6 @@ const FolderTree = ({ data, label, level }) => {
 
   const toggle = () => {
     setExpanded(!expanded);
-  };
-
-  // Base styling for each box.
-  const boxStyle = {
-    border: '1px solid #ccc',
-    borderRadius: '4px',
-    backgroundColor: '#f9f9f9',
-    padding: '5px 10px',
-    margin: '5px 0',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center'
   };
 
   // Set display label based on level.
@@ -68,9 +57,9 @@ const FolderTree = ({ data, label, level }) => {
   }
 
   return (
-    <div style={{ marginLeft: level * 20, marginTop: 5 }}>
-      <div onClick={toggle} style={boxStyle}>
-        <img src={icon} alt="icon" style={{ width: 20, height: 20, marginRight: 5 }} />
+    <div className="availability-folder-view">
+      <div className="availability-folder-box" onClick={toggle}>
+        <img src={icon} alt="icon" className="availability-folder-icon" />
         <span>{displayLabel}</span>
       </div>
       {expanded && isObject && (
@@ -86,13 +75,10 @@ const FolderTree = ({ data, label, level }) => {
         </div>
       )}
       {expanded && isArray && (
-        <div style={{ marginLeft: 20 }}>
+        <div className="availability-folder-array">
           {data.map((item, index) => (
-            <div
-              key={index}
-              style={{ ...boxStyle, display: 'flex', alignItems: 'center' }}
-            >
-              <img src={bedIcon} alt="bed" style={{ width: 20, height: 20, marginRight: 5 }} />
+            <div key={index} className="availability-folder-box">
+              <img src={bedIcon} alt="bed" className="availability-folder-icon" />
               <span>{`Bed Number - ${item}`}</span>
             </div>
           ))}

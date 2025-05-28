@@ -5,6 +5,7 @@ import AdminTabs from "../components/AdminTabs";
 import Loading from '../../pages/components/Loading';
 import bookedIcon from '/images/booked.png';
 import deleteImage from '/images/deleteImage.png';
+import './testimonials.css';
 
 const TestimonialsManagement = () => {
     const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
@@ -320,148 +321,148 @@ const TestimonialsManagement = () => {
       />
       <AdminTabs />
 
-      <div style={styles.content}>
+      <div className="testimonials-management-content">
         {/* Top cards */}
-        <div style={styles.topBoxes}>
+        <div className="testimonials-management-top-boxes">
           <div
-            style={styles.box(filterStatus === "All")}
+            className={`testimonials-management-box ${filterStatus === "All" ? "selected" : ""}`}
             onClick={() => setFilterStatus("All")}
           >
-            <img src={bookedIcon} alt="" style={styles.icon}/>
-            <div style={styles.textContainer}>
-              <p style={styles.title}>All Testimonials</p>
-              <p style={styles.count}>{countAll}</p>
+            <img src={bookedIcon} alt="" className="testimonials-management-icon"/>
+            <div className="testimonials-management-text-container">
+              <p className="testimonials-management-title">All Testimonials</p>
+              <p className="testimonials-management-count">{countAll}</p>
             </div>
           </div>
           <div
-            style={styles.box(filterStatus === "Pending")}
+            className={`testimonials-management-box ${filterStatus === "Pending" ? "selected" : ""}`}
             onClick={() => setFilterStatus("Pending")}
           >
-            <img src={bookedIcon} alt="" style={styles.icon}/>
-            <div style={styles.textContainer}>
-              <p style={styles.title}>Pending</p>
-              <p style={styles.count}>{countPending}</p>
+            <img src={bookedIcon} alt="" className="testimonials-management-icon"/>
+            <div className="testimonials-management-text-container">
+              <p className="testimonials-management-title">Pending</p>
+              <p className="testimonials-management-count">{countPending}</p>
             </div>
           </div>
           <div
-            style={styles.box(filterStatus === "Approved")}
+            className={`testimonials-management-box ${filterStatus === "Approved" ? "selected" : ""}`}
             onClick={() => setFilterStatus("Approved")}
           >
-            <img src={bookedIcon} alt="" style={styles.icon}/>
-            <div style={styles.textContainer}>
-              <p style={styles.title}>Approved</p>
-              <p style={styles.count}>{countApproved}</p>
+            <img src={bookedIcon} alt="" className="testimonials-management-icon"/>
+            <div className="testimonials-management-text-container">
+              <p className="testimonials-management-title">Approved</p>
+              <p className="testimonials-management-count">{countApproved}</p>
             </div>
           </div>
         </div>
 
         {/* Search bar and actions */}
-        <div style={styles.filterBar}>
-        <input
-          type="text"
-          placeholder="Search testimonials..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-            style={styles.search}
-        />
-        {selectedTestimonials.length > 0 && (
+        <div className="testimonials-management-filter-bar">
+          <input
+            type="text"
+            placeholder="Search testimonials..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="testimonials-management-search"
+          />
+          {selectedTestimonials.length > 0 && (
             <>
               {filterStatus !== "Approved" && (
-              <img
-                src="/images/approve.png"
-                alt="Bulk Approve"
-                title="Bulk Approve"
+                <img
+                  src="/images/approve.png"
+                  alt="Bulk Approve"
+                  title="Bulk Approve"
                   onClick={handleBulkApprove}
-                  style={{ width: 24, height: 24, cursor: 'pointer' }}
-              />
-            )}
+                  className="testimonials-management-action-icon"
+                />
+              )}
               {filterStatus !== "Pending" && (
-              <img
-                src="/images/disapprove.png"
-                alt="Bulk Disapprove"
-                title="Bulk Disapprove"
+                <img
+                  src="/images/disapprove.png"
+                  alt="Bulk Disapprove"
+                  title="Bulk Disapprove"
                   onClick={handleBulkDisapprove}
-                  style={{ width: 24, height: 24, cursor: 'pointer' }}
-              />
-            )}
-            <img
+                  className="testimonials-management-action-icon"
+                />
+              )}
+              <img
                 src={deleteImage}
-              alt="Bulk Delete"
-              title="Bulk Delete"
+                alt="Bulk Delete"
+                title="Bulk Delete"
                 onClick={handleBulkDelete}
-                style={{ width: 24, height: 24, cursor: 'pointer' }}
-            />
+                className="testimonials-management-action-icon"
+              />
             </>
           )}
-          </div>
+        </div>
 
         {/* Testimonials table */}
-        <div style={styles.tableCard}>
-          <table style={styles.table}>
-          <thead>
-            <tr>
-                <th style={styles.th}>
+        <div className="testimonials-management-table-card">
+          <table className="testimonials-management-table">
+            <thead>
+              <tr>
+                <th className="testimonials-management-th">
                   <input
                     type="checkbox"
                     checked={filteredTestimonials.length > 0 && selectedTestimonials.length === filteredTestimonials.length}
                     onChange={handleSelectAll}
                   />
-              </th>
-                <th style={styles.th}>Name</th>
-                <th style={styles.th}>Message</th>
-                <th style={styles.th}>Rating</th>
-                <th style={styles.th}>Date</th>
-                <th style={styles.th}>Status</th>
-                <th style={styles.th}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+                </th>
+                <th className="testimonials-management-th">Name</th>
+                <th className="testimonials-management-th">Message</th>
+                <th className="testimonials-management-th">Rating</th>
+                <th className="testimonials-management-th">Date</th>
+                <th className="testimonials-management-th">Status</th>
+                <th className="testimonials-management-th">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
               {filteredTestimonials.length > 0 ? (
                 filteredTestimonials.map((t) => (
                   <tr key={t._id} style={{ cursor: "pointer" }}>
-                    <td style={styles.td} onClick={e => e.stopPropagation()}>
-                    <input
-                      type="checkbox"
-                      checked={selectedTestimonials.includes(t._id)}
+                    <td className="testimonials-management-td" onClick={e => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selectedTestimonials.includes(t._id)}
                         onChange={(e) => toggleSelectRow(e, t._id)}
-                    />
-                  </td>
-                    <td style={styles.td}>{t.name}</td>
-                    <td style={styles.td}>
+                      />
+                    </td>
+                    <td className="testimonials-management-td">{t.name}</td>
+                    <td className="testimonials-management-td">
                       {t.message.length > 50 ? t.message.substring(0, 50) + "..." : t.message}
                     </td>
-                    <td style={styles.td}>{t.rating}</td>
-                    <td style={styles.td}>{new Date(t.date).toLocaleDateString()}</td>
-                    <td style={styles.td}>
-                      <span style={statusStyles[t.approved ? "Approved" : "Pending"] || {}}>
+                    <td className="testimonials-management-td">{t.rating}</td>
+                    <td className="testimonials-management-td">{new Date(t.date).toLocaleDateString()}</td>
+                    <td className="testimonials-management-td">
+                      <span className={t.approved ? "status-approved" : "status-pending"}>
                         {t.approved ? "Approved" : "Pending"}
                       </span>
                     </td>
-                    <td style={styles.td}>
-                    <img
-                      src={t.approved ? "/images/disapprove.png" : "/images/approve.png"}
-                      alt={t.approved ? "Disapprove" : "Approve"}
-                      title={t.approved ? "Disapprove" : "Approve"}
-                        style={styles.actionIcon}
+                    <td className="testimonials-management-td">
+                      <img
+                        src={t.approved ? "/images/disapprove.png" : "/images/approve.png"}
+                        alt={t.approved ? "Disapprove" : "Approve"}
+                        title={t.approved ? "Disapprove" : "Approve"}
+                        className="testimonials-management-action-icon"
                         onClick={(e) => handleToggleApproval(e, t._id, t.approved)}
-                    />
-                    <img
+                      />
+                      <img
                         src={deleteImage}
-                      alt="Delete"
-                      title="Delete"
-                        style={styles.actionIcon}
+                        alt="Delete"
+                        title="Delete"
+                        className="testimonials-management-action-icon"
                         onClick={(e) => handleDelete(e, t._id)}
-                    />
-                  </td>
+                      />
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7" className="testimonials-management-td">No testimonials found.</td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                  <td colSpan="7" style={styles.td}>No testimonials found.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </>

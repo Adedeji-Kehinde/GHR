@@ -8,6 +8,7 @@ import deleteImage from '/images/deleteImage.png';
 import Loading from '../../pages/components/Loading';
 import bookedIcon from '/images/booked.png';
 import plusIcon from '/images/plusImage.png';
+import '../announcement/AnnouncementAdmin.css';
 
 const AnnouncementManagement = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -139,119 +140,6 @@ const AnnouncementManagement = () => {
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
   if (!admin) return <Loading icon="/images/announcement.png" text="Loading announcements..." />;
 
-  // Styles matching other admin pages
-  const styles = {
-    content: {
-      marginTop: 40,
-      margin: 40,
-      padding: '2rem',
-      width: "90vw",
-      background: '#f8f9fa',
-    },
-    topBoxes: {
-      display: 'flex',
-      gap: 16,
-      marginBottom: 24
-    },
-    box: selected => ({
-      flex: 1,
-      display: 'flex',
-      alignItems: 'center',
-      padding: 16,
-      borderRadius: 5,
-      border: selected ? '2px solid #007bff' : '1px solid #ccc',
-      background: '#fff',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      cursor: 'pointer',
-      gap: 16,
-      whiteSpace: 'nowrap'
-    }),
-    icon: {
-      width: 40,
-      height: 40,
-      flexShrink: 0
-    },
-    textContainer: {
-      display: 'flex',
-      flexDirection: 'column',
-      lineHeight: 1.2
-    },
-    title: {
-      margin: 0,
-      fontSize: 14,
-      fontWeight: 'bold'
-    },
-    count: {
-      margin: 0,
-      fontSize: 18,
-      color: '#333'
-    },
-    filterBar: {
-      display: 'flex',
-      gap: 16,
-      marginBottom: 16,
-      alignItems: 'center'
-    },
-    search: {
-      width: '100%',
-      padding: 8,
-      fontSize: 14
-    },
-    addButton: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 8,
-      padding: '8px 16px',
-      background: '#007bff',
-      color: '#fff',
-      border: 'none',
-      borderRadius: 4,
-      cursor: 'pointer',
-      fontSize: 14
-    },
-    tableCard: {
-      background: '#fff',
-      borderRadius: 5,
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      overflowY: 'auto',
-      maxHeight: 400,
-      padding: 16
-    },
-    table: {
-      width: '100%',
-      borderCollapse: 'collapse',
-      textAlign: 'left',
-      fontSize: 14
-    },
-    th: {
-      padding: 8,
-      borderBottom: '2px solid #ddd',
-      fontWeight: 'bold'
-    },
-    td: {
-      padding: 8,
-      borderBottom: '1px solid #eee'
-    }
-  };
-
-  // Add this style object near the other styles
-  const statusStyles = {
-    "Pending": {
-      backgroundColor: '#fff3e0',  // Light orange
-      color: '#e65100',
-      padding: '4px 8px',
-      borderRadius: '4px',
-      fontWeight: 'bold'
-    },
-    "Approved": {
-      backgroundColor: '#e8f5e9',  // Light green
-      color: '#2e7d32',
-      padding: '4px 8px',
-      borderRadius: '4px',
-      fontWeight: 'bold'
-    }
-  };
-
   return (
     <>
       <AdminHeader
@@ -260,52 +148,50 @@ const AnnouncementManagement = () => {
         profilePicture={admin.profileImageUrl}
       />
       <AdminTabs />
-
-      <div style={styles.content}>
+      <div className="announcement-admin-content">
         {/* Top cards */}
-        <div style={styles.topBoxes}>
+        <div className="announcement-top-boxes">
           <div
-            style={styles.box(filterStatus === "All")}
+            className={`announcement-box${filterStatus === "All" ? " selected" : ""}`}
             onClick={() => setFilterStatus("All")}
           >
-            <img src={bookedIcon} alt="" style={styles.icon}/>
-            <div style={styles.textContainer}>
-              <p style={styles.title}>All Announcements</p>
-              <p style={styles.count}>{countAll}</p>
+            <img src={bookedIcon} alt="" className="announcement-icon"/>
+            <div className="announcement-text-container">
+              <p className="announcement-title">All Announcements</p>
+              <p className="announcement-count">{countAll}</p>
             </div>
           </div>
           <div
-            style={styles.box(filterStatus === "Approved")}
+            className={`announcement-box${filterStatus === "Approved" ? " selected" : ""}`}
             onClick={() => setFilterStatus("Approved")}
           >
-            <img src={bookedIcon} alt="" style={styles.icon}/>
-            <div style={styles.textContainer}>
-              <p style={styles.title}>Approved</p>
-              <p style={styles.count}>{countApproved}</p>
+            <img src={bookedIcon} alt="" className="announcement-icon"/>
+            <div className="announcement-text-container">
+              <p className="announcement-title">Approved</p>
+              <p className="announcement-count">{countApproved}</p>
             </div>
           </div>
           <div
-            style={styles.box(filterStatus === "Pending")}
+            className={`announcement-box${filterStatus === "Pending" ? " selected" : ""}`}
             onClick={() => setFilterStatus("Pending")}
           >
-            <img src={bookedIcon} alt="" style={styles.icon}/>
-            <div style={styles.textContainer}>
-              <p style={styles.title}>Pending</p>
-              <p style={styles.count}>{countPending}</p>
+            <img src={bookedIcon} alt="" className="announcement-icon"/>
+            <div className="announcement-text-container">
+              <p className="announcement-title">Pending</p>
+              <p className="announcement-count">{countPending}</p>
             </div>
           </div>
         </div>
-
         {/* Search bar and actions */}
-        <div style={styles.filterBar}>
+        <div className="announcement-filter-bar">
         <input
           type="text"
           placeholder="Search announcements..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-            style={styles.search}
+            className="announcement-search"
           />
-          <button onClick={handleAddNew} style={styles.addButton}>
+          <button onClick={handleAddNew} className="announcement-add-btn">
             <img src={plusIcon} alt="" style={{ width: 20, height: 20 }} />
             Add New
           </button>
@@ -314,28 +200,27 @@ const AnnouncementManagement = () => {
               src={deleteImage}
               alt="Delete Selected"
               onClick={handleBulkDelete}
-              style={{ width: 24, height: 24, cursor: 'pointer' }}
+              className="announcement-delete-btn"
             />
           )}
           </div>
-
         {/* Announcements table */}
-        <div style={styles.tableCard}>
-          <table style={styles.table}>
+        <div className="announcement-table-card">
+          <table className="announcement-table">
           <thead>
             <tr>
-                <th style={styles.th}>
+                <th className="announcement-th">
                   <input
                     type="checkbox"
                     checked={filteredAnnouncements.length > 0 && selectedAnnouncements.length === filteredAnnouncements.length}
                     onChange={handleSelectAll}
                   />
                 </th>
-                <th style={styles.th}>Title</th>
-                <th style={styles.th}>Message</th>
-                <th style={styles.th}>Created At</th>
-                <th style={styles.th}>Created By</th>
-                <th style={styles.th}>Status</th>
+                <th className="announcement-th">Title</th>
+                <th className="announcement-th">Message</th>
+                <th className="announcement-th">Created At</th>
+                <th className="announcement-th">Created By</th>
+                <th className="announcement-th">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -345,26 +230,25 @@ const AnnouncementManagement = () => {
                 : announcement.message;
                 const creator = users.find(user => user._id === announcement.createdBy);
               const creatorName = creator ? `${creator.name} ${creator.lastName}` : "Unknown";
-                
               return (
                 <tr
                   key={announcement._id}
                   onClick={() => handleRowClick(announcement)}
                   style={{ cursor: "pointer" }}
                 >
-                    <td style={styles.td} onClick={e => e.stopPropagation()}>
+                    <td className="announcement-td" onClick={e => e.stopPropagation()}>
                     <input
                         type="checkbox"
                       checked={selectedAnnouncements.includes(announcement._id)}
                         onChange={(e) => toggleSelectRow(e, announcement._id)}
                     />
                   </td>
-                    <td style={styles.td}>{announcement.title}</td>
-                    <td style={styles.td}>{truncatedMessage}</td>
-                    <td style={styles.td}>{new Date(announcement.createdAt).toLocaleString()}</td>
-                    <td style={styles.td}>{creatorName}</td>
-                    <td style={styles.td}>
-                      <span style={statusStyles[announcement.approved ? "Approved" : "Pending"] || {}}>
+                    <td className="announcement-td">{announcement.title}</td>
+                    <td className="announcement-td">{truncatedMessage}</td>
+                    <td className="announcement-td">{new Date(announcement.createdAt).toLocaleString()}</td>
+                    <td className="announcement-td">{creatorName}</td>
+                    <td className="announcement-td">
+                      <span className={announcement.approved ? "announcement-status-approved" : "announcement-status-pending"}>
                         {announcement.approved ? "Approved" : "Pending"}
                       </span>
                     </td>

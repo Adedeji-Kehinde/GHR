@@ -6,6 +6,7 @@ import AdminTabs from "../components/AdminTabs";
 import Loading from '../../pages/components/Loading';
 import plusImage from "/images/plusImage.png";
 import deleteImage from '/images/deleteImage.png';
+import './AdminManagement.css';
 
 const ManageAdmin = () => {
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
@@ -128,67 +129,6 @@ const ManageAdmin = () => {
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
   if (!currentAdmin) return <Loading icon="/images/manageadmin.png" text="Loading..." />;
 
-  // Styles matching other admin pages
-  const styles = {
-    content: {
-      marginTop: 40,
-      margin: 40,
-      padding: '2rem',
-      width: "90vw",
-      background: '#f8f9fa',
-    },
-    filterBar: {
-      display: 'flex',
-      gap: 16,
-      marginBottom: 16,
-      alignItems: 'center'
-    },
-    search: {
-      width: '100%',
-      padding: 8,
-      fontSize: 14
-    },
-    createButton: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.5rem',
-      padding: '0.5rem 1rem',
-      cursor: 'pointer',
-      border: 'none',
-      background: '#007bff',
-      color: '#fff',
-      borderRadius: '4px'
-    },
-    tableCard: {
-      background: '#fff',
-      borderRadius: 5,
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      overflowY: 'auto',
-      maxHeight: 400,
-      padding: 16
-    },
-    table: {
-      width: '100%',
-      borderCollapse: 'collapse',
-      textAlign: 'left',
-      fontSize: 14
-    },
-    th: {
-      padding: 8,
-      borderBottom: '2px solid #ddd',
-      fontWeight: 'bold'
-    },
-    td: {
-      padding: 8,
-      borderBottom: '1px solid #eee'
-    },
-    actionIcon: {
-      width: 24,
-      height: 24,
-      cursor: 'pointer'
-    }
-  };
-
   return (
     <>
       <AdminHeader 
@@ -197,11 +137,10 @@ const ManageAdmin = () => {
         profilePicture={currentAdmin.profileImageUrl || "/images/default-admin.png"}
       />
       <AdminTabs />
-
-      <div style={styles.content}>
+      <div className="admin-management-content">
         {/* Action bar */}
-        <div style={styles.filterBar}>
-          <button onClick={handleCreateAdmin} style={styles.createButton}>
+        <div className="admin-management-filter-bar">
+          <button onClick={handleCreateAdmin} className="admin-management-create-btn">
             <img src={plusImage} alt="Create Admin" style={{ width: "20px", height: "20px" }} />
             Create Admin
           </button>
@@ -210,7 +149,7 @@ const ManageAdmin = () => {
           placeholder="Search admins..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-            style={styles.search}
+            className="admin-management-search"
         />
           {selectedAdmins.length > 0 && (
             <img
@@ -218,57 +157,56 @@ const ManageAdmin = () => {
               alt="Bulk Delete"
               title="Bulk Delete"
               onClick={handleBulkDelete}
-              style={styles.actionIcon}
+              className="admin-management-action-icon"
             />
           )}
         </div>
-
         {/* Admins table */}
-        <div style={styles.tableCard}>
-          <table style={styles.table}>
+        <div className="admin-management-table-card">
+          <table className="admin-management-table">
             <thead>
               <tr>
-                <th style={styles.th}>
+                <th className="admin-management-th">
                   <input
                     type="checkbox"
                     checked={filteredAdmins.length > 0 && selectedAdmins.length === filteredAdmins.length}
                     onChange={handleSelectAll}
                   />
                 </th>
-                <th style={styles.th}>Admin Name</th>
-                <th style={styles.th}>Email</th>
-                <th style={styles.th}>Phone</th>
-                <th style={styles.th}>Created By</th>
-                <th style={styles.th}>Created At</th>
+                <th className="admin-management-th">Admin Name</th>
+                <th className="admin-management-th">Email</th>
+                <th className="admin-management-th">Phone</th>
+                <th className="admin-management-th">Created By</th>
+                <th className="admin-management-th">Created At</th>
               </tr>
             </thead>
             <tbody>
               {filteredAdmins.length > 0 ? (
                 filteredAdmins.map((admin) => (
                   <tr key={admin._id} onClick={() => handleRowClick(admin)} style={{ cursor: "pointer" }}>
-                    <td style={styles.td} onClick={e => e.stopPropagation()}>
+                    <td className="admin-management-td" onClick={e => e.stopPropagation()}>
                       <input
                         type="checkbox"
                         checked={selectedAdmins.includes(admin._id)}
                         onChange={(e) => toggleSelectRow(e, admin._id)}
                       />
                   </td>
-                    <td style={styles.td}>{`${admin.name} ${admin.lastName}`}</td>
-                    <td style={styles.td}>{admin.email}</td>
-                    <td style={styles.td}>{admin.phone || 'N/A'}</td>
-                    <td style={styles.td}>
+                    <td className="admin-management-td">{`${admin.name} ${admin.lastName}`}</td>
+                    <td className="admin-management-td">{admin.email}</td>
+                    <td className="admin-management-td">{admin.phone || 'N/A'}</td>
+                    <td className="admin-management-td">
                       {admin.createdBy ? 
                         admins.find(a => a._id === admin.createdBy)?.name || admin.createdBy 
                         : 'N/A'}
                   </td>
-                    <td style={styles.td}>
+                    <td className="admin-management-td">
                       {admin.createdAt ? new Date(admin.createdAt).toLocaleString() : 'N/A'}
                   </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" style={styles.td}>No admins found.</td>
+                  <td colSpan="6" className="admin-management-td">No admins found.</td>
                 </tr>
               )}
             </tbody>

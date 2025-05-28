@@ -15,6 +15,7 @@ import {
   Cell,
   Legend
 } from "recharts";
+import './admin.css';
 
 const API_URL =  "http://localhost:8000";
 const HEADER_HEIGHT = 60; // your header height
@@ -252,165 +253,6 @@ export default function AdminDashboard() {
     chartTouch.current=null;
   };
 
-  // ─── Styles ────────────────────────────────────────────────────────────
-  const styles = {
-    main: {
-      display:"flex",
-      marginTop:HEADER_HEIGHT,
-      width:"100vw",
-      height:`calc(100vh - ${HEADER_HEIGHT}px)`,
-      overflowX:"hidden"
-    },
-    sidebar:{ width:"60px", flexShrink:0, position:"relative", zIndex:10 },
-    content:{
-      flex:1,
-      padding:"1rem",
-      background:"#f8f9fa",
-      overflowY:"auto"
-    },
-
-    topSection:{ display:"flex", gap:"1rem", marginBottom:"1rem" },
-    kpiGrid:{
-      flex:1,
-      display:"grid",
-      gridTemplateColumns:"repeat(2,1fr)",
-      gap:"1rem"
-    },
-    card:{
-      background:"#fff",
-      padding:"1rem",
-      borderRadius:8,
-      boxShadow:"0 2px 8px rgba(0,0,0,0.1)",
-      textAlign:"left"
-    },
-    cardTitle:{ margin:0, fontWeight:"bold" },
-    cardValue:{ margin:"0.5rem 0 0", fontWeight:"bold", fontSize:"1.5rem" },
-
-    chartWrapper:{ flex:1,display:"flex",flexDirection:"column" },
-    chartContainer:{
-      flex:1,
-      background:"#fff",
-      borderRadius:8,
-      boxShadow:"0 2px 8px rgba(0,0,0,0.1)",
-      padding:"1rem",
-      display:"flex",
-      flexDirection:"column",
-      height:"600px"
-    },
-    chartTitle:{ margin:0,textAlign:"left",fontWeight:"bold",marginBottom:"0.5rem" },
-    chartArea:{ flex:1,display:"flex" },
-    barPanel:{ flex:1,display:chartSlide===0?"block":"none" },
-    pieLegend:{
-      display:chartSlide===1?"flex":"none",
-      flexDirection:"column",
-      justifyContent:"center",
-      marginRight:"1rem",
-      textAlign:"left"
-    },
-    piePanel:{ flex:1,display:chartSlide===1?"flex":"none" },
-    chartDots:{ display:"flex",justifyContent:"center",gap:6,marginTop:"0.5rem" },
-    dot: active=>({
-      width:8,height:8,borderRadius:"50%",
-      background:active?"#333":"#ccc",
-      cursor:"pointer"
-    }),
-
-    bottomSection:{ marginTop:"1rem" },
-    twoCols:{ display:"flex",gap:"1rem" },
-    tableCard:{
-      flex:1,
-      background:"#fff",
-      borderRadius:8,
-      boxShadow:"0 2px 8px rgba(0,0,0,0.1)",
-      padding:"1rem",
-      overflowY:"auto",
-      maxHeight:"200px"
-    },
-    tableTitle:{ margin:0,textAlign:"left",fontWeight:"bold",marginBottom:"0.5rem" },
-    table:{ width:"100%",borderCollapse:"collapse" },
-    th:{ textAlign:"left",padding:8,borderBottom:"2px solid #ddd" },
-    td:{ textAlign:"left",padding:8,borderBottom:"1px solid #eee" },
-
-    // Upcoming
-    section:{ marginTop:"1rem" },
-    sectionTitle:{ margin:0,textAlign:"left",fontWeight:"bold",marginBottom:"0.5rem" },
-    upTable:{ width:"100%", borderCollapse:"collapse" },
-    upTh:{ textAlign:"left", padding:8, borderBottom:"2px solid #ddd" },
-    upTd:{ textAlign:"left", padding:8, borderBottom:"1px solid #eee" }
-  };
-
-  // Add loading screen styles
-  const loadingStyles = {
-    loadingOverlay: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: '#f8f9fa',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1000,
-    },
-    loadingContent: {
-      textAlign: 'center',
-      maxWidth: '400px',
-      padding: '2rem',
-    },
-    loadingTitle: {
-      fontSize: '1.5rem',
-      fontWeight: 'bold',
-      color: '#2c3e50',
-      marginBottom: '1rem',
-    },
-    progressContainer: {
-      width: '100%',
-      height: '4px',
-      backgroundColor: '#e9ecef',
-      borderRadius: '2px',
-      overflow: 'hidden',
-      marginBottom: '1rem',
-    },
-    progressBar: {
-      height: '100%',
-      backgroundColor: '#007bff',
-      borderRadius: '2px',
-      transition: 'width 0.3s ease-in-out',
-    },
-    loadingText: {
-      color: '#6c757d',
-      fontSize: '1rem',
-      marginTop: '0.5rem',
-    },
-    loadingCard: {
-      backgroundColor: '#fff',
-      borderRadius: '8px',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      padding: '2rem',
-      animation: 'pulse 1.5s infinite',
-    },
-    '@keyframes pulse': {
-      '0%': { transform: 'scale(1)' },
-      '50%': { transform: 'scale(1.02)' },
-      '100%': { transform: 'scale(1)' },
-    },
-    loadingIcon: {
-      width: '48px',
-      height: '48px',
-      border: '3px solid #f3f3f3',
-      borderTop: '3px solid #007bff',
-      borderRadius: '50%',
-      animation: 'spin 1s linear infinite',
-      margin: '0 auto 1rem auto',
-    },
-    '@keyframes spin': {
-      '0%': { transform: 'rotate(0deg)' },
-      '100%': { transform: 'rotate(360deg)' },
-    },
-  };
-
   // Add loading screen render
   if (isLoading) {
     return (
@@ -420,20 +262,18 @@ export default function AdminDashboard() {
           adminName={adminName}
           profilePicture={profilePicture}
         />
-        <div style={loadingStyles.loadingOverlay}>
-          <div style={loadingStyles.loadingCard}>
-            <div style={loadingStyles.loadingIcon} />
-            <div style={loadingStyles.loadingContent}>
-              <h3 style={loadingStyles.loadingTitle}>Loading Dashboard</h3>
-              <div style={loadingStyles.progressContainer}>
+        <div className="admin-dashboard-loading-overlay">
+          <div className="admin-dashboard-loading-card">
+            <div className="admin-dashboard-loading-icon" />
+            <div className="admin-dashboard-loading-content">
+              <h3 className="admin-dashboard-loading-title">Loading Dashboard</h3>
+              <div className="admin-dashboard-progress-container">
                 <div 
-                  style={{
-                    ...loadingStyles.progressBar,
-                    width: `${loadingProgress}%`
-                  }}
+                  className="admin-dashboard-progress-bar"
+                  style={{ width: `${loadingProgress}%` }}
                 />
               </div>
-              <div style={loadingStyles.loadingText}>
+              <div className="admin-dashboard-loading-text">
                 {loadingProgress === 100 ? 
                   'Almost there...' : 
                   'Loading dashboard data...'}
@@ -453,31 +293,31 @@ export default function AdminDashboard() {
         adminName={adminName}
         profilePicture={profilePicture}
       />
-      <div style={styles.main}>
-        <div style={styles.sidebar}><AdminTabs/></div>
-        <div style={styles.content}>
+      <div className="admin-dashboard-main">
+        <div className="admin-dashboard-sidebar"><AdminTabs/></div>
+        <div className="admin-dashboard-content">
 
           {/* TOP: KPI cards & Chart */}
-          <div style={styles.topSection}>
-            <div style={styles.kpiGrid}>
+          <div className="admin-dashboard-top-section">
+            <div className="admin-dashboard-kpi-grid">
               {kpis.map((k,i)=>(
-                <div key={i} style={styles.card}>
-                  <h4 style={styles.cardTitle}>{k.title}</h4>
-                  <p style={styles.cardValue}>{k.value}</p>
+                <div key={i} className="admin-dashboard-card">
+                  <h4 className="admin-dashboard-card-title">{k.title}</h4>
+                  <p className="admin-dashboard-card-value">{k.value}</p>
                 </div>
               ))}
             </div>
-            <div style={styles.chartWrapper}>
+            <div className="admin-dashboard-chart-wrapper">
               <div
-                style={styles.chartContainer}
+                className="admin-dashboard-chart-container"
                 onTouchStart={onTouchStart}
                 onTouchEnd={onTouchEnd}
               >
-                <h4 style={styles.chartTitle}>
+                <h4 className="admin-dashboard-chart-title">
                   {chartSlide===0 ? "Monthly Revenue" : "Occupancy"}
                 </h4>
-                <div style={styles.chartArea}>
-                  <div style={styles.barPanel}>
+                <div className="admin-dashboard-chart-area">
+                  <div className="admin-dashboard-bar-panel" style={{ display: chartSlide===0 ? "block" : "none" }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={monthlyRevenueData}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -488,7 +328,7 @@ export default function AdminDashboard() {
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
-                  <div style={styles.pieLegend}>
+                  <div className="admin-dashboard-pie-legend" style={{ display: chartSlide===1 ? "flex" : "none" }}>
                     <Legend
                       verticalAlign="middle"
                       layout="vertical"
@@ -500,7 +340,7 @@ export default function AdminDashboard() {
                       }))}
                     />
                   </div>
-                  <div style={styles.piePanel}>
+                  <div className="admin-dashboard-pie-panel" style={{ display: chartSlide===1 ? "flex" : "none" }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
@@ -526,11 +366,11 @@ export default function AdminDashboard() {
                     </ResponsiveContainer>
                   </div>
                 </div>
-                <div style={styles.chartDots}>
+                <div className="admin-dashboard-chart-dots">
                   {[0,1].map(idx=>(
                     <div
                       key={idx}
-                      style={styles.dot(idx===chartSlide)}
+                      className={`admin-dashboard-dot ${idx===chartSlide ? 'active' : 'inactive'}`}
                       onClick={()=>setChartSlide(idx)}
                     />
                   ))}
@@ -540,40 +380,40 @@ export default function AdminDashboard() {
           </div>
 
           {/* BOTTOM: Recent Bookings & Payments */}
-          <div style={styles.twoCols}>
-            <div style={styles.tableCard}>
-              <h4 style={styles.tableTitle}>Recent Bookings</h4>
-              <table style={styles.table}>
+          <div className="admin-dashboard-two-cols">
+            <div className="admin-dashboard-table-card">
+              <h4 className="admin-dashboard-table-title">Recent Bookings</h4>
+              <table className="admin-dashboard-table">
                 <thead>
                   <tr>
-                    <th style={styles.th}>User</th>
-                    <th style={styles.th}>Room</th>
+                    <th className="admin-dashboard-th">User</th>
+                    <th className="admin-dashboard-th">Room</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentBookings.map(rb=>(
                     <tr key={rb.id}>
-                      <td style={styles.td}>{rb.user}</td>
-                      <td style={styles.td}>{rb.room}</td>
+                      <td className="admin-dashboard-td">{rb.user}</td>
+                      <td className="admin-dashboard-td">{rb.room}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <div style={styles.tableCard}>
-              <h4 style={styles.tableTitle}>Recent Payments</h4>
-              <table style={styles.table}>
+            <div className="admin-dashboard-table-card">
+              <h4 className="admin-dashboard-table-title">Recent Payments</h4>
+              <table className="admin-dashboard-table">
                 <thead>
                   <tr>
-                    <th style={styles.th}>User</th>
-                    <th style={styles.th}>Amount</th>
+                    <th className="admin-dashboard-th">User</th>
+                    <th className="admin-dashboard-th">Amount</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentPayments.map(rp=>(
                     <tr key={rp.id}>
-                      <td style={styles.td}>{rp.user}</td>
-                      <td style={styles.td}>{rp.amount}</td>
+                      <td className="admin-dashboard-td">{rp.user}</td>
+                      <td className="admin-dashboard-td">{rp.amount}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -582,46 +422,46 @@ export default function AdminDashboard() {
           </div>
 
           {/* UPCOMING CHECK‑INS / CHECK‑OUTS */}
-          <div style={styles.section}>
-            <h4 style={styles.sectionTitle}>Upcoming Check‑Ins / Check‑Outs</h4>
-            <div style={styles.twoCols}>
-              <div style={styles.tableCard}>
-                <h5 style={styles.sectionTitle}>Check‑Ins</h5>
-                <table style={styles.upTable}>
+          <div className="admin-dashboard-section">
+            <h4 className="admin-dashboard-section-title">Upcoming Check‑Ins / Check‑Outs</h4>
+            <div className="admin-dashboard-two-cols">
+              <div className="admin-dashboard-table-card">
+                <h5 className="admin-dashboard-section-title">Check‑Ins</h5>
+                <table className="admin-dashboard-up-table">
                   <thead>
                     <tr>
-                      <th style={styles.upTh}>User</th>
-                      <th style={styles.upTh}>Room</th>
-                      <th style={styles.upTh}>Date</th>
+                      <th className="admin-dashboard-up-th">User</th>
+                      <th className="admin-dashboard-up-th">Room</th>
+                      <th className="admin-dashboard-up-th">Date</th>
                     </tr>
                   </thead>
                   <tbody>
                     {upcomingIns.map(ci=>(
                       <tr key={ci.id}>
-                        <td style={styles.upTd}>{ci.user}</td>
-                        <td style={styles.upTd}>{ci.room}</td>
-                        <td style={styles.upTd}>{ci.date}</td>
+                        <td className="admin-dashboard-up-td">{ci.user}</td>
+                        <td className="admin-dashboard-up-td">{ci.room}</td>
+                        <td className="admin-dashboard-up-td">{ci.date}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              <div style={styles.tableCard}>
-                <h5 style={styles.sectionTitle}>Check‑Outs</h5>
-                <table style={styles.upTable}>
+              <div className="admin-dashboard-table-card">
+                <h5 className="admin-dashboard-section-title">Check‑Outs</h5>
+                <table className="admin-dashboard-up-table">
                   <thead>
                     <tr>
-                      <th style={styles.upTh}>User</th>
-                      <th style={styles.upTh}>Room</th>
-                      <th style={styles.upTh}>Date</th>
+                      <th className="admin-dashboard-up-th">User</th>
+                      <th className="admin-dashboard-up-th">Room</th>
+                      <th className="admin-dashboard-up-th">Date</th>
                     </tr>
                   </thead>
                   <tbody>
                     {upcomingOuts.map(co=>(
                       <tr key={co.id}>
-                        <td style={styles.upTd}>{co.user}</td>
-                        <td style={styles.upTd}>{co.room}</td>
-                        <td style={styles.upTd}>{co.date}</td>
+                        <td className="admin-dashboard-up-td">{co.user}</td>
+                        <td className="admin-dashboard-up-td">{co.room}</td>
+                        <td className="admin-dashboard-up-td">{co.date}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AdminHeader from "../components/AdminHeader";
 import AdminTabs from "../components/AdminTabs";
+import './booking.css';
 
 const BookingDetails = () => {
   const location = useLocation();
@@ -76,86 +77,6 @@ const BookingDetails = () => {
     }
   };
 
-  // Styles matching other admin pages
-  const styles = {
-    content: {
-      marginTop: 40,
-      margin: 40,
-      padding: '2rem',
-      width: "90vw",
-      background: '#f8f9fa',
-    },
-    detailsGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(4, 1fr)",
-      gap: "1.5rem",
-      marginBottom: "2rem",
-      backgroundColor: "#fff",
-      padding: "2rem",
-      borderRadius: "8px",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
-    },
-    editableGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(2, 1fr)",
-      gap: "1.5rem",
-      marginBottom: "2rem",
-      backgroundColor: "#fff",
-      padding: "2rem",
-      borderRadius: "8px",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
-    },
-    detailBox: {
-      padding: "1.5rem",
-      backgroundColor: "#fff",
-      borderRadius: "8px",
-      border: "1px solid #dee2e6"
-    },
-    label: {
-      fontWeight: "bold",
-      marginBottom: "0.5rem",
-      display: "block",
-      color: "#495057"
-    },
-    value: {
-      fontSize: "1rem",
-      color: "#212529"
-    },
-    select: {
-      width: "100%",
-      padding: "0.5rem",
-      borderRadius: "4px",
-      border: "1px solid #ced4da",
-      fontSize: "1rem"
-    },
-    buttonGroup: {
-      display: "flex",
-      gap: "1rem",
-      justifyContent: "flex-end",
-      marginTop: "2rem"
-    },
-    button: {
-      padding: "0.75rem 1.5rem",
-      borderRadius: "4px",
-      border: "none",
-      cursor: "pointer",
-      fontSize: "1rem",
-      fontWeight: "500"
-    },
-    saveButton: {
-      backgroundColor: "#28a745",
-      color: "#fff"
-    },
-    deleteButton: {
-      backgroundColor: "#dc3545",
-      color: "#fff"
-    },
-    cancelButton: {
-      backgroundColor: "#6c757d",
-      color: "#fff"
-    }
-  };
-
   // Status styles matching the main page
   const statusStyles = {
     "Booked": {
@@ -183,65 +104,63 @@ const BookingDetails = () => {
       />
       <AdminTabs />
       
-      <div style={styles.content}>
+      <div className="booking-details-content">
         {/* Room Details Grid */}
-        <div style={styles.detailsGrid}>
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Occupant Name</div>
-            <div style={styles.value}>{userName}</div>
+        <div className="booking-details-grid">
+          <div className="booking-details-box">
+            <div className="booking-details-label">Occupant Name</div>
+            <div className="booking-details-value">{userName}</div>
           </div>
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Room Number</div>
-            <div style={styles.value}>{roomNumber}</div>
+          <div className="booking-details-box">
+            <div className="booking-details-label">Room Number</div>
+            <div className="booking-details-value">{roomNumber}</div>
           </div>
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Building Block</div>
-            <div style={styles.value}>{buildingBlock}</div>
+          <div className="booking-details-box">
+            <div className="booking-details-label">Building Block</div>
+            <div className="booking-details-value">{buildingBlock}</div>
           </div>
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Floor</div>
-            <div style={styles.value}>{floor}</div>
+          <div className="booking-details-box">
+            <div className="booking-details-label">Floor</div>
+            <div className="booking-details-value">{floor}</div>
           </div>
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Apartment Number</div>
-            <div style={styles.value}>{apartmentNumber}</div>
+          <div className="booking-details-box">
+            <div className="booking-details-label">Apartment Number</div>
+            <div className="booking-details-value">{apartmentNumber}</div>
           </div>
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Bed Space</div>
-            <div style={styles.value}>{bedSpace}</div>
+          <div className="booking-details-box">
+            <div className="booking-details-label">Bed Space</div>
+            <div className="booking-details-value">{bedSpace}</div>
           </div>
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Bed Number</div>
-            <div style={styles.value}>{bedNumber || '-'}</div>
+          <div className="booking-details-box">
+            <div className="booking-details-label">Bed Number</div>
+            <div className="booking-details-value">{bedNumber || '-'}</div>
           </div>
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Room Type</div>
-            <div style={styles.value}>{roomType}</div>
+          <div className="booking-details-box">
+            <div className="booking-details-label">Room Type</div>
+            <div className="booking-details-value">{roomType}</div>
           </div>
         </div>
 
         {/* Editable Fields Grid */}
-        <div style={styles.editableGrid}>
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Status</div>
+        <div className="booking-details-editable-grid">
+          <div className="booking-details-box">
+            <div className="booking-details-label">Status</div>
             <select
               value={status}
               onChange={handleStatusChange}
-              style={styles.select}
+              className="booking-details-select"
             >
               <option value="Booked">Booked</option>
               <option value="Cancelled">Cancelled</option>
             </select>
-            <div style={{marginTop: '0.5rem'}}>
-              <div style={statusStyles[status]}>{status}</div>
-            </div>
+            <div className="booking-details-status" style={statusStyles[status]}>{status}</div>
           </div>
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Length of Stay</div>
+          <div className="booking-details-box">
+            <div className="booking-details-label">Length of Stay</div>
             <select
               value={lengthOfStay}
               onChange={handleLengthOfStayChange}
-              style={styles.select}
+              className="booking-details-select"
             >
               <option value="Summer">Summer</option>
               <option value="First Semester">First Semester</option>
@@ -252,22 +171,22 @@ const BookingDetails = () => {
         </div>
 
         {/* Action Buttons */}
-        <div style={styles.buttonGroup}>
+        <div className="booking-details-button-group">
           <button
             onClick={handleSave}
-            style={{...styles.button, ...styles.saveButton}}
+            className="booking-details-btn save"
           >
             Save Changes
           </button>
           <button
             onClick={handleDelete}
-            style={{...styles.button, ...styles.deleteButton}}
+            className="booking-details-btn delete"
           >
             Delete
           </button>
           <button
             onClick={() => navigate(-1)}
-            style={{...styles.button, ...styles.cancelButton}}
+            className="booking-details-btn cancel"
           >
             Cancel
           </button>

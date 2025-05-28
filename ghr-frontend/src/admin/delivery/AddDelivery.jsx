@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import AdminHeader from "../components/AdminHeader";
 import AdminTabs from "../components/AdminTabs";
+import './delivery.css';
 
 const AddDelivery = () => {
   const [admin, setAdmin] = useState(null);
@@ -93,139 +94,13 @@ const AddDelivery = () => {
     }
   };
 
-  // Styles matching other admin pages
-  const styles = {
-    content: {
-      marginTop: 40,
-      margin: 40,
-      padding: '2rem',
-      width: "90vw",
-      background: '#f8f9fa',
-    },
-    section: {
-      backgroundColor: "#fff",
-      padding: "2rem",
-      borderRadius: "8px",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-      marginBottom: "2rem",
-    },
-    searchSection: {
-      backgroundColor: "#fff",
-      padding: "2rem",
-      borderRadius: "8px",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-      marginBottom: "2rem",
-    },
-    selectedRecipient: {
-      backgroundColor: '#e3f2fd',
-      color: '#1976d2',
-      padding: '1rem',
-      borderRadius: '4px',
-      marginBottom: '1rem',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '1rem',
-      fontSize: '1.1rem',
-      fontWeight: '500',
-    },
-    searchInput: {
-      width: "100%",
-      padding: "0.75rem",
-      fontSize: "1.1rem",
-      borderRadius: "4px",
-      border: "1px solid #ced4da",
-      marginBottom: "0.5rem",
-    },
-    searchResults: {
-      maxHeight: "200px",
-      overflowY: "auto",
-      border: "1px solid #ced4da",
-      borderRadius: "4px",
-      backgroundColor: "#fff",
-      marginTop: "0.5rem",
-    },
-    searchResultItem: {
-      padding: "0.75rem",
-      cursor: "pointer",
-      borderBottom: "1px solid #ced4da",
-      transition: "background-color 0.2s",
-      "&:hover": {
-        backgroundColor: "#f8f9fa",
-      },
-    },
-    formGroup: {
-      marginBottom: "1.5rem",
-    },
-    label: {
-      display: "block",
-      marginBottom: "0.5rem",
-      fontWeight: "500",
-      color: "#495057",
-      fontSize: "1.1rem",
-    },
-    input: {
-      width: "100%",
-      padding: "0.75rem",
-      fontSize: "1.1rem",
-      borderRadius: "4px",
-      border: "1px solid #ced4da",
-    },
-    select: {
-      width: "100%",
-      padding: "0.75rem",
-      fontSize: "1.1rem",
-      borderRadius: "4px",
-      border: "1px solid #ced4da",
-      backgroundColor: "#fff",
-    },
-    textarea: {
-      width: "100%",
-      padding: "0.75rem",
-      fontSize: "1.1rem",
-      borderRadius: "4px",
-      border: "1px solid #ced4da",
-      minHeight: "150px",
-      resize: "vertical",
-    },
-    buttonGroup: {
-      display: "flex",
-      gap: "1rem",
-      justifyContent: "flex-end",
-      marginTop: "2rem",
-    },
-    button: {
-      padding: "0.75rem 1.5rem",
-      fontSize: "1.1rem",
-      borderRadius: "4px",
-      border: "none",
-      cursor: "pointer",
-      fontWeight: "500",
-      transition: "background-color 0.2s",
-    },
-    primaryButton: {
-      backgroundColor: "#007bff",
-      color: "#fff",
-      "&:hover": {
-        backgroundColor: "#0056b3",
-      },
-    },
-    errorMessage: {
-      backgroundColor: "#f8d7da",
-      color: "#721c24",
-      padding: "1rem",
-      borderRadius: "4px",
-      marginBottom: "1rem",
-      fontSize: "1.1rem", 
-    },
-  };
-
   if (!admin) return (
-    <div style={styles.content}>
-      <div style={styles.section}>
+    <div className="add-delivery-content">
+      <div className="add-delivery-section">
         <p>Loading admin details...</p>
       </div>
-      </div>
-    );
+    </div>
+  );
 
   return (
     <>
@@ -236,51 +111,51 @@ const AddDelivery = () => {
       />
       <AdminTabs />
       
-      <div style={styles.content}>
+      <div className="add-delivery-content">
         {error && (
-          <div style={styles.errorMessage}>
+          <div className="add-delivery-error-message">
             {error}
           </div>
         )}
 
         <form onSubmit={handleAddDelivery}>
           {/* Search Section */}
-          <div style={styles.searchSection}>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Search Recipient</label>
+          <div className="add-delivery-section">
+            <div className="add-delivery-form-group">
+              <label className="add-delivery-label">Search Recipient</label>
               {newDelivery.roomNumber && (
-                <div style={styles.selectedRecipient}>
+                <div className="add-delivery-selected-recipient">
                   <span>Selected: {userSearchQuery}</span>
                 </div>
               )}
-                  <input
-                    type="text"
-                    placeholder="Search by name or room number..."
-                    value={userSearchQuery}
-                    onChange={handleUserSearchChange}
-                style={styles.searchInput}
+              <input
+                type="text"
+                placeholder="Search by name or room number..."
+                value={userSearchQuery}
+                onChange={handleUserSearchChange}
+                className="add-delivery-input"
               />
-                {userSearchQuery && !newDelivery.roomNumber && (
-                <div style={styles.searchResults}>
-                    {filteredUsers.map((user) => (
+              {userSearchQuery && !newDelivery.roomNumber && (
+                <div className="add-delivery-search-results">
+                  {filteredUsers.map((user) => (
                     <div
-                        key={user._id}
-                        onClick={() => handleSelectUser(user)}
-                      style={styles.searchResultItem}
-                      >
-                        {user.name} {user.lastName} | {user.roomNumber}
+                      key={user._id}
+                      onClick={() => handleSelectUser(user)}
+                      className="add-delivery-search-result-item"
+                    >
+                      {user.name} {user.lastName} | {user.roomNumber}
                     </div>
-                    ))}
+                  ))}
                 </div>
-                )}
+              )}
             </div>
           </div>
 
           {/* Delivery Details Section */}
           {newDelivery.roomNumber && (
-            <div style={styles.section}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Sender</label>
+            <div className="add-delivery-section">
+              <div className="add-delivery-form-group">
+                <label className="add-delivery-label">Sender</label>
                 <input
                   type="text"
                   name="sender"
@@ -288,47 +163,47 @@ const AddDelivery = () => {
                   onChange={handleNewDeliveryChange}
                   required
                   placeholder="Enter sender's name..."
-                  style={styles.input}
+                  className="add-delivery-input"
                 />
               </div>
 
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Parcel Type</label>
+              <div className="add-delivery-form-group">
+                <label className="add-delivery-label">Parcel Type</label>
                 <select
                   name="parcelType"
                   value={newDelivery.parcelType}
                   onChange={handleNewDeliveryChange}
-                  style={styles.select}
+                  className="add-delivery-select"
                 >
                   <option value="Letter">Letter</option>
                   <option value="Package">Package</option>
                 </select>
               </div>
 
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Description</label>
+              <div className="add-delivery-form-group">
+                <label className="add-delivery-label">Description</label>
                 <textarea
                   name="description"
                   value={newDelivery.description}
                   onChange={handleNewDeliveryChange}
                   required
                   placeholder="Enter parcel description..."
-                  style={styles.textarea}
+                  className="add-delivery-textarea"
                 />
               </div>
 
-              <div style={styles.buttonGroup}>
+              <div className="add-delivery-button-group">
                 <button
                   type="button"
                   onClick={() => navigate(-1)}
-                  style={{...styles.button, backgroundColor: "#6c757d", color: "#fff"}}
+                  className="add-delivery-cancel-btn"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  style={{...styles.button, ...styles.primaryButton}}
+                  className="add-delivery-submit-btn"
                 >
                   {loading ? "Adding..." : "Add Parcel"}
                 </button>

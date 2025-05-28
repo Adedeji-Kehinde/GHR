@@ -4,6 +4,7 @@ import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import AdminHeader from "../components/AdminHeader";
 import AdminTabs from "../components/AdminTabs";
+import './maintenance.css';
 
 const MaintenanceDetailsPage = () => {
   const location = useLocation();
@@ -81,214 +82,76 @@ const MaintenanceDetailsPage = () => {
     ? new Date(maintenance.completedAt).toLocaleString()
     : "N/A";
 
-  // Styles matching other admin pages
-  const styles = {
-    content: {
-      marginTop: 40,
-      margin: 40,
-      padding: '2rem',
-      width: "90vw",
-      background: '#f8f9fa',
-    },
-    tabHeader: {
-    display: "flex",
-      gap: "1rem",
-      marginBottom: "2rem",
-    },
-    tab: (isActive) => ({
-    flex: 1,
-      padding: "1rem 2rem",
-    textAlign: "center",
-    cursor: "pointer",
-      backgroundColor: isActive ? "#fff" : "#f8f9fa",
-      border: isActive ? "1px solid #dee2e6" : "1px solid #dee2e6",
-      borderBottom: isActive ? "2px solid #007bff" : "1px solid #dee2e6",
-      borderRadius: "4px 4px 0 0",
-      fontWeight: isActive ? "bold" : "normal",
-    }),
-    detailsGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(2, 1fr)",
-      gap: "1.5rem",
-      marginBottom: "2rem",
-      backgroundColor: "#fff",
-      padding: "2rem",
-      borderRadius: "8px",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-    },
-    fullWidth: {
-      gridColumn: "1 / -1",
-    },
-    detailBox: {
-      padding: "1.5rem",
-      backgroundColor: "#fff",
-      borderRadius: "8px",
-      border: "1px solid #dee2e6",
-    },
-    label: {
-      fontWeight: "bold",
-      marginBottom: "0.5rem",
-      display: "block",
-      color: "#495057",
-    },
-    value: {
-      fontSize: "1rem",
-      color: "#212529",
-    },
-    select: {
-      width: "100%",
-      padding: "0.5rem",
-      borderRadius: "4px",
-      border: "1px solid #ced4da",
-      fontSize: "1rem",
-    },
-    textarea: {
-      width: "100%",
-    padding: "1rem",
-      borderRadius: "4px",
-      border: "1px solid #ced4da",
-      resize: "vertical",
-      minHeight: "150px",
-      fontSize: "1rem",
-    },
-    buttonGroup: {
-      display: "flex",
-      gap: "1rem",
-      justifyContent: "flex-end",
-      marginTop: "2rem",
-    },
-    button: {
-      padding: "0.75rem 1.5rem",
-      borderRadius: "4px",
-      border: "none",
-      cursor: "pointer",
-      fontSize: "1rem",
-      fontWeight: "500",
-    },
-    saveButton: {
-      backgroundColor: "#28a745",
-      color: "#fff",
-    },
-    deleteButton: {
-      backgroundColor: "#dc3545",
-      color: "#fff",
-    },
-    cancelButton: {
-      backgroundColor: "#6c757d",
-      color: "#fff",
-    },
-    attachmentsGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-      gap: "1.5rem",
-      padding: "2rem",
-      backgroundColor: "#fff",
-    borderRadius: "8px",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-    },
-    attachmentImage: {
-      width: "100%",
-      height: "auto",
-      borderRadius: "4px",
-      border: "1px solid #dee2e6",
-    },
-  };
-
-  // Status styles matching the main page
-  const statusStyles = {
-    "Pending": {
-      backgroundColor: '#fff3e0',  // Light orange
-      color: '#e65100',
-      padding: '4px 8px',
-      borderRadius: '4px',
-      fontWeight: 'bold'
-    },
-    "In Process": {
-      backgroundColor: '#e3f2fd',  // Light blue
-      color: '#1976d2',
-      padding: '4px 8px',
-      borderRadius: '4px',
-      fontWeight: 'bold'
-    },
-    "Completed": {
-      backgroundColor: '#e8f5e9',  // Light green
-      color: '#2e7d32',
-      padding: '4px 8px',
-      borderRadius: '4px',
-      fontWeight: 'bold'
-    }
-  };
-
   const renderGeneralTab = () => (
-    <div style={styles.detailsGrid}>
-      <div style={styles.detailBox}>
-        <div style={styles.label}>Request ID</div>
-        <div style={styles.value}>{maintenance.requestId}</div>
-        </div>
-      <div style={styles.detailBox}>
-        <div style={styles.label}>Room Number</div>
-        <div style={styles.value}>{maintenance.roomNumber}</div>
-        </div>
-      <div style={styles.detailBox}>
-        <div style={styles.label}>Category</div>
-        <div style={styles.value}>{maintenance.category}</div>
-        </div>
-      <div style={styles.detailBox}>
-        <div style={styles.label}>Room Access</div>
-        <div style={styles.value}>{maintenance.roomAccess}</div>
-        </div>
-      <div style={styles.detailBox}>
-        <div style={styles.label}>Created At</div>
-        <div style={styles.value}>{formattedCreatedAt}</div>
-        </div>
-      <div style={styles.detailBox}>
-        <div style={styles.label}>Completed At</div>
-        <div style={styles.value}>{formattedCompletedAt}</div>
-        </div>
-      <div style={styles.detailBox}>
-        <div style={styles.label}>Enquirer Name</div>
-        <div style={styles.value}>{maintenance.enquirerName}</div>
-        </div>
-      <div style={styles.detailBox}>
-        <div style={styles.label}>Status</div>
-          <select
-            name="status"
-            value={updatedMaintenance.status}
-            onChange={handleFieldChange}
-          style={styles.select}
-          >
-          <option value="Pending">Pending</option>
-            <option value="In Process">In Process</option>
-            <option value="Completed">Completed</option>
-          </select>
-        </div>
-      <div style={{...styles.detailBox, ...styles.fullWidth}}>
-        <div style={styles.label}>Description</div>
-            <textarea
-              value={maintenance.description}
-              readOnly
-          style={styles.textarea}
-            />
-        </div>
+    <div className="maintenance-details-grid">
+      <div className="maintenance-details-box">
+        <div className="maintenance-details-label">Request ID</div>
+        <div className="maintenance-details-value">{maintenance.requestId}</div>
       </div>
-    );
+      <div className="maintenance-details-box">
+        <div className="maintenance-details-label">Room Number</div>
+        <div className="maintenance-details-value">{maintenance.roomNumber}</div>
+      </div>
+      <div className="maintenance-details-box">
+        <div className="maintenance-details-label">Category</div>
+        <div className="maintenance-details-value">{maintenance.category}</div>
+      </div>
+      <div className="maintenance-details-box">
+        <div className="maintenance-details-label">Room Access</div>
+        <div className="maintenance-details-value">{maintenance.roomAccess}</div>
+      </div>
+      <div className="maintenance-details-box">
+        <div className="maintenance-details-label">Created At</div>
+        <div className="maintenance-details-value">{formattedCreatedAt}</div>
+      </div>
+      <div className="maintenance-details-box">
+        <div className="maintenance-details-label">Completed At</div>
+        <div className="maintenance-details-value">{formattedCompletedAt}</div>
+      </div>
+      <div className="maintenance-details-box">
+        <div className="maintenance-details-label">Enquirer Name</div>
+        <div className="maintenance-details-value">{maintenance.enquirerName}</div>
+      </div>
+      <div className="maintenance-details-box">
+        <div className="maintenance-details-label">Status</div>
+        <select
+          name="status"
+          value={updatedMaintenance.status}
+          onChange={handleFieldChange}
+          className="maintenance-details-select"
+        >
+          <option value="Pending">Pending</option>
+          <option value="In Process">In Process</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </div>
+      <div className="maintenance-details-box" style={{ gridColumn: '1 / -1' }}>
+        <div className="maintenance-details-label">Description</div>
+        <textarea
+          value={maintenance.description}
+          readOnly
+          className="maintenance-details-textarea"
+        />
+      </div>
+    </div>
+  );
 
   const renderAttachmentsTab = () => (
-    <div style={styles.attachmentsGrid}>
-          {maintenance.pictures && maintenance.pictures.length > 0 ? (
-            maintenance.pictures.map((pic, index) => (
-              <img
-                key={index}
-                src={pic}
+    <div className="maintenance-details-attachments-grid">
+      {maintenance.pictures && maintenance.pictures.length > 0 ? (
+        maintenance.pictures.map((pic, index) => (
+          <img
+            key={index}
+            src={pic}
             alt={`Attachment ${index + 1}`}
-            style={styles.attachmentImage}
-              />
-            ))
-          ) : (
-            <p>No attachments available.</p>
-          )}
-      </div>
-    );
+            className="maintenance-details-attachment-image"
+          />
+        ))
+      ) : (
+        <p>No attachments available.</p>
+      )}
+    </div>
+  );
 
   return (
     <>
@@ -299,16 +162,16 @@ const MaintenanceDetailsPage = () => {
       />
       <AdminTabs />
       
-      <div style={styles.content}>
-        <div style={styles.tabHeader}>
+      <div className="maintenance-details-content">
+        <div className="maintenance-details-tab-header">
           <div
-            style={styles.tab(activeTab === "general")}
+            className={`maintenance-details-tab ${activeTab === "general" ? "active" : ""}`}
             onClick={() => setActiveTab("general")}
           >
             General
           </div>
           <div
-            style={styles.tab(activeTab === "attachments")}
+            className={`maintenance-details-tab ${activeTab === "attachments" ? "active" : ""}`}
             onClick={() => setActiveTab("attachments")}
           >
             Attachments
@@ -318,22 +181,22 @@ const MaintenanceDetailsPage = () => {
         {activeTab === "general" ? renderGeneralTab() : renderAttachmentsTab()}
 
         {activeTab === "general" && (
-          <div style={styles.buttonGroup}>
+          <div className="maintenance-details-button-group">
             <button
               onClick={handleSave}
-              style={{...styles.button, ...styles.saveButton}}
+              className="maintenance-details-button maintenance-details-save-btn"
             >
               Save Changes
             </button>
             <button
               onClick={handleDelete}
-              style={{...styles.button, ...styles.deleteButton}}
+              className="maintenance-details-button maintenance-details-delete-btn"
             >
               Delete
             </button>
             <button
               onClick={() => navigate(-1)}
-              style={{...styles.button, ...styles.cancelButton}}
+              className="maintenance-details-button maintenance-details-cancel-btn"
             >
               Cancel
             </button>

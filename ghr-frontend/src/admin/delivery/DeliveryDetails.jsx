@@ -1,8 +1,10 @@
 // DeliveryDetails.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useLocation, useNavigate } from 'react-router-dom';
 import AdminHeader from "../components/AdminHeader";
 import AdminTabs from "../components/AdminTabs";
+import './delivery.css';
 import exitImage from '/images/exitImage.png';       // Your exit image
 import deleteImage from '/images/deleteImage.png';   // Your delete image
 import cancelImage from '/images/cancelImage.png';   // Image for cancel action
@@ -177,10 +179,10 @@ const DeliveryDetails = ({ delivery: initialDelivery, onClose, onUpdateDeleted }
   };
 
   return (
-    <div onClick={onClose} style={styles.modalOverlay}>
-      <div onClick={(e) => e.stopPropagation()} style={styles.modalContent}>
+    <div onClick={onClose} className="delivery-details-modal-overlay">
+      <div onClick={(e) => e.stopPropagation()} className="delivery-details-modal-content">
         {/* Header */}
-        <div style={styles.header}>
+        <div className="delivery-details-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <h2 style={{ margin: 0 }}>Delivery Details</h2>
             {!editMode && (
@@ -188,7 +190,7 @@ const DeliveryDetails = ({ delivery: initialDelivery, onClose, onUpdateDeleted }
                 src={editImage} 
                 alt="Edit" 
                 onClick={() => setEditMode(true)}
-                style={styles.iconButton}
+                className="delivery-details-icon-button"
                 title="Edit Delivery"
               />
             )}
@@ -200,14 +202,14 @@ const DeliveryDetails = ({ delivery: initialDelivery, onClose, onUpdateDeleted }
                   src={cancelImage} 
                   alt="Cancel" 
                   onClick={() => { setEditMode(false); setUpdatedDelivery(delivery); }}
-                  style={styles.iconButton}
+                  className="delivery-details-icon-button"
                   title="Cancel Editing"
                 />
                 <img 
                   src={saveImage} 
                   alt="Save" 
                   onClick={handleUpdate}
-                  style={styles.iconButton}
+                  className="delivery-details-icon-button"
                   title="Save Changes"
                 />
               </>
@@ -217,14 +219,14 @@ const DeliveryDetails = ({ delivery: initialDelivery, onClose, onUpdateDeleted }
                   src={deleteImage} 
                   alt="Delete" 
                   onClick={handleDelete}
-                  style={styles.iconButton}
+                  className="delivery-details-icon-button"
                   title="Delete Delivery"
                 />
                 <img 
                   src={exitImage} 
                   alt="Close" 
                   onClick={onClose}
-                  style={styles.iconButton}
+                  className="delivery-details-icon-button"
                   title="Close"
                 />
               </>
@@ -233,117 +235,119 @@ const DeliveryDetails = ({ delivery: initialDelivery, onClose, onUpdateDeleted }
         </div>
 
         {/* Content Grid */}
-        <div style={styles.detailsGrid}>
+        <div className="delivery-details-grid">
           {/* Parcel Number */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Parcel Number</div>
-            <div style={styles.value}>{delivery.parcelNumber}</div>
+          <div className="delivery-details-box">
+            <div className="delivery-details-label">Parcel Number</div>
+            <div className="delivery-details-value">{delivery.parcelNumber}</div>
           </div>
 
           {/* Sender */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Sender</div>
+          <div className="delivery-details-box">
+            <div className="delivery-details-label">Sender</div>
             {editMode ? (
               <input
                 type="text"
                 name="sender"
                 value={updatedDelivery.sender}
                 onChange={handleChange}
-                style={styles.input}
+                className="delivery-details-input"
               />
             ) : (
-              <div style={styles.value}>{delivery.sender}</div>
+              <div className="delivery-details-value">{delivery.sender}</div>
             )}
           </div>
 
           {/* Parcel Type */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Parcel Type</div>
+          <div className="delivery-details-box">
+            <div className="delivery-details-label">Parcel Type</div>
             {editMode ? (
               <select
                 name="parcelType"
                 value={updatedDelivery.parcelType}
                 onChange={handleChange}
-                style={styles.select}
+                className="delivery-details-select"
               >
                 <option value="Letter">Letter</option>
                 <option value="Package">Package</option>
               </select>
             ) : (
-              <div style={styles.value}>{delivery.parcelType}</div>
+              <div className="delivery-details-value">{delivery.parcelType}</div>
             )}
           </div>
 
           {/* Status */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Status</div>
+          <div className="delivery-details-box">
+            <div className="delivery-details-label">Status</div>
             {editMode ? (
               <select
                 name="status"
                 value={updatedDelivery.status}
                 onChange={handleChange}
-                style={styles.select}
+                className="delivery-details-select"
               >
                 <option value="To Collect">To Collect</option>
                 <option value="Collected">Collected</option>
                 <option value="Cancelled">Cancelled</option>
               </select>
             ) : (
-              <div style={statusStyles[delivery.status]}>{delivery.status}</div>
+              <div className={`status-${delivery.status.toLowerCase().replace(' ', '-')}`}>
+                {delivery.status}
+              </div>
             )}
           </div>
 
           {/* Room Number */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Room Number</div>
+          <div className="delivery-details-box">
+            <div className="delivery-details-label">Room Number</div>
             {editMode ? (
               <input
                 type="text"
                 name="roomNumber"
                 value={updatedDelivery.roomNumber}
                 onChange={handleChange}
-                style={styles.input}
+                className="delivery-details-input"
               />
             ) : (
-              <div style={styles.value}>{delivery.roomNumber}</div>
+              <div className="delivery-details-value">{delivery.roomNumber}</div>
             )}
           </div>
 
           {/* Recipient Name */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Recipient Name</div>
-            <div style={styles.value}>{delivery.recipientName}</div>
+          <div className="delivery-details-box">
+            <div className="delivery-details-label">Recipient Name</div>
+            <div className="delivery-details-value">{delivery.recipientName}</div>
           </div>
 
           {/* Created At */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Created At</div>
-            <div style={styles.value}>
+          <div className="delivery-details-box">
+            <div className="delivery-details-label">Created At</div>
+            <div className="delivery-details-value">
               {new Date(delivery.arrivedAt).toLocaleString()}
             </div>
           </div>
 
           {/* Collected At */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Collected At</div>
-            <div style={styles.value}>
+          <div className="delivery-details-box">
+            <div className="delivery-details-label">Collected At</div>
+            <div className="delivery-details-value">
               {delivery.collectedAt ? new Date(delivery.collectedAt).toLocaleString() : "N/A"}
             </div>
           </div>
 
           {/* Description */}
-          <div style={{...styles.detailBox, gridColumn: '1 / -1'}}>
-            <div style={styles.label}>Description</div>
+          <div className="delivery-details-box" style={{ gridColumn: '1 / -1' }}>
+            <div className="delivery-details-label">Description</div>
             {editMode ? (
               <input
                 type="text"
                 name="description"
                 value={updatedDelivery.description}
                 onChange={handleChange}
-                style={styles.input}
+                className="delivery-details-input"
               />
             ) : (
-              <div style={styles.value}>{delivery.description}</div>
+              <div className="delivery-details-value">{delivery.description}</div>
             )}
           </div>
         </div>

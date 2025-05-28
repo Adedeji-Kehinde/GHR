@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AdminHeader from "../components/AdminHeader";
 import AdminTabs from "../components/AdminTabs";
+import './contact.css';
 
 const ContactUsDetails = () => {
   const location = useLocation();
@@ -77,124 +78,6 @@ const ContactUsDetails = () => {
     ? new Date(submission.completedAt).toLocaleString()
     : "N/A";
 
-  // Styles matching other admin pages
-  const styles = {
-    content: {
-      marginTop: 40,
-      margin: 40,
-      padding: '2rem',
-      width: "90vw",
-      background: '#f8f9fa',
-    },
-    detailsGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(3, 1fr)",
-      gap: "1.5rem",
-      marginBottom: "2rem",
-      backgroundColor: "#fff",
-      padding: "2rem",
-      borderRadius: "8px",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
-    },
-    messageGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(2, 1fr)",
-      gap: "1.5rem",
-      marginBottom: "2rem",
-      backgroundColor: "#fff",
-      padding: "2rem",
-      borderRadius: "8px",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
-    },
-    detailBox: {
-      padding: "1.5rem",
-      backgroundColor: "#fff",
-      borderRadius: "8px",
-      border: "1px solid #dee2e6"
-    },
-    label: {
-      fontWeight: "bold",
-      marginBottom: "0.5rem",
-      display: "block",
-      color: "#495057"
-    },
-    value: {
-      fontSize: "1rem",
-      color: "#212529"
-    },
-    select: {
-      width: "100%",
-      padding: "0.5rem",
-      borderRadius: "4px",
-      border: "1px solid #ced4da",
-      fontSize: "1rem"
-    },
-    textarea: {
-      width: "100%",
-      padding: "1rem",
-      borderRadius: "4px",
-      border: "1px solid #ced4da",
-      resize: "vertical",
-      minHeight: "150px",
-      fontSize: "1rem",
-      backgroundColor: "#fff"
-    },
-    readOnlyTextarea: {
-      width: "100%",
-      padding: "1rem",
-      borderRadius: "4px",
-      border: "1px solid #ced4da",
-      resize: "vertical",
-      minHeight: "150px",
-      fontSize: "1rem",
-      backgroundColor: "#f8f9fa"
-    },
-    buttonGroup: {
-      display: "flex",
-      gap: "1rem",
-      justifyContent: "flex-end",
-      marginTop: "2rem"
-    },
-    button: {
-      padding: "0.75rem 1.5rem",
-      borderRadius: "4px",
-      border: "none",
-      cursor: "pointer",
-      fontSize: "1rem",
-      fontWeight: "500"
-    },
-    saveButton: {
-      backgroundColor: "#28a745",
-      color: "#fff"
-    },
-    deleteButton: {
-      backgroundColor: "#dc3545",
-      color: "#fff"
-    },
-    cancelButton: {
-      backgroundColor: "#6c757d",
-      color: "#fff"
-    }
-  };
-
-  // Status styles matching the main page
-  const statusStyles = {
-    "pending": {
-      backgroundColor: '#fff3e0',  // Light orange
-      color: '#e65100',
-      padding: '4px 8px',
-      borderRadius: '4px',
-      fontWeight: 'bold'
-    },
-    "completed": {
-      backgroundColor: '#e8f5e9',  // Light green
-      color: '#2e7d32',
-      padding: '4px 8px',
-      borderRadius: '4px',
-      fontWeight: 'bold'
-    }
-  };
-
   return (
     <>
       <AdminHeader 
@@ -204,91 +87,91 @@ const ContactUsDetails = () => {
       />
       <AdminTabs />
       
-      <div style={styles.content}>
+      <div className="contact-details-content">
         {/* Contact Details Grid */}
-        <div style={styles.detailsGrid}>
+        <div className="contact-details-grid">
           {/* Contact Name */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Contact Name</div>
-            <div style={styles.value}>{submission.firstName} {submission.lastName}</div>
+          <div className="contact-details-box">
+            <div className="contact-details-label">Contact Name</div>
+            <div className="contact-details-value">{submission.firstName} {submission.lastName}</div>
           </div>
           {/* Email */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Email</div>
-            <div style={styles.value}>{submission.email}</div>
+          <div className="contact-details-box">
+            <div className="contact-details-label">Email</div>
+            <div className="contact-details-value">{submission.email}</div>
           </div>
           {/* Phone */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Phone</div>
-            <div style={styles.value}>{submission.phone}</div>
+          <div className="contact-details-box">
+            <div className="contact-details-label">Phone</div>
+            <div className="contact-details-value">{submission.phone}</div>
           </div>
           {/* Submitted At */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Submitted At</div>
-            <div style={styles.value}>{formattedSubmittedAt}</div>
+          <div className="contact-details-box">
+            <div className="contact-details-label">Submitted At</div>
+            <div className="contact-details-value">{formattedSubmittedAt}</div>
           </div>
           {/* Completed At */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Completed At</div>
-            <div style={styles.value}>{formattedCompletedAt}</div>
+          <div className="contact-details-box">
+            <div className="contact-details-label">Completed At</div>
+            <div className="contact-details-value">{formattedCompletedAt}</div>
           </div>
           {/* Status */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Status</div>
+          <div className="contact-details-box">
+            <div className="contact-details-label">Status</div>
             <select
               value={status}
               onChange={handleStatusChange}
-              style={styles.select}
+              className="contact-details-select"
             >
               <option value="pending">Pending</option>
               <option value="completed">Completed</option>
             </select>
             <div style={{marginTop: '0.5rem'}}>
-              <div style={statusStyles[status]}>{status}</div>
+              <div className={`status-${status.toLowerCase()}`}>{status}</div>
             </div>
           </div>
         </div>
 
         {/* Message and Action Taken Grid */}
-        <div style={styles.messageGrid}>
+        <div className="contact-details-message-grid">
           {/* Message */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Message</div>
+          <div className="contact-details-box">
+            <div className="contact-details-label">Message</div>
             <textarea
               value={submission.message}
               readOnly
-              style={styles.readOnlyTextarea}
+              className="contact-details-textarea-readonly"
             />
           </div>
           {/* Action Taken */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Action Taken</div>
+          <div className="contact-details-box">
+            <div className="contact-details-label">Action Taken</div>
             <textarea
               value={actionTaken}
               onChange={handleActionTakenChange}
               placeholder="Responded by email/phone?"
-              style={styles.textarea}
+              className="contact-details-textarea"
             />
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div style={styles.buttonGroup}>
+        <div className="contact-details-button-group">
           <button
             onClick={handleSave}
-            style={{...styles.button, ...styles.saveButton}}
+            className="contact-details-button contact-details-button-save"
           >
             Save Changes
           </button>
           <button
             onClick={handleDelete}
-            style={{...styles.button, ...styles.deleteButton}}
+            className="contact-details-button contact-details-button-delete"
           >
             Delete
           </button>
           <button
             onClick={() => navigate(-1)}
-            style={{...styles.button, ...styles.cancelButton}}
+            className="contact-details-button contact-details-button-cancel"
           >
             Cancel
           </button>

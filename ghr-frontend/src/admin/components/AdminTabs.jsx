@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import './admin.css';
 
 const baseTabStyle = {
   display: "flex",
@@ -57,18 +58,10 @@ const AdminTabs = () => {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div style={expanded ? containerExpandedStyle : containerCollapsedStyle}>
+    <div className={`admin-tabs-container ${expanded ? 'expanded' : ''}`}>
       {/* Toggle Button using text labels */}
       <div
-        style={{
-          ...baseTabStyle,
-          alignSelf: "stretch",
-          justifyContent: "center",
-          borderBottom: "1px solid #ddd",
-          padding: "0.5rem",
-          fontSize: "0.9rem",
-          fontWeight: "bold",
-        }}
+        className="admin-tabs-toggle"
         onClick={() => setExpanded((prev) => !prev)}
       >
         {expanded ? "Minimise" : "Expand"}
@@ -77,21 +70,16 @@ const AdminTabs = () => {
       {tabsData.map((tab) => (
         <div
           key={tab.route}
-          style={{
-            ...baseTabStyle,
-            width: "100%",
-            justifyContent: expanded ? "flex-start" : "center",
-            padding: expanded ? "0.5rem 1rem" : "0.5rem 0",
-          }}
+          className={`admin-tabs-item ${expanded ? 'expanded' : ''}`}
           onClick={() => navigate(tab.route)}
         >
           <img
             src={tab.icon}
             alt={tab.title}
-            style={expanded ? iconStyleExpanded : iconStyle}
+            className={`admin-tabs-icon ${expanded ? 'expanded' : ''}`}
             title={tab.title}
           />
-          {expanded && <span style={{ fontSize: "1rem", color: "#333" }}>{tab.title}</span>}
+          {expanded && <span className="admin-tabs-text">{tab.title}</span>}
         </div>
       ))}
     </div>

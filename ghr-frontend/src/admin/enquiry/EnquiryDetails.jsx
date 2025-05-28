@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AdminHeader from "../components/AdminHeader";
 import AdminTabs from "../components/AdminTabs";
+import './enquiry.css';
 
 const EnquiryDetails = () => {
   const location = useLocation();
@@ -71,106 +72,6 @@ const EnquiryDetails = () => {
     ? new Date(enquiry.resolvedAt).toLocaleString()
     : "N/A";
 
-  // Styles matching other admin pages
-  const styles = {
-    content: {
-      marginTop: 40,
-      margin: 40,
-      padding: '2rem',
-      width: "90vw",
-      background: '#f8f9fa',
-    },
-    detailsGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(2, 1fr)",
-      gap: "1.5rem",
-      marginBottom: "2rem",
-      backgroundColor: "#fff",
-      padding: "2rem",
-      borderRadius: "8px",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-    },
-    fullWidth: {
-      gridColumn: "1 / -1",
-    },
-    detailBox: {
-      padding: "1.5rem",
-      backgroundColor: "#fff",
-      borderRadius: "8px",
-      border: "1px solid #dee2e6",
-    },
-    label: {
-      fontWeight: "bold",
-      marginBottom: "0.5rem",
-      display: "block",
-      color: "#495057",
-    },
-    value: {
-      fontSize: "1rem",
-      color: "#212529",
-    },
-    select: {
-      width: "100%",
-      padding: "0.5rem",
-      borderRadius: "4px",
-      border: "1px solid #ced4da",
-      fontSize: "1rem",
-    },
-    textarea: {
-      width: "100%",
-      padding: "1rem",
-      borderRadius: "4px",
-      border: "1px solid #ced4da",
-      resize: "vertical",
-      minHeight: "150px",
-      fontSize: "1rem",
-    },
-    buttonGroup: {
-      display: "flex",
-      gap: "1rem",
-      justifyContent: "flex-end",
-      marginTop: "2rem",
-    },
-    button: {
-      padding: "0.75rem 1.5rem",
-      borderRadius: "4px",
-      border: "none",
-      cursor: "pointer",
-      fontSize: "1rem",
-      fontWeight: "500",
-    },
-    saveButton: {
-      backgroundColor: "#28a745",
-      color: "#fff",
-    },
-    deleteButton: {
-      backgroundColor: "#dc3545",
-      color: "#fff",
-    },
-    cancelButton: {
-      backgroundColor: "#6c757d",
-      color: "#fff",
-    },
-  };
-
-  // Status styles matching the main page
-  const statusStyles = {
-    "Pending": {
-      backgroundColor: '#fff3e0',  // Light orange
-      color: '#e65100',
-      padding: '4px 8px',
-      borderRadius: '4px',
-      fontWeight: 'bold'
-    },
-    "Resolved": {
-      backgroundColor: '#e8f5e9',  // Light green
-      color: '#2e7d32',
-      padding: '4px 8px',
-      borderRadius: '4px',
-      fontWeight: 'bold'
-    }
-  };
-
   return (
     <>
       <AdminHeader 
@@ -180,82 +81,82 @@ const EnquiryDetails = () => {
       />
       <AdminTabs />
       
-      <div style={styles.content}>
-        <div style={styles.detailsGrid}>
+      <div className="enquiry-details-content">
+        <div className="enquiry-details-grid">
           {/* Request ID */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Request ID</div>
-            <div style={styles.value}>{enquiry.requestId}</div>
+          <div className="enquiry-details-box">
+            <div className="enquiry-details-label">Request ID</div>
+            <div className="enquiry-details-value">{enquiry.requestId}</div>
           </div>
           {/* Room Number */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Room Number</div>
-            <div style={styles.value}>{enquiry.roomNumber}</div>
+          <div className="enquiry-details-box">
+            <div className="enquiry-details-label">Room Number</div>
+            <div className="enquiry-details-value">{enquiry.roomNumber}</div>
           </div>
           {/* Enquirer Name */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Enquirer Name</div>
-            <div style={styles.value}>{enquiry.enquirerName}</div>
+          <div className="enquiry-details-box">
+            <div className="enquiry-details-label">Enquirer Name</div>
+            <div className="enquiry-details-value">{enquiry.enquirerName}</div>
           </div>
           {/* Status */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Status</div>
+          <div className="enquiry-details-box">
+            <div className="enquiry-details-label">Status</div>
             <select
               value={status}
               onChange={handleStatusChange}
-              style={styles.select}
+              className="enquiry-details-select"
             >
               <option value="Pending">Pending</option>
               <option value="Resolved">Resolved</option>
             </select>
           </div>
           {/* Created At */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Created At</div>
-            <div style={styles.value}>{formattedCreatedAt}</div>
+          <div className="enquiry-details-box">
+            <div className="enquiry-details-label">Created At</div>
+            <div className="enquiry-details-value">{formattedCreatedAt}</div>
           </div>
           {/* Resolved At */}
-          <div style={styles.detailBox}>
-            <div style={styles.label}>Resolved At</div>
-            <div style={styles.value}>{formattedResolvedAt}</div>
+          <div className="enquiry-details-box">
+            <div className="enquiry-details-label">Resolved At</div>
+            <div className="enquiry-details-value">{formattedResolvedAt}</div>
           </div>
           {/* Enquiry Text */}
-          <div style={{...styles.detailBox, ...styles.fullWidth}}>
-            <div style={styles.label}>Enquiry Text</div>
+          <div className="enquiry-details-box" style={{ gridColumn: '1 / -1' }}>
+            <div className="enquiry-details-label">Enquiry Text</div>
             <textarea
               value={enquiry.enquiryText}
               readOnly
-              style={styles.textarea}
+              className="enquiry-details-textarea"
             />
           </div>
           {/* Response */}
-          <div style={{...styles.detailBox, ...styles.fullWidth}}>
-            <div style={styles.label}>Response</div>
+          <div className="enquiry-details-box" style={{ gridColumn: '1 / -1' }}>
+            <div className="enquiry-details-label">Response</div>
             <textarea
               value={response}
               onChange={handleResponseChange}
-              style={styles.textarea}
+              className="enquiry-details-textarea"
               placeholder="Enter your response here..."
             />
           </div>
         </div>
 
-        <div style={styles.buttonGroup}>
+        <div className="enquiry-details-button-group">
           <button
             onClick={handleSave}
-            style={{...styles.button, ...styles.saveButton}}
+            className="enquiry-details-button enquiry-details-save-btn"
           >
             Save Changes
           </button>
           <button
             onClick={handleDelete}
-            style={{...styles.button, ...styles.deleteButton}}
+            className="enquiry-details-button enquiry-details-delete-btn"
           >
             Delete
           </button>
           <button
             onClick={() => navigate(-1)}
-            style={{...styles.button, ...styles.cancelButton}}
+            className="enquiry-details-button enquiry-details-cancel-btn"
           >
             Cancel
           </button>

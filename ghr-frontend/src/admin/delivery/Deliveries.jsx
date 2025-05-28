@@ -9,6 +9,7 @@ import plusImage from '/images/plusImage.png';
 import deleteImage from '/images/deleteImage.png'; // Bulk delete image
 import Loading from '../../pages/components/Loading';
 import bookedIcon from '/images/booked.png';
+import './delivery.css';
 
 const DeliveryManagement = () => {
   // Admin details state
@@ -193,99 +194,6 @@ const DeliveryManagement = () => {
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
   if (!admin) return <Loading icon="/images/deliveries.png" text="Loading delivery details..." />;
 
-  // Styles matching BookingManagement.jsx
-  const styles = {
-    content: {
-      marginTop: 40,
-      margin: 40,
-      padding: '2rem',
-      width: "90vw",
-      background: '#f8f9fa',
-    },
-    topBoxes: {
-      display: 'flex',
-      gap: 16,
-      marginBottom: 24
-    },
-    box: selected => ({
-      flex: 1,
-      display: 'flex',
-      alignItems: 'center',
-      padding: 16,
-      borderRadius: 5,
-      border: selected ? '2px solid #007bff' : '1px solid #ccc',
-      background: '#fff',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      cursor: 'pointer',
-      gap: 16,
-      whiteSpace: 'nowrap'
-    }),
-    icon: {
-      width: 40,
-      height: 40,
-      flexShrink: 0
-    },
-    textContainer: {
-      display: 'flex',
-      flexDirection: 'column',
-      lineHeight: 1.2
-    },
-    title: {
-      margin: 0,
-      fontSize: 14,
-      fontWeight: 'bold'
-    },
-    count: {
-      margin: 0,
-      fontSize: 18,
-      color: '#333'
-    },
-    filterBar: {
-      display: 'flex',
-      gap: 16,
-      marginBottom: 16,
-      alignItems: 'center'
-    },
-    search: {
-      width: '75%',
-      padding: 8,
-      fontSize: 14
-    },
-    addBtn: {
-      width: '25%',
-      padding: 8,
-      fontSize: 14,
-      background: '#007bff',
-      color: '#fff',
-      border: 'none',
-      borderRadius: 4,
-      cursor: 'pointer'
-    },
-    tableCard: {
-      background: '#fff',
-      borderRadius: 5,
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      overflowY: 'auto',
-      maxHeight: 400,
-      padding: 16
-    },
-    table: {
-      width: '100%',
-      borderCollapse: 'collapse',
-      textAlign: 'left',
-      fontSize: 14
-    },
-    th: {
-      padding: 8,
-      borderBottom: '2px solid #ddd',
-      fontWeight: 'bold'
-    },
-    td: {
-      padding: 8,
-      borderBottom: '1px solid #eee'
-    }
-  };
-
   return (
     <>
       <AdminHeader 
@@ -295,57 +203,57 @@ const DeliveryManagement = () => {
       />
       <AdminTabs />
 
-      <div style={styles.content}>
+      <div className="delivery-management-content">
         {/* Top cards */}
-        <div style={styles.topBoxes}>
+        <div className="delivery-management-top-boxes">
           <div
-            style={styles.box(viewStatus === "all")}
+            className={`delivery-management-box ${viewStatus === "all" ? "selected" : ""}`}
             onClick={() => setViewStatus("all")}
           >
-            <img src={bookedIcon} alt="" style={styles.icon}/>
-            <div style={styles.textContainer}>
-              <p style={styles.title}>All Deliveries</p>
-              <p style={styles.count}>{countAll}</p>
+            <img src={bookedIcon} alt="" className="delivery-management-icon"/>
+            <div className="delivery-management-text-container">
+              <p className="delivery-management-title">All Deliveries</p>
+              <p className="delivery-management-count">{countAll}</p>
             </div>
           </div>
           <div
-            style={styles.box(viewStatus === "toCollect")}
+            className={`delivery-management-box ${viewStatus === "toCollect" ? "selected" : ""}`}
             onClick={() => setViewStatus("toCollect")}
           >
-            <img src={bookedIcon} alt="" style={styles.icon}/>
-            <div style={styles.textContainer}>
-              <p style={styles.title}>To Collect</p>
-              <p style={styles.count}>{countToCollect}</p>
+            <img src={bookedIcon} alt="" className="delivery-management-icon"/>
+            <div className="delivery-management-text-container">
+              <p className="delivery-management-title">To Collect</p>
+              <p className="delivery-management-count">{countToCollect}</p>
             </div>
           </div>
           <div
-            style={styles.box(viewStatus === "collected")}
+            className={`delivery-management-box ${viewStatus === "collected" ? "selected" : ""}`}
             onClick={() => setViewStatus("collected")}
           >
-            <img src={bookedIcon} alt="" style={styles.icon}/>
-            <div style={styles.textContainer}>
-              <p style={styles.title}>Collected</p>
-              <p style={styles.count}>{countCollected}</p>
+            <img src={bookedIcon} alt="" className="delivery-management-icon"/>
+            <div className="delivery-management-text-container">
+              <p className="delivery-management-title">Collected</p>
+              <p className="delivery-management-count">{countCollected}</p>
             </div>
           </div>
         </div>
 
         {/* Search + Add New */}
-        <div style={styles.filterBar}>
-        <input
-          type="text"
-          placeholder="Search deliveries..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-            style={styles.search}
+        <div className="delivery-management-filter-bar">
+          <input
+            type="text"
+            placeholder="Search deliveries..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="delivery-management-search"
           />
           <button
-            style={styles.addBtn}
+            className="delivery-management-add-btn"
             onClick={() => navigate('/add-delivery')}
           >
             Add New Delivery
           </button>
-        {selectedDeliveryIds.length > 0 && (
+          {selectedDeliveryIds.length > 0 && (
             <img 
               src={deleteImage} 
               alt="Delete Selected" 
@@ -353,62 +261,62 @@ const DeliveryManagement = () => {
               style={{ width: 24, height: 24, cursor: 'pointer' }}
             />
           )}
-          </div>
+        </div>
 
         {/* Deliveries table */}
-        <div style={styles.tableCard}>
-          <table style={styles.table}>
-          <thead>
-            <tr>
-                <th style={styles.th}>
+        <div className="delivery-management-table-card">
+          <table className="delivery-management-table">
+            <thead>
+              <tr>
+                <th className="delivery-management-th">
                   <input
                     type="checkbox"
                     checked={filteredDeliveries.length > 0 && selectedDeliveryIds.length === filteredDeliveries.length}
                     onChange={handleSelectAll}
                   />
-              </th>
-                <th style={styles.th}>Parcel Number</th>
-                <th style={styles.th}>Sender</th>
-                <th style={styles.th}>Parcel Type</th>
-                <th style={styles.th}>Description</th>
-                <th style={styles.th}>Status</th>
-                <th style={styles.th}>Room Number</th>
-                <th style={styles.th}>Recipient Name</th>
-                <th style={styles.th}>Created At</th>
-                <th style={styles.th}>Collected At</th>
-            </tr>
-          </thead>
-          <tbody>
+                </th>
+                <th className="delivery-management-th">Parcel Number</th>
+                <th className="delivery-management-th">Sender</th>
+                <th className="delivery-management-th">Parcel Type</th>
+                <th className="delivery-management-th">Description</th>
+                <th className="delivery-management-th">Status</th>
+                <th className="delivery-management-th">Room Number</th>
+                <th className="delivery-management-th">Recipient Name</th>
+                <th className="delivery-management-th">Created At</th>
+                <th className="delivery-management-th">Collected At</th>
+              </tr>
+            </thead>
+            <tbody>
               {filteredDeliveries.map((delivery) => (
-              <tr 
-                key={delivery._id}
-                onClick={() => { setViewDelivery(delivery); setShowDetailsModal(true); }}
-                style={{ cursor: "pointer" }}
-              >
-                  <td style={styles.td} onClick={e => e.stopPropagation()}>
-                  <input 
+                <tr 
+                  key={delivery._id}
+                  onClick={() => { setViewDelivery(delivery); setShowDetailsModal(true); }}
+                  style={{ cursor: "pointer" }}
+                >
+                  <td className="delivery-management-td" onClick={e => e.stopPropagation()}>
+                    <input 
                       type="checkbox"
-                    checked={selectedDeliveryIds.includes(delivery._id)}
+                      checked={selectedDeliveryIds.includes(delivery._id)}
                       onChange={(e) => handleRowSelect(e, delivery._id)}
-                  />
-                </td>
-                  <td style={styles.td}>{delivery.parcelNumber}</td>
-                  <td style={styles.td}>{delivery.sender}</td>
-                  <td style={styles.td}>{delivery.parcelType}</td>
-                  <td style={styles.td}>{delivery.description}</td>
-                  <td style={styles.td}>
-                    <span style={statusStyles[delivery.status] || {}}>
+                    />
+                  </td>
+                  <td className="delivery-management-td">{delivery.parcelNumber}</td>
+                  <td className="delivery-management-td">{delivery.sender}</td>
+                  <td className="delivery-management-td">{delivery.parcelType}</td>
+                  <td className="delivery-management-td">{delivery.description}</td>
+                  <td className="delivery-management-td">
+                    <span className={`status-${delivery.status.toLowerCase().replace(' ', '-')}`}>
                       {delivery.status}
                     </span>
                   </td>
-                  <td style={styles.td}>{delivery.roomNumber}</td>
-                  <td style={styles.td}>{delivery.recipientName}</td>
-                  <td style={styles.td}>{new Date(delivery.arrivedAt).toLocaleString()}</td>
-                  <td style={styles.td}>{delivery.collectedAt ? new Date(delivery.collectedAt).toLocaleString() : "N/A"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  <td className="delivery-management-td">{delivery.roomNumber}</td>
+                  <td className="delivery-management-td">{delivery.recipientName}</td>
+                  <td className="delivery-management-td">{new Date(delivery.arrivedAt).toLocaleString()}</td>
+                  <td className="delivery-management-td">{delivery.collectedAt ? new Date(delivery.collectedAt).toLocaleString() : "N/A"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
         {showDetailsModal && viewDelivery && (

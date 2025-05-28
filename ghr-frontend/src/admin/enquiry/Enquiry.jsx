@@ -7,6 +7,7 @@ import AdminTabs from "../components/AdminTabs";
 import deleteImage from '/images/deleteImage.png';
 import Loading from '../../pages/components/Loading';
 import bookedIcon from '/images/booked.png';
+import './enquiry.css';
 
 const EnquiryManagement = () => {
   const [enquiries, setEnquiries] = useState([]);
@@ -143,107 +144,6 @@ const EnquiryManagement = () => {
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
   if (!admin) return <Loading icon="/images/enquiries.png" text="Loading enquiries..." />;
 
-  // Styles matching other admin pages
-  const styles = {
-    content: {
-      marginTop: 40,
-      margin: 40,
-      padding: '2rem',
-      width: "90vw",
-      background: '#f8f9fa',
-    },
-    topBoxes: {
-      display: 'flex',
-      gap: 16,
-      marginBottom: 24
-    },
-    box: selected => ({
-      flex: 1,
-      display: 'flex',
-      alignItems: 'center',
-      padding: 16,
-      borderRadius: 5,
-      border: selected ? '2px solid #007bff' : '1px solid #ccc',
-      background: '#fff',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      cursor: 'pointer',
-      gap: 16,
-      whiteSpace: 'nowrap'
-    }),
-    icon: {
-      width: 40,
-      height: 40,
-      flexShrink: 0
-    },
-    textContainer: {
-      display: 'flex',
-      flexDirection: 'column',
-      lineHeight: 1.2
-    },
-    title: {
-      margin: 0,
-      fontSize: 14,
-      fontWeight: 'bold'
-    },
-    count: {
-      margin: 0,
-      fontSize: 18,
-      color: '#333'
-    },
-    filterBar: {
-      display: 'flex',
-      gap: 16,
-      marginBottom: 16,
-      alignItems: 'center'
-    },
-    search: {
-      width: '100%',
-      padding: 8,
-      fontSize: 14
-    },
-    tableCard: {
-      background: '#fff',
-      borderRadius: 5,
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      overflowY: 'auto',
-      maxHeight: 400,
-      padding: 16
-    },
-    table: {
-      width: '100%',
-      borderCollapse: 'collapse',
-      textAlign: 'left',
-      fontSize: 14
-    },
-    th: {
-      padding: 8,
-      borderBottom: '2px solid #ddd',
-      fontWeight: 'bold'
-    },
-    td: {
-      padding: 8,
-      borderBottom: '1px solid #eee'
-    }
-  };
-
-  // Add this style object near the other styles
-  const statusStyles = {
-    "Pending": {
-      backgroundColor: '#fff3e0',  // Light orange
-      color: '#e65100',
-      padding: '4px 8px',
-      borderRadius: '4px',
-      fontWeight: 'bold'
-    },
-    "Resolved": {
-      backgroundColor: '#e8f5e9',  // Light green
-      color: '#2e7d32',
-      padding: '4px 8px',
-      borderRadius: '4px',
-      fontWeight: 'bold'
-    }
-  };
-
   return (
     <>
       <AdminHeader
@@ -253,51 +153,51 @@ const EnquiryManagement = () => {
       />
       <AdminTabs />
 
-      <div style={styles.content}>
+      <div className="enquiry-management-content">
         {/* Top cards */}
-        <div style={styles.topBoxes}>
+        <div className="enquiry-management-top-boxes">
           <div
-            style={styles.box(filterStatus === "All")}
+            className={`enquiry-management-box ${filterStatus === "All" ? "selected" : ""}`}
             onClick={() => setFilterStatus("All")}
           >
-            <img src={bookedIcon} alt="" style={styles.icon}/>
-            <div style={styles.textContainer}>
-              <p style={styles.title}>All Enquiries</p>
-              <p style={styles.count}>{countAll}</p>
+            <img src={bookedIcon} alt="" className="enquiry-management-icon"/>
+            <div className="enquiry-management-text-container">
+              <p className="enquiry-management-title">All Enquiries</p>
+              <p className="enquiry-management-count">{countAll}</p>
             </div>
           </div>
           <div
-            style={styles.box(filterStatus === "Pending")}
+            className={`enquiry-management-box ${filterStatus === "Pending" ? "selected" : ""}`}
             onClick={() => setFilterStatus("Pending")}
           >
-            <img src={bookedIcon} alt="" style={styles.icon}/>
-            <div style={styles.textContainer}>
-              <p style={styles.title}>Pending</p>
-              <p style={styles.count}>{countPending}</p>
+            <img src={bookedIcon} alt="" className="enquiry-management-icon"/>
+            <div className="enquiry-management-text-container">
+              <p className="enquiry-management-title">Pending</p>
+              <p className="enquiry-management-count">{countPending}</p>
             </div>
           </div>
           <div
-            style={styles.box(filterStatus === "Resolved")}
+            className={`enquiry-management-box ${filterStatus === "Resolved" ? "selected" : ""}`}
             onClick={() => setFilterStatus("Resolved")}
           >
-            <img src={bookedIcon} alt="" style={styles.icon}/>
-            <div style={styles.textContainer}>
-              <p style={styles.title}>Resolved</p>
-              <p style={styles.count}>{countResolved}</p>
+            <img src={bookedIcon} alt="" className="enquiry-management-icon"/>
+            <div className="enquiry-management-text-container">
+              <p className="enquiry-management-title">Resolved</p>
+              <p className="enquiry-management-count">{countResolved}</p>
             </div>
           </div>
         </div>
 
         {/* Search bar */}
-        <div style={styles.filterBar}>
-        <input
-          type="text"
-          placeholder="Search enquiries..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-            style={styles.search}
-        />
-        {selectedEnquiries.length > 0 && (
+        <div className="enquiry-management-filter-bar">
+          <input
+            type="text"
+            placeholder="Search enquiries..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="enquiry-management-search"
+          />
+          {selectedEnquiries.length > 0 && (
             <img
               src={deleteImage}
               alt="Delete Selected"
@@ -305,60 +205,60 @@ const EnquiryManagement = () => {
               style={{ width: 24, height: 24, cursor: 'pointer' }}
             />
           )}
-          </div>
+        </div>
 
         {/* Enquiries table */}
-        <div style={styles.tableCard}>
-          <table style={styles.table}>
-          <thead>
-            <tr>
-                <th style={styles.th}>
+        <div className="enquiry-management-table-card">
+          <table className="enquiry-management-table">
+            <thead>
+              <tr>
+                <th className="enquiry-management-th">
                   <input
                     type="checkbox"
                     checked={filteredEnquiries.length > 0 && selectedEnquiries.length === filteredEnquiries.length}
                     onChange={handleSelectAll}
                   />
-              </th>
-                <th style={styles.th}>Request ID</th>
-                <th style={styles.th}>Room Number</th>
-                <th style={styles.th}>Enquiry Text</th>
-                <th style={styles.th}>Enquirer Name</th>
-                <th style={styles.th}>Status</th>
-                <th style={styles.th}>Response</th>
-                <th style={styles.th}>Created At</th>
-                <th style={styles.th}>Resolved At</th>
-            </tr>
-          </thead>
-          <tbody>
+                </th>
+                <th className="enquiry-management-th">Request ID</th>
+                <th className="enquiry-management-th">Room Number</th>
+                <th className="enquiry-management-th">Enquiry Text</th>
+                <th className="enquiry-management-th">Enquirer Name</th>
+                <th className="enquiry-management-th">Status</th>
+                <th className="enquiry-management-th">Response</th>
+                <th className="enquiry-management-th">Created At</th>
+                <th className="enquiry-management-th">Resolved At</th>
+              </tr>
+            </thead>
+            <tbody>
               {filteredEnquiries.map((enquiry) => (
-              <tr 
-                key={enquiry._id}
-                onClick={() => handleRowClick(enquiry)}
+                <tr 
+                  key={enquiry._id}
+                  onClick={() => handleRowClick(enquiry)}
                   style={{ cursor: "pointer" }}
-              >
-                  <td style={styles.td} onClick={e => e.stopPropagation()}>
-                  <input
+                >
+                  <td className="enquiry-management-td" onClick={e => e.stopPropagation()}>
+                    <input
                       type="checkbox"
-                    checked={selectedEnquiries.includes(enquiry._id)}
+                      checked={selectedEnquiries.includes(enquiry._id)}
                       onChange={(e) => toggleSelectRow(e, enquiry._id)}
-                  />
-                </td>
-                  <td style={styles.td}>{enquiry.requestId}</td>
-                  <td style={styles.td}>{enquiry.roomNumber}</td>
-                  <td style={styles.td}>{enquiry.enquiryText}</td>
-                  <td style={styles.td}>{enquiry.enquirerName}</td>
-                  <td style={styles.td}>
-                    <span style={statusStyles[enquiry.status] || {}}>
+                    />
+                  </td>
+                  <td className="enquiry-management-td">{enquiry.requestId}</td>
+                  <td className="enquiry-management-td">{enquiry.roomNumber}</td>
+                  <td className="enquiry-management-td">{enquiry.enquiryText}</td>
+                  <td className="enquiry-management-td">{enquiry.enquirerName}</td>
+                  <td className="enquiry-management-td">
+                    <span className={`status-${enquiry.status.toLowerCase()}`}>
                       {enquiry.status}
                     </span>
                   </td>
-                  <td style={styles.td}>{enquiry.response}</td>
-                  <td style={styles.td}>{new Date(enquiry.createdAt).toLocaleString()}</td>
-                  <td style={styles.td}>{enquiry.resolvedAt ? new Date(enquiry.resolvedAt).toLocaleString() : "N/A"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  <td className="enquiry-management-td">{enquiry.response}</td>
+                  <td className="enquiry-management-td">{new Date(enquiry.createdAt).toLocaleString()}</td>
+                  <td className="enquiry-management-td">{enquiry.resolvedAt ? new Date(enquiry.resolvedAt).toLocaleString() : "N/A"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </>
