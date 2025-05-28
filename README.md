@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Griffith Halls of Residence (GHR) – Full Stack Project
 
 A modern, full-featured platform for Griffith Halls of Residence, supporting residents and administrators with web, mobile (Android & iOS), and payment solutions.
@@ -7,11 +8,17 @@ A modern, full-featured platform for Griffith Halls of Residence, supporting res
 ## Live Demo
 
 The application is already hosted and available at: [https://ghr-psi.vercel.app/](https://ghr-psi.vercel.app/)
+=======
+# Griffith Halls of Residence (GHR) Frontend
+
+A modern, full-featured web application for Griffith Halls of Residence, built with React and Vite. This project provides a seamless experience for both residents (students/professionals) and administrators, including room booking, profile management, announcements, maintenance, and more.
+>>>>>>> 7e9203465dbc3e2cb31273a05933ab60343e9c5b
 
 ---
 
 ## Table of Contents
 - [Features](#features)
+<<<<<<< HEAD
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
 - [Frontend (React/Vite)](#frontend-reactvite)
@@ -22,10 +29,20 @@ The application is already hosted and available at: [https://ghr-psi.vercel.app/
 - [Technologies Used](#technologies-used)
 - [Contributing](#contributing)
 - [Screenshots](#screenshots)
+=======
+- [Screenshots](#screenshots)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Available Scripts](#available-scripts)
+- [Technologies Used](#technologies-used)
+- [Contributing](#contributing)
+- [License](#license)
+>>>>>>> 7e9203465dbc3e2cb31273a05933ab60343e9c5b
 
 ---
 
 ## Features
+<<<<<<< HEAD
 
 - **User Portal:** Book rooms, view amenities, manage bookings, submit enquiries, and more.
 - **Admin Dashboard:** Manage bookings, users, announcements, maintenance, deliveries, testimonials, and more.
@@ -37,10 +54,29 @@ The application is already hosted and available at: [https://ghr-psi.vercel.app/
 - **Authentication:** Secure login for both users and admins (Firebase, JWT).
 - **Notifications:** Announcements and updates for residents.
 - **Maintenance & Enquiries:** Submit and track requests easily.
+=======
+- **User Portal**: Book rooms, view amenities, manage bookings, submit enquiries, and more.
+- **Admin Dashboard**: Manage bookings, users, announcements, maintenance, deliveries, testimonials, and more.
+- **Mobile App Download**: Android APK available for residents.
+- **Modern UI/UX**: Responsive design, animated transitions, and a clean, intuitive interface.
+- **Authentication**: Secure login for both users and admins.
+- **Notifications**: Announcements and updates for residents.
+- **Maintenance & Enquiries**: Submit and track requests easily.
+
+---
+
+## Screenshots
+> **Tip:** Add screenshots of your main pages here for a more visual README. Place images in `public/screenshots/` and reference them as below.
+
+| Landing Page | Admin Dashboard | Booking Page | Mobile App |
+|-------------|----------------|-------------|------------|
+| ![Landing](public/screenshots/landing.png) | ![Admin](public/screenshots/admin.png) | ![Booking](public/screenshots/booking.png) | ![App](public/screenshots/app.png) |
+>>>>>>> 7e9203465dbc3e2cb31273a05933ab60343e9c5b
 
 ---
 
 ## Project Structure
+<<<<<<< HEAD
 
 ```
 project-root/
@@ -50,6 +86,36 @@ project-root/
 ├── app/                  # Android mobile app (Kotlin, Jetpack Compose)
 ├── ios-app/              # Native iOS mobile app (SwiftUI)
 └── ...                   # (Other folders as needed)
+=======
+```
+ghr-frontend/
+├── public/                # Static assets (images, videos, icons, etc.)
+├── src/
+│   ├── pages/             # User-facing pages and components
+│   │   ├── components/    # Shared UI components (header, footer, etc.)
+│   │   ├── booking/       # Booking-related pages
+│   │   ├── contact/       # Contact and enquiry pages
+│   │   ├── legal/         # Privacy policy, terms, etc.
+│   │   ├── profile/       # User profile management
+│   │   └── ...
+│   ├── admin/             # Admin dashboard and management sections
+│   │   ├── components/    # Admin shared components (header, tabs, etc.)
+│   │   ├── booking/       # Admin booking management
+│   │   ├── maintenance/   # Maintenance management
+│   │   ├── delivery/      # Delivery management
+│   │   ├── announcement/  # Announcements management
+│   │   ├── enquiry/       # Enquiry management
+│   │   ├── contact/       # Contact submissions management
+│   │   ├── testimonials/  # Testimonials management
+│   │   └── auth/          # Admin authentication & user management
+│   ├── assets/            # Custom fonts, icons, etc.
+│   ├── App.jsx            # Main app component
+│   ├── main.jsx           # Entry point
+│   └── ...
+├── package.json           # Project metadata and dependencies
+├── vite.config.js         # Vite configuration
+└── README.md              # Project documentation
+>>>>>>> 7e9203465dbc3e2cb31273a05933ab60343e9c5b
 ```
 
 ---
@@ -59,6 +125,7 @@ project-root/
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (v18 or newer recommended)
 - [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+<<<<<<< HEAD
 - [Xcode](https://developer.apple.com/xcode/) (for iOS app development)
 - [Android Studio](https://developer.android.com/studio) (for Android app development)
 - [MongoDB](https://www.mongodb.com/) (for backend database)
@@ -148,21 +215,66 @@ project-root/
   1. Open `GHR.xcodeproj` in Xcode.
   2. Select your development team.
   3. Build and run on a simulator or device.
+=======
+
+### Installation
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/ghr-frontend.git
+   cd ghr-frontend
+   ```
+2. **Install dependencies:**
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+3. **Start the development server:**
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+4. **Open your browser:**
+   Visit [http://localhost:5173](http://localhost:5173) (or the port shown in your terminal).
+
+---
+
+## Available Scripts
+- `npm run dev` — Start the development server with hot reload
+- `npm run build` — Build the app for production
+- `npm run preview` — Preview the production build locally
+- `npm run lint` — Run ESLint on the codebase
+>>>>>>> 7e9203465dbc3e2cb31273a05933ab60343e9c5b
 
 ---
 
 ## Technologies Used
+<<<<<<< HEAD
 
 - **Frontend:** React, Vite, React Router, Axios, Firebase, AOS, Chart.js, Recharts, React Icons, React Toastify
 - **Backend:** Node.js, Express, MongoDB, Mongoose, Firebase Admin, JWT, Nodemailer, Cloudinary, Multer, SendGrid, Argon2/Bcrypt
 - **Payments:** Braintree, PayPal
 - **Mobile (Android):** Kotlin, Jetpack Compose, Retrofit, Firebase Auth, FCM
 - **Mobile (iOS):** Swift, SwiftUI, MVVM, Swift Package Manager
+=======
+- [React](https://react.dev/) (v19)
+- [Vite](https://vitejs.dev/)
+- [React Router](https://reactrouter.com/)
+- [Axios](https://axios-http.com/)
+- [Firebase](https://firebase.google.com/) (for authentication, storage, etc.)
+- [AOS](https://michalsnik.github.io/aos/) (animations)
+- [Chart.js](https://www.chartjs.org/) & [Recharts](https://recharts.org/) (charts)
+- [React Toastify](https://fkhadra.github.io/react-toastify/)
+>>>>>>> 7e9203465dbc3e2cb31273a05933ab60343e9c5b
 
 ---
 
 ## Contributing
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7e9203465dbc3e2cb31273a05933ab60343e9c5b
 Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
 
 1. Fork the repository
@@ -172,6 +284,7 @@ Pull requests are welcome! For major changes, please open an issue first to disc
 5. Open a pull request
 
 ---
+<<<<<<< HEAD
 
 ## Screenshots
 
@@ -202,3 +315,5 @@ Pull requests are welcome! For major changes, please open an issue first to disc
 | Add Contact Us      | ![AddContactUs](public/screenshots/add-contactus.png) |
 | Profile             | ![Profile](public/screenshots/profile.png)      |
 | ...                 | ...                                            | 
+=======
+>>>>>>> 7e9203465dbc3e2cb31273a05933ab60343e9c5b
