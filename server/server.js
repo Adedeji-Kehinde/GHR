@@ -29,14 +29,16 @@ mongoose
     process.exit(1); // Exit the process with failure
   });
 
-// Serve static files from the downloads directory with proper MIME type
-app.use('/downloads', express.static(path.join(__dirname, '../ghr-frontend/public/downloads'), {
-  setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.apk')) {
-      res.setHeader('Content-Type', 'application/vnd.android.package-archive');
-    }
-  }
-}));
+  app.use(
+    '/downloads',
+    express.static(path.join(__dirname, 'public', 'downloads'), {
+      setHeaders: (res, filePath) => {
+        if (path.extname(filePath).toLowerCase() === '.apk') {
+          res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+        }
+      }
+    })
+  );
   
 // Routes
 const authRoutes = require("./routes/auth"); // Import auth routes

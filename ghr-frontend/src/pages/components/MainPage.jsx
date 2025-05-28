@@ -283,8 +283,8 @@ const MainPage = () => {
                 flexWrap: "wrap"
               }}>
                 <a 
-                  href="/downloads/ghr-app.apk" 
-                  download
+                  href="/downloads/app-release.apk"
+                  download="GHR-MobileApp-v1.0.0.apk"
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
