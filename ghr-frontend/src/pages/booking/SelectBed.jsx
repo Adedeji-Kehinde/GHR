@@ -217,6 +217,28 @@ const SelectBed = () => {
     <>
       <UserHeader user={user} hideBookRoom={true} />
       <div className="select-bed-page" data-aos="fade-up">
+        <button
+          onClick={() => navigate("/booking")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            border: "1.5px solid #007bff",
+            background: "#fff",
+            color: "#007bff",
+            borderRadius: 8,
+            padding: "0.5rem 1.2rem",
+            fontWeight: 600,
+            fontSize: 16,
+            marginBottom: 24,
+            cursor: "pointer",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+            transition: "background 0.2s, color 0.2s, border 0.2s"
+          }}
+        >
+          <span style={{ fontSize: 20, marginRight: 4 }}>&larr;</span>
+          Edit Preferences
+        </button>
         <h2 data-aos="fade-down">Select Bed</h2>
 
         {/* Booking Summary */}

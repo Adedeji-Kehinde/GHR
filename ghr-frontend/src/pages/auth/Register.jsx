@@ -90,7 +90,12 @@ const Register = () => {
           <p>Register now to join our community</p>
         </div>
         <div className="logo-container">
-          <img src="/images/logo.png" alt="Griffith Halls Logo" />
+          <img
+            src="/images/logo.png"
+            alt="Griffith Halls Logo"
+            style={{ cursor: "pointer" }}
+            onClick={() => navigate("/")}
+          />
         </div>
       </div>
 

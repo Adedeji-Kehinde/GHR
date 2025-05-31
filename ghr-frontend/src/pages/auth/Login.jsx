@@ -104,7 +104,12 @@ const Login = () => {
           <p>Login to access your account and more at Griffith Halls</p>
         </div>
         <div className="logo-container">
-          <img src="/images/logo.png" alt="Griffith Halls Logo" />
+          <img
+            src="/images/logo.png"
+            alt="Griffith Halls Logo"
+            style={{ cursor: "pointer" }}
+            onClick={() => navigate("/")}
+          />
         </div>
       </div>
 
